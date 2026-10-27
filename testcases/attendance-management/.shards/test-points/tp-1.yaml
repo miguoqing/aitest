@@ -1,0 +1,610 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: test-points
+
+test_points:
+  - id: TP-FP-09-01-01
+    scenario_id: SC-FP-09-01
+    statement: "规则未勾选「员工打卡必须拍照」时，员工提交的不含照片的打卡被受理并写入当日考勤记录。"
+    evidence:
+      quote: "未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [等价类划分, 场景法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，拍照开关与照片有无为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，拍照开关与照片有无看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，拍照开关与照片有无的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，拍照开关与照片有无不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，拍照开关与照片有无的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，拍照开关与照片有无无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，拍照开关与照片有无无越权面"
+  - id: TP-FP-09-02-01
+    scenario_id: SC-FP-09-02
+    statement: "规则勾选「员工打卡必须拍照」后，不携带照片的打卡请求被拒绝，当日该时段不生成打卡记录。"
+    evidence:
+      quote: "未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [等价类划分, 逆向场景法, 异常法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，照片有无与开关勾选状态为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，照片有无与开关勾选状态看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 因果图法
+          reason: "本点为单条件单结果，照片有无与开关勾选状态不构成多条件组合的因果约束"
+        - method: 场景法
+          reason: "本点只做单一判定，照片有无与开关勾选状态不构成需要串联的业务流程"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，照片有无与开关勾选状态无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，照片有无与开关勾选状态无越权面"
+  - id: TP-FP-09-03-01
+    scenario_id: SC-FP-09-03
+    statement: "勾选「备注不允许上传本地图片，只能拍照」后，以本地相册图片作为异常打卡备注图片来源的提交被拦截。"
+    evidence:
+      quote: "开启“备注不允许上传本地图片，只能拍照”后，相册来源的备注图必须被拦截。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [异常法, 逆向场景法, 错误推测法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，异常备注的图片来源为离散状态"
+        - method: 等价类划分
+          reason: "备注来源只有相册与现场拍摄两类，已被两个测试点分别覆盖"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 因果图法
+          reason: "本点为单条件单结果，异常备注的图片来源不构成多条件组合的因果约束"
+        - method: 场景法
+          reason: "本点只做单一判定，异常备注的图片来源不构成需要串联的业务流程"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，异常备注的图片来源无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，异常备注的图片来源无越权面"
+  - id: TP-FP-09-03-02
+    scenario_id: SC-FP-09-03
+    statement: "同一规则下，现场拍摄的备注图片仍可提交成功并随该条异常打卡记录保存。"
+    evidence:
+      quote: "配套的强约束针对异常打卡的备注图片：勾选“备注不允许上传本地图片，只能拍照”后，备注只能现场拍摄上传，本地相册图片被禁止。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "拍照打卡"
+    methods:
+      applicable: [等价类划分, 场景法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，备注图片的两种来源为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，备注图片的两种来源看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，备注图片的两种来源的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，备注图片的两种来源不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，备注图片的两种来源的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，备注图片的两种来源无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，备注图片的两种来源无越权面"
+  - id: TP-FP-10-01-01
+    scenario_id: SC-FP-10-01
+    statement: "补卡申请审批通过后，该员工当日被打上异常标记的打卡状态被系统自动校正为正常。"
+    evidence:
+      quote: "审批通过后，系统自动将异常打卡状态校正为正常。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "补卡申请"
+    methods:
+      applicable: [场景法, 因果图法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，补卡审批结论与打卡状态为离散状态"
+        - method: 等价类划分
+          reason: "本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，补卡审批结论与打卡状态看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，补卡审批结论与打卡状态的逆路径由同场景其他测试点承担"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，补卡审批结论与打卡状态的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，补卡审批结论与打卡状态无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，补卡审批结论与打卡状态无越权面"
+  - id: TP-FP-10-01-02
+    scenario_id: SC-FP-10-01
+    statement: "补卡审批通过后的校准结果在【打卡记录】>【校准状态】中可见。"
+    evidence:
+      quote: "审批通过后异常状态自动转为正常，且校准结果在【打卡记录】>【校准状态】中可见。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [等价类划分, 场景法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，校准结果的展示字段为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，校准结果的展示字段看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，校准结果的展示字段的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，校准结果的展示字段不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，校准结果的展示字段的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，校准结果的展示字段无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，校准结果的展示字段无越权面"
+  - id: TP-FP-10-02-01
+    scenario_id: SC-FP-10-02
+    statement: "补卡申请审批未通过时，该员工当日的异常打卡状态保持原值，不出现任何自动校准。"
+    evidence:
+      quote: "补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [逆向场景法, 因果图法, 异常法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，审批未通过与状态保持为离散状态"
+        - method: 等价类划分
+          reason: "本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，审批未通过与状态保持看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 场景法
+          reason: "本点只做单一判定，审批未通过与状态保持不构成需要串联的业务流程"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，审批未通过与状态保持无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，审批未通过与状态保持无越权面"
+  - id: TP-FP-10-03-01
+    scenario_id: SC-FP-10-03
+    statement: "打卡规则未勾选补卡申请开关时，【审批】应用中不出现补卡申请，员工无法发起补卡申请。"
+    evidence:
+      quote: "补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [逆向场景法, 安全性法, 错误推测法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，补卡入口与开关状态为离散状态"
+        - method: 等价类划分
+          reason: "补卡入口只有开启与关闭两种取值，两类都已由测试点覆盖"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 因果图法
+          reason: "本点为单条件单结果，补卡入口与开关状态不构成多条件组合的因果约束"
+        - method: 场景法
+          reason: "本点只做单一判定，补卡入口与开关状态不构成需要串联的业务流程"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，补卡入口与开关状态的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，补卡入口与开关状态无共享可变状态"
+  - id: TP-FP-10-03-02
+    scenario_id: SC-FP-10-03
+    statement: "员工不存在跳过上级审批直接改变异常打卡状态的路径，任何状态变更都以审批通过为前提。"
+    evidence:
+      quote: "补卡申请由员工发起、经上级审批后才能改变打卡状态，不存在跳过审批环节的路径。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "补卡申请"
+    methods:
+      applicable: [安全性法, 逆向场景法, 错误推测法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，审批环节与状态改写路径为离散状态"
+        - method: 等价类划分
+          reason: "本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 因果图法
+          reason: "本点为单条件单结果，审批环节与状态改写路径不构成多条件组合的因果约束"
+        - method: 场景法
+          reason: "本点只做单一判定，审批环节与状态改写路径不构成需要串联的业务流程"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，审批环节与状态改写路径的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，审批环节与状态改写路径无共享可变状态"
+  - id: TP-FP-11-01-01
+    scenario_id: SC-FP-11-01
+    statement: "某日期被设置为「不用打卡」后，员工当日没有任何打卡记录，该日也不产生缺卡类异常。"
+    evidence:
+      quote: "特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [等价类划分, 场景法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，不用打卡日期与当日无记录为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，不用打卡日期与当日无记录看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，不用打卡日期与当日无记录的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，不用打卡日期与当日无记录不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，不用打卡日期与当日无记录的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，不用打卡日期与当日无记录无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，不用打卡日期与当日无记录无越权面"
+  - id: TP-FP-11-02-01
+    scenario_id: SC-FP-11-02
+    statement: "某日期被设置为必须打卡后，员工在该日配置时段内没有有效打卡，该日被判定为缺卡异常。"
+    evidence:
+      quote: "特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [等价类划分, 逆向场景法, 场景法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，必须打卡日期与缺卡判定为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，必须打卡日期与缺卡判定看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 因果图法
+          reason: "本点为单条件单结果，必须打卡日期与缺卡判定不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，必须打卡日期与缺卡判定的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，必须打卡日期与缺卡判定无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，必须打卡日期与缺卡判定无越权面"
+  - id: TP-FP-11-03-01
+    scenario_id: SC-FP-11-03
+    statement: "同一日期新增两个时段后，两个时段各自产生独立的打卡要求，仅其中一个时段缺卡也会被判为异常。"
+    evidence:
+      quote: "设置方法：在添加打卡规则页面点击特殊日期的添加按钮，选择需要打卡的日期、时段和打卡事由；同一日期如需多个时间，可新增时段。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "特殊日期打卡"
+    methods:
+      applicable: [等价类划分, 穷举法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，同一日期的时段数量与缺卡组合为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，同一日期的时段数量与缺卡组合看不出易错分支"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，同一日期的时段数量与缺卡组合的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，同一日期的时段数量与缺卡组合不构成多条件组合的因果约束"
+        - method: 场景法
+          reason: "本点只做单一判定，同一日期的时段数量与缺卡组合不构成需要串联的业务流程"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，同一日期的时段数量与缺卡组合的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，同一日期的时段数量与缺卡组合无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，同一日期的时段数量与缺卡组合无越权面"
+  - id: TP-FP-12-01-01
+    scenario_id: SC-FP-12-01
+    statement: "「非工作日允许打卡」开启后，员工在非工作日签到成功并被记录工作时长，该日不计为考勤异常。"
+    evidence:
+      quote: "另一条独立开关是「非工作日允许打卡」：公司在非工作日有加班需求时可开启，员工可自由签到并记录工作时长。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "特殊日期打卡"
+    methods:
+      applicable: [等价类划分, 场景法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，非工作日签到的时长与异常标记为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，非工作日签到的时长与异常标记看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，非工作日签到的时长与异常标记的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，非工作日签到的时长与异常标记不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，非工作日签到的时长与异常标记的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，非工作日签到的时长与异常标记无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，非工作日签到的时长与异常标记无越权面"
+  - id: TP-FP-12-01-02
+    scenario_id: SC-FP-12-01
+    statement: "「非工作日允许打卡」开启后，非工作日签到产生的记录不被判为考勤异常。"
+    evidence:
+      quote: "非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [等价类划分, 因果图法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，非工作日签到与异常标记为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，非工作日签到与异常标记看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，非工作日签到与异常标记的逆路径由同场景其他测试点承担"
+        - method: 场景法
+          reason: "本点只做单一判定，非工作日签到与异常标记不构成需要串联的业务流程"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，非工作日签到与异常标记的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，非工作日签到与异常标记无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，非工作日签到与异常标记无越权面"
+  - id: TP-FP-12-02-01
+    scenario_id: SC-FP-12-02
+    statement: "「非工作日允许打卡」关闭时，员工在非工作日的打卡被拒绝、或虽被受理但不计入考勤统计，不会被记成正常出勤。"
+    evidence:
+      quote: "非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [逆向场景法, 异常法, 因果图法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，开关关闭与非工作日打卡受理为离散状态"
+        - method: 等价类划分
+          reason: "本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，开关关闭与非工作日打卡受理看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 场景法
+          reason: "本点只做单一判定，开关关闭与非工作日打卡受理不构成需要串联的业务流程"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，开关关闭与非工作日打卡受理无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，开关关闭与非工作日打卡受理无越权面"
+  - id: TP-FP-13-01-01
+    scenario_id: SC-FP-13-01
+    statement: "打卡规则在下拉列表选定提醒时间后，该规则适用员工在指定时间通过企业微信收到一条打卡提醒。"
+    evidence:
+      quote: "届时员工的企业微信将在指定时间收到打卡提醒。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡提醒"
+    methods:
+      applicable: [场景法, 等价类划分]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，提醒时间与消息送达为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，提醒时间与消息送达看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，提醒时间与消息送达的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，提醒时间与消息送达不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，提醒时间与消息送达的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，提醒时间与消息送达无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，提醒时间与消息送达无越权面"
+  - id: TP-FP-13-02-01
+    scenario_id: SC-FP-13-02
+    statement: "提醒取「准点」时触达时点与打卡时间相同，取「提前」时触达时点早于打卡时间，两类取值不出现相反的时点关系。"
+    evidence:
+      quote: "针对忘记打卡的情况，可在【添加打卡规则页面】>【提醒】的下拉列表中选择提醒时间，打卡时间准点或提前提醒。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡提醒"
+    methods:
+      applicable: [边界值法, 等价类划分, 场景法]
+      skipped:
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，提醒时点相对打卡时间的偏移看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，提醒时点相对打卡时间的偏移的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，提醒时点相对打卡时间的偏移不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，提醒时点相对打卡时间的偏移的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，提醒时点相对打卡时间的偏移无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，提醒时点相对打卡时间的偏移无越权面"
+  - id: TP-FP-14-01-01
+    scenario_id: SC-FP-14-01
+    statement: "打卡应用未做任何可见范围配置时，通讯录内全部成员在手机端都能看到并使用打卡应用入口。"
+    evidence:
+      quote: "系统默认打卡应用为所有人可见。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡应用的可见范围"
+    methods:
+      applicable: [等价类划分, 场景法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，默认可见范围与成员覆盖面为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，默认可见范围与成员覆盖面看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，默认可见范围与成员覆盖面的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，默认可见范围与成员覆盖面不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，默认可见范围与成员覆盖面的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，默认可见范围与成员覆盖面无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，默认可见范围与成员覆盖面无越权面"
+  - id: TP-FP-14-02-01
+    scenario_id: SC-FP-14-02
+    statement: "可见范围被配置为指定部门与成员后，不在该范围内的员工在手机端看不到打卡应用入口。"
+    evidence:
+      quote: "可见范围调整后，范围外成员不应再看到打卡应用入口。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [逆向场景法, 安全性法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，范围外成员与应用入口为离散状态"
+        - method: 等价类划分
+          reason: "本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，范围外成员与应用入口看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 因果图法
+          reason: "本点为单条件单结果，范围外成员与应用入口不构成多条件组合的因果约束"
+        - method: 场景法
+          reason: "本点只做单一判定，范围外成员与应用入口不构成需要串联的业务流程"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，范围外成员与应用入口的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，范围外成员与应用入口无共享可变状态"
+  - id: TP-FP-14-03-01
+    scenario_id: SC-FP-14-03
+    statement: "分别按整个部门和按单个成员配置可见范围后，两类配置覆盖到的成员都能看到打卡应用入口。"
+    evidence:
+      quote: "可见范围指能在手机中看到并使用打卡应用的人群范围，在打卡应用首页点击【修改】，从通讯录列表中选择部门和成员即可配置。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡应用的可见范围"
+    methods:
+      applicable: [等价类划分, 穷举法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，部门对象与成员对象的配置覆盖为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，部门对象与成员对象的配置覆盖看不出易错分支"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，部门对象与成员对象的配置覆盖的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，部门对象与成员对象的配置覆盖不构成多条件组合的因果约束"
+        - method: 场景法
+          reason: "本点只做单一判定，部门对象与成员对象的配置覆盖不构成需要串联的业务流程"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，部门对象与成员对象的配置覆盖的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，部门对象与成员对象的配置覆盖无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，部门对象与成员对象的配置覆盖无越权面"
+  - id: TP-FP-15-01-01
+    scenario_id: SC-FP-15-01
+    statement: "员工上班早退 2 小时且存在同一时间段 2 小时已通过事假时，其当日打卡状态被校准为「正常」。"
+    evidence:
+      quote: "两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡与审批的关联"
+    methods:
+      applicable: [场景法, 等价类划分]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，审批时段与异常时段的匹配结果为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，审批时段与异常时段的匹配结果看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，审批时段与异常时段的匹配结果的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，审批时段与异常时段的匹配结果不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，审批时段与异常时段的匹配结果的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，审批时段与异常时段的匹配结果无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，审批时段与异常时段的匹配结果无越权面"
+  - id: TP-FP-15-02-01
+    scenario_id: SC-FP-15-02
+    statement: "员工非工作日打了 10 小时加班卡且当日存在已通过加班申请时，校准后该日状态为「加班正常」。"
+    evidence:
+      quote: "开启模板后，针对当天打卡状态异常的员工，系统自动核对该员工已通过的请假、出差、外出、加班、打卡补卡审批单据；若正好匹配，则校准其打卡状态，并展示在【打卡记录】>【校准状态】。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡与审批的关联"
+    methods:
+      applicable: [场景法, 等价类划分]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，加班申请与加班卡的匹配结果为离散状态"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，加班申请与加班卡的匹配结果看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 逆向场景法
+          reason: "本点只验正向可达路径，加班申请与加班卡的匹配结果的逆路径由同场景其他测试点承担"
+        - method: 因果图法
+          reason: "本点为单条件单结果，加班申请与加班卡的匹配结果不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，加班申请与加班卡的匹配结果的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，加班申请与加班卡的匹配结果无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，加班申请与加班卡的匹配结果无越权面"
+  - id: TP-FP-15-03-01
+    scenario_id: SC-FP-15-03
+    statement: "异常时段不存在匹配的已通过审批时，该异常状态保持原样，不出现任何校准记录。"
+    evidence:
+      quote: "两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡与审批的关联"
+    methods:
+      applicable: [逆向场景法, 因果图法, 异常法]
+      skipped:
+        - method: 边界值法
+          reason: "本点无取值的数值阈值，无匹配审批时的状态保持为离散状态"
+        - method: 等价类划分
+          reason: "本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，无匹配审批时的状态保持看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 场景法
+          reason: "本点只做单一判定，无匹配审批时的状态保持不构成需要串联的业务流程"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，无匹配审批时的状态保持无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，无匹配审批时的状态保持无越权面"
+  - id: TP-FP-15-03-02
+    scenario_id: SC-FP-15-03
+    statement: "审批覆盖时段之外的异常不被一并校准，只有与审批时段重叠的那部分异常转为正常。"
+    evidence:
+      quote: "校准需按时间段匹配：审批覆盖时段之外的异常不得被一并校准。"
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "可测试的关键判定点"
+    methods:
+      applicable: [边界值法, 逆向场景法, 场景法]
+      skipped:
+        - method: 等价类划分
+          reason: "覆盖范围已按审批时段的起止边界取值，再划等价类不新增判定"
+        - method: 错误推测法
+          reason: "无历史缺陷或已知失误模式可推测，审批时段边界与异常覆盖范围看不出易错分支"
+        - method: 穷举法
+          reason: "本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖"
+        - method: 因果图法
+          reason: "本点为单条件单结果，审批时段边界与异常覆盖范围不构成多条件组合的因果约束"
+        - method: 异常法
+          reason: "本点断言合规输入下的结果，审批时段边界与异常覆盖范围的异常输入由同场景其他测试点承担"
+        - method: 并发法
+          reason: "本点只涉及单人单条记录，审批时段边界与异常覆盖范围无共享可变状态"
+        - method: 安全性法
+          reason: "本点不涉及身份校验或越权访问，审批时段边界与异常覆盖范围无越权面"

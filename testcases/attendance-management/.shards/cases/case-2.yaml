@@ -1,0 +1,876 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  shard: case-2
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  functional_points:
+  - FP-02
+  - FP-12
+  - FP-24
+open_items:
+- id: OI-10
+  question: 「非工作日允许打卡」关闭时，员工在非工作日的打卡是直接被拒绝（不生成记录），还是受理并生成记录但不计入考勤统计？对应的客户端提示文案是什么？
+  related_case_ids:
+  - TC-ATT-1206
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-11
+  question: 管辖范围为空的分级管理员，在管理后台规则列表中是否仍能看到【修改】按钮，点击后是进入编辑页还是提示无权限？移动端是否提供规则修改入口？
+  related_case_ids:
+  - TC-ATT-2404
+  source_ref: wiki/attendance-management/permissions-and-export.md
+cases:
+- id: TC-ATT-0201
+  fp_id: FP-02
+  scenario_id: SC-FP-02-01
+  point_id: TP-FP-02-01-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 规则以部门加具体成员的混合方式划定打卡人员时，验集合内成员受约束、集合外成员不受约束的边界。
+  test_point: 规则同时选到部门与具体成员时，集合内成员按该规则参与打卡，同部门但不在集合内的成员不受该规则约束。
+  title: 按集合内与集合外两类成员核对打卡要求归属
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S1
+  severity_reason: 集合外成员一旦被纳入规则，会被按该规则批量判缺卡，整批考勤结论失真且事后难以逐条追溯
+  preconditions: 已创建规则 R1，打卡人员同时选中「销售部」部门与成员「张三」（张三不属于销售部）；李四属销售部，王五既不在销售部也未被单独选中；当日为工作日
+  steps:
+  - 以管理员身份进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【设置】并打开规则 R1 的人员设置
+  - 核对打卡人员集合中的成员条目
+  - 分别以张三、李四、王五的账号进入手机端打卡页，查看出现的待打卡项
+  - 进入【打卡记录】按规则 R1 查看三人当日状态
+  expected:
+  - 打卡人员集合同时包含销售部全员与张三
+  - 张三、李四的打卡页出现 R1 的待打卡项，王五的打卡页不出现 R1 的待打卡项
+  - 王五的打卡不被计入规则 R1 的记录
+  status: active
+  source_context:
+    quote: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可以选到部门，也可以选到具体成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0202
+  fp_id: FP-02
+  scenario_id: SC-FP-02-01
+  point_id: TP-FP-02-01-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 规则以部门加具体成员的混合方式划定打卡人员时，验集合内成员受约束、集合外成员不受约束的边界。
+  test_point: 规则同时选到部门与具体成员时，集合内成员按该规则参与打卡，同部门但不在集合内的成员不受该规则约束。
+  title: 用混合划定的规则走完打卡到查看记录的主链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 集合内成员打卡后记录未按本规则归集，该规则下的打卡主链路整体失效
+  preconditions: 销售部为测试部门，张三为销售部外的单独成员；管理员具备规则配置权限；当日为工作日
+  steps:
+  - 在管理后台创建规则 R1，打卡人员同时选中部门「销售部」与成员「张三」
+  - 以张三账号在手机端完成一次上班打卡
+  - 以销售部成员李四的账号在手机端完成一次上班打卡
+  - 进入【打卡记录】按规则 R1 筛选当日记录
+  expected:
+  - 张三与李四的两条打卡记录都归属规则 R1
+  - 筛选结果中不出现非集合成员的打卡记录
+  status: active
+  source_context:
+    quote: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可以选到部门，也可以选到具体成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0203
+  fp_id: FP-02
+  scenario_id: SC-FP-02-01
+  point_id: TP-FP-02-01-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 规则以部门加具体成员的混合方式划定打卡人员时，验集合内成员受约束、集合外成员不受约束的边界。
+  test_point: 规则同时选到部门与具体成员时，集合内成员按该规则参与打卡，同部门但不在集合内的成员不受该规则约束。
+  title: 叠加部门选中与成员选中两条路径后核对集合成员
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S3
+  severity_reason: 重复选中只让同一成员在待打卡名单里多出一条，人工去重即可，不改变成员是否受该规则约束
+  preconditions: 销售部含李四等成员；规则 R1 先只选中部门「销售部」，随后又把销售部成员李四单独加入同一规则
+  steps:
+  - 创建规则 R1 并先选中部门「销售部」
+  - 再把销售部成员李四单独加入规则 R1 的打卡人员
+  - 打开 R1 的人员设置核对集合成员条目
+  - 在当日待打卡名单中查看李四的条目
+  expected:
+  - 集合成员等于销售部全员与单独选中成员的并集
+  - 李四在集合中只有一条成员条目
+  - 李四当日的待打卡项只有一条
+  status: active
+  source_context:
+    quote: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可以选到部门，也可以选到具体成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0204
+  fp_id: FP-02
+  scenario_id: SC-FP-02-01
+  point_id: TP-FP-02-01-02
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 规则以部门加具体成员的混合方式划定打卡人员时，验集合内成员受约束、集合外成员不受约束的边界。
+  test_point: 规则只选到具体成员而未选中其所属部门时，该部门其余成员不进入本规则的打卡人员集合。
+  title: 只挑选单个成员后核对其所属部门其余成员的归属
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 单独选中的成员若未进入集合，其打卡无处归集，本规则对该员工的打卡与判定全部失效
+  preconditions: 已创建规则 R2，打卡人员只选中成员「赵六」，未选中「财务部」；赵六与孙七同属财务部；当日为工作日
+  steps:
+  - 打开规则 R2 的人员设置核对打卡人员集合
+  - 以赵六账号进入手机端打卡页查看待打卡项
+  - 以孙七账号进入手机端打卡页查看待打卡项
+  expected:
+  - 集合中只有赵六，不含财务部其他成员
+  - 赵六的打卡页出现 R2 的待打卡项
+  - 孙七的打卡页不出现 R2 的待打卡项
+  status: active
+  source_context:
+    quote: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可以选到部门，也可以选到具体成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0205
+  fp_id: FP-02
+  scenario_id: SC-FP-02-01
+  point_id: TP-FP-02-01-02
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 规则以部门加具体成员的混合方式划定打卡人员时，验集合内成员受约束、集合外成员不受约束的边界。
+  test_point: 规则只选到具体成员而未选中其所属部门时，该部门其余成员不进入本规则的打卡人员集合。
+  title: 反向确认未选中的同部门成员不被要求打卡
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 未选中成员一旦被算进集合，会产生额外的待打卡催办与缺卡判定，需人工逐条排除
+  preconditions: 规则 R2 只选中成员赵六、未选中财务部；孙七与赵六同属财务部；孙七当日不打卡
+  steps:
+  - 安排孙七当日不打卡
+  - 进入【打卡记录】查看孙七当日状态
+  - 查看规则 R2 在当日的待打卡名单
+  expected:
+  - 孙七当日不产生规则 R2 的缺卡记录
+  - R2 的待打卡名单中不含孙七
+  status: active
+  source_context:
+    quote: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可以选到部门，也可以选到具体成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0206
+  fp_id: FP-02
+  scenario_id: SC-FP-02-02
+  point_id: TP-FP-02-02-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 员工处于规则白名单内且当日无打卡记录时，验其在待打卡名单与异常名单中的呈现。
+  test_point: 白名单内的员工当日无打卡记录时，不出现在待打卡名单与异常名单中。
+  title: 从白名单员工被计入缺卡反推名单呈现
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 白名单员工一旦出现在异常名单，其单日结论需要人工改判，且会拉高该日异常数
+  preconditions: 规则 R3 的白名单含成员周八；周八当日无任何打卡记录；非白名单成员吴九当日也无打卡记录；当日为工作日
+  steps:
+  - 保持周八当日不打卡
+  - 进入【打卡记录】按当日查看异常名单
+  - 查看规则 R3 在当日的待打卡名单
+  - 在同一页面查看吴九的名单条目作为对照
+  expected:
+  - 周八不出现在待打卡名单
+  - 周八不出现在异常名单，其当日不被计为缺卡
+  - 吴九作为非白名单成员按未打卡被列入待打卡名单
+  status: active
+  source_context:
+    quote: 白名单内的员工不参与打卡，且不得出现在待打卡/异常名单中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0207
+  fp_id: FP-02
+  scenario_id: SC-FP-02-02
+  point_id: TP-FP-02-02-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 员工处于规则白名单内且当日无打卡记录时，验其在待打卡名单与异常名单中的呈现。
+  test_point: 白名单内的员工当日无打卡记录时，不出现在待打卡名单与异常名单中。
+  title: 白名单员工无记录时走完名单生成与查看流程
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 豁免链路整体未生效时，白名单员工会被持续催打卡并计入异常，白名单功能等同失效
+  preconditions: 规则 R3 的白名单含周八；规则内其他成员均按时间完成打卡；当日为工作日
+  steps:
+  - 以周八账号登录手机端进入打卡应用
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 选择当日与规则 R3 的成员范围，依次查看待打卡名单与异常名单
+  expected:
+  - 周八在打卡应用中不出现 R3 的待打卡提醒
+  - 待打卡名单与异常名单中都没有周八
+  - 周八当日旷工统计为 0
+  status: active
+  source_context:
+    quote: 白名单内的员工不参与打卡，且不得出现在待打卡/异常名单中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0208
+  fp_id: FP-02
+  scenario_id: SC-FP-02-02
+  point_id: TP-FP-02-02-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 员工处于规则白名单内且当日无打卡记录时，验其在待打卡名单与异常名单中的呈现。
+  test_point: 白名单内的员工当日无打卡记录时，不出现在待打卡名单与异常名单中。
+  title: 按名单内与名单外两类成员对比名单呈现
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S3
+  severity_reason: 两类成员的名单呈现差异写错属名单展示问题，可用人工核对纠正，不改变其打卡要求本身
+  preconditions: 规则 R3 的白名单含周八，吴九为非白名单成员；周八与吴九当日都没有打卡记录
+  steps:
+  - 进入【打卡记录】并选择当日
+  - 查看待打卡名单中周八与吴九的条目
+  - 查看异常名单中周八与吴九的条目
+  expected:
+  - 周八在待打卡名单与异常名单中都没有条目
+  - 吴九在待打卡名单与异常名单中各有一个条目
+  status: active
+  source_context:
+    quote: 白名单内的员工不参与打卡，且不得出现在待打卡/异常名单中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0209
+  fp_id: FP-02
+  scenario_id: SC-FP-02-02
+  point_id: TP-FP-02-02-02
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 员工处于规则白名单内且当日无打卡记录时，验其在待打卡名单与异常名单中的呈现。
+  test_point: 被加入规则白名单的领导或特殊员工不再被要求完成该规则的上下班打卡。
+  title: 白名单领导不打卡时核对当日是否仍被要求打卡
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 白名单对该员工的豁免不生效时，领导会被持续要求打卡并被计入异常，豁免功能失效
+  preconditions: 规则 R4 的白名单含领导「陈总」；陈总当日无打卡记录；规则内普通成员均按时打卡
+  steps:
+  - 以陈总账号登录手机端进入打卡应用
+  - 在【打卡记录】中查看陈总当日状态
+  - 查看规则 R4 在当日的待打卡名单
+  expected:
+  - 陈总的打卡页没有 R4 的待打卡项
+  - 陈总当日状态中不出现缺卡结论
+  - R4 的待打卡名单中不含陈总
+  status: active
+  source_context:
+    quote: 另有例外通道：领导或特殊员工可通过配置白名单，不参与打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0210
+  fp_id: FP-02
+  scenario_id: SC-FP-02-02
+  point_id: TP-FP-02-02-02
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 员工处于规则白名单内且当日无打卡记录时，验其在待打卡名单与异常名单中的呈现。
+  test_point: 被加入规则白名单的领导或特殊员工不再被要求完成该规则的上下班打卡。
+  title: 对比白名单领导与普通成员两类账号的打卡要求
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S3
+  severity_reason: 两类账号的要求差异展示错属名单呈现问题，人工核对后可纠正，不改变各自的真实打卡要求
+  preconditions: 规则 R4 的白名单含陈总，吴九为同规则普通成员；两人当日都无打卡记录
+  steps:
+  - 以陈总账号进入打卡应用并记录可见的打卡要求
+  - 以吴九账号进入打卡应用并记录可见的打卡要求
+  - 查看两人当日的考勤状态
+  expected:
+  - 陈总的打卡页不显示 R4 的上下班打卡要求
+  - 吴九的打卡页显示 R4 的上下班打卡要求
+  - 吴九当日被计入未打卡，陈总不被计入
+  status: active
+  source_context:
+    quote: 另有例外通道：领导或特殊员工可通过配置白名单，不参与打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0211
+  fp_id: FP-02
+  scenario_id: SC-FP-02-03
+  point_id: TP-FP-02-03-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 同一员工在 A 规则白名单内、同时又属于 B 规则打卡人员时，验豁免是否只作用于 A 规则。
+  test_point: 同一员工在 A 规则白名单内、同时属于 B 规则打卡人员时，A 规则的豁免不解除其在 B 规则的打卡要求。
+  title: 反向验证 A 规则白名单不会免除 B 规则的打卡
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 白名单一旦跨规则生效，该员工在 B 规则的未打卡会被漏判，单条规则的考勤结论出错
+  preconditions: 规则 A 的白名单含郑十；郑十同时属于规则 B 的打卡人员；郑十当日无打卡记录
+  steps:
+  - 安排郑十当日不打卡
+  - 进入【打卡记录】按规则 B 查看郑十当日状态
+  - 查看规则 B 在当日的待打卡名单
+  expected:
+  - 郑十在规则 B 下当日被计入未打卡
+  - 规则 B 的待打卡名单中含郑十
+  status: active
+  source_context:
+    quote: 白名单是规则级的豁免，而非全局的权限开关。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0212
+  fp_id: FP-02
+  scenario_id: SC-FP-02-03
+  point_id: TP-FP-02-03-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 同一员工在 A 规则白名单内、同时又属于 B 规则打卡人员时，验豁免是否只作用于 A 规则。
+  test_point: 同一员工在 A 规则白名单内、同时属于 B 规则打卡人员时，A 规则的豁免不解除其在 B 规则的打卡要求。
+  title: 用白名单身份尝试跨越规则边界获取免打卡资格
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 白名单被当成全局权限开关后，名单内员工在任何规则下都自动免打卡，权限边界被穿透且无异常提示
+  preconditions: 郑十在规则 A 白名单内、属规则 B 打卡人员；管理员账号可同时查看规则 A 与规则 B 的设置
+  steps:
+  - 以郑十账号在手机端查看规则 B 的打卡要求
+  - 在规则 B 下用郑十的账号尝试以白名单身份提交免打卡操作
+  - 回到【打卡记录】核对郑十在规则 B 的打卡要求与当日状态
+  expected:
+  - 规则 A 的白名单身份在规则 B 不产生豁免，郑十在规则 B 仍被要求打卡
+  - 以白名单身份解除规则 B 打卡要求的操作不改变规则 B 对郑十的要求
+  status: active
+  source_context:
+    quote: 白名单是规则级的豁免，而非全局的权限开关。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0213
+  fp_id: FP-02
+  scenario_id: SC-FP-02-03
+  point_id: TP-FP-02-03-01
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 同一员工在 A 规则白名单内、同时又属于 B 规则打卡人员时，验豁免是否只作用于 A 规则。
+  test_point: 同一员工在 A 规则白名单内、同时属于 B 规则打卡人员时，A 规则的豁免不解除其在 B 规则的打卡要求。
+  title: 跨规则场景下走完打卡与两条规则的记录核对
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 跨规则记录串用时同一批打卡会同时满足两条规则，另一条规则对该员工的记录与结论全部缺失
+  preconditions: 规则 A 的白名单含郑十；规则 B 的打卡人员含郑十；郑十当日只在规则 B 的上班时间打卡一次
+  steps:
+  - 以郑十账号完成一次规则 B 要求的上班打卡
+  - 进入【打卡记录】查看郑十在规则 B 下的记录与状态
+  - 在同页切换到规则 A 查看郑十的记录
+  expected:
+  - 规则 B 下有郑十这一条打卡记录，其上班打卡要求被满足
+  - 规则 A 不因郑十在规则 B 的打卡而产生待打卡项或考勤结论
+  status: active
+  source_context:
+    quote: 白名单是规则级的豁免，而非全局的权限开关。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0214
+  fp_id: FP-02
+  scenario_id: SC-FP-02-03
+  point_id: TP-FP-02-03-02
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 同一员工在 A 规则白名单内、同时又属于 B 规则打卡人员时，验豁免是否只作用于 A 规则。
+  test_point: 员工未被加入任何白名单时，仍需按所属规则完成打卡，不能因同部门存在白名单员工而获得豁免。
+  title: 按是否入白名单两类员工核对打卡要求
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 未入白名单的员工被误判为豁免后，其缺卡无法被判出，需要人工补判当日结论
+  preconditions: 市场部陈总在规则 R5 白名单中，同部门冯一不在任何白名单；两人当日都无打卡记录
+  steps:
+  - 查看冯一在规则 R5 下的打卡要求
+  - 进入【打卡记录】查看冯一当日状态
+  - 查看同部门陈总当日状态作为对照
+  expected:
+  - 冯一仍被要求按规则 R5 打卡，当日被计入未打卡
+  - 陈总当日不产生未打卡结论
+  status: active
+  source_context:
+    quote: 另有例外通道：领导或特殊员工可通过配置白名单，不参与打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0215
+  fp_id: FP-02
+  scenario_id: SC-FP-02-03
+  point_id: TP-FP-02-03-02
+  functional_point: 打卡人员范围与白名单豁免
+  scenario: 同一员工在 A 规则白名单内、同时又属于 B 规则打卡人员时，验豁免是否只作用于 A 规则。
+  test_point: 员工未被加入任何白名单时，仍需按所属规则完成打卡，不能因同部门存在白名单员工而获得豁免。
+  title: 反向确认豁免不会沿部门关系扩散给其他员工
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 安全
+  severity: S1
+  severity_reason: 豁免沿部门扩散会让同部门多名员工的缺卡被一并漏判，整批考勤结论错误且无单条异常可查
+  preconditions: 市场部陈总在规则 R5 白名单中；同部门冯一、褚二均不在白名单；两人当日无打卡记录
+  steps:
+  - 安排冯一与褚二当日都不打卡
+  - 进入【打卡记录】按规则 R5 查看两人当日状态
+  - 核对规则 R5 在当日的待打卡名单
+  expected:
+  - 冯一与褚二当日均被计为未打卡，未因同部门存在白名单员工而获得豁免
+  - 待打卡名单中含冯一与褚二，仅不含陈总
+  status: active
+  source_context:
+    quote: 另有例外通道：领导或特殊员工可通过配置白名单，不参与打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-1201
+  fp_id: FP-12
+  scenario_id: SC-FP-12-01
+  point_id: TP-FP-12-01-01
+  functional_point: 非工作日允许打卡
+  scenario: 在「非工作日允许打卡」开启、员工于非工作日自由签到的条件下，验工作时长的记录结果与异常判定结果。
+  test_point: 「非工作日允许打卡」开启后，员工在非工作日签到成功并被记录工作时长，该日不计为考勤异常。
+  title: 按单次与多次签到两类情形核对工作时长记录
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 非工作日签到不记录工作时长，加班工时整体漏记，直接影响后续加班统计与工时核算
+  preconditions: 规则 R6 已开启「非工作日允许打卡」；测试日为周六（非工作日）；冯一与褚二都在该规则打卡人员内
+  steps:
+  - 以冯一账号在周六 09:00 签到、18:00 签退
+  - 以褚二账号在周六 09:00 签到、12:00 签退、14:00 签到、18:00 签退
+  - 进入【打卡记录】查看两人该日的工作时长字段与异常结论
+  expected:
+  - 冯一与褚二该日的每次签到都被受理，各自的打卡记录都生成
+  - 两人该日的工作时长字段都有记录值（非空）
+  - 两人该日都未被判为考勤异常
+  status: active
+  source_context:
+    quote: 另一条独立开关是「非工作日允许打卡」：公司在非工作日有加班需求时可开启，员工可自由签到并记录工作时长。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+- id: TC-ATT-1202
+  fp_id: FP-12
+  scenario_id: SC-FP-12-01
+  point_id: TP-FP-12-01-01
+  functional_point: 非工作日允许打卡
+  scenario: 在「非工作日允许打卡」开启、员工于非工作日自由签到的条件下，验工作时长的记录结果与异常判定结果。
+  test_point: 「非工作日允许打卡」开启后，员工在非工作日签到成功并被记录工作时长，该日不计为考勤异常。
+  title: 开启开关后在非工作日走完签到与统计查看链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 开关开启后签到仍不成立，非工作日加班打卡这条主链路整体不可用
+  preconditions: 规则 R6 为在用规则，打卡人员含冯一；测试日为周六；管理员具备规则配置权限
+  steps:
+  - 在管理后台规则 R6 底部开启「非工作日允许打卡」并保存
+  - 以冯一账号在周六 10:00 与 19:00 各签到一次
+  - 进入【打卡记录】选择周六，查看冯一当日记录
+  - 查看该日的异常结论与出勤统计
+  expected:
+  - 冯一该日有两条签到记录，且都归属规则 R6
+  - 该日工作时长字段显示已记录的值
+  - 该日不产生缺卡、迟到、早退、旷工中的任何异常
+  status: active
+  source_context:
+    quote: 另一条独立开关是「非工作日允许打卡」：公司在非工作日有加班需求时可开启，员工可自由签到并记录工作时长。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+- id: TC-ATT-1203
+  fp_id: FP-12
+  scenario_id: SC-FP-12-01
+  point_id: TP-FP-12-01-02
+  functional_point: 非工作日允许打卡
+  scenario: 在「非工作日允许打卡」开启、员工于非工作日自由签到的条件下，验工作时长的记录结果与异常判定结果。
+  test_point: 「非工作日允许打卡」开启后，非工作日签到产生的记录不被判为考勤异常。
+  title: 按当日有无签到两类情形核对异常结论
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 非工作日被计入缺卡或旷工会让当日结论错误并虚增旷工数，需人工逐日校准
+  preconditions: 规则 R6 已开启「非工作日允许打卡」；测试日周六；冯一当日签到，褚二当日无任何记录
+  steps:
+  - 让冯一在周六签到一次
+  - 让褚二周六不打卡
+  - 进入【打卡记录】查看两人该日的异常结论
+  expected:
+  - 冯一该日不产生缺卡、迟到、早退、旷工中的任何异常
+  - 褚二该日同样不产生上述四类异常结论
+  status: active
+  source_context:
+    quote: 非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1204
+  fp_id: FP-12
+  scenario_id: SC-FP-12-01
+  point_id: TP-FP-12-01-02
+  functional_point: 非工作日允许打卡
+  scenario: 在「非工作日允许打卡」开启、员工于非工作日自由签到的条件下，验工作时长的记录结果与异常判定结果。
+  test_point: 「非工作日允许打卡」开启后，非工作日签到产生的记录不被判为考勤异常。
+  title: 用开关开启与非工作日签到两个条件核对异常类型集合
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S3
+  severity_reason: 异常类型清单的细项核对出错时主结论仍可由同类用例判定，此处只补漏判项，影响面有限
+  preconditions: 规则 R6 的「非工作日允许打卡」处于开启状态；测试日周六；冯一为规则内成员
+  steps:
+  - 确认规则 R6 的「非工作日允许打卡」为开启状态
+  - 让冯一在周六 09:00 与 18:00 各签到一次
+  - 打开该日【打卡记录】的异常明细，逐类核对缺卡、迟到、早退、旷工
+  expected:
+  - 该日异常明细中缺卡类为空
+  - 该日异常明细中迟到、早退、旷工三类都为空
+  status: active
+  source_context:
+    quote: 非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1205
+  fp_id: FP-12
+  scenario_id: SC-FP-12-02
+  point_id: TP-FP-12-02-01
+  functional_point: 非工作日允许打卡
+  scenario: 在「非工作日允许打卡」关闭、员工于非工作日发起打卡的条件下，验系统对本次打卡的受理结论与是否计入考勤统计。
+  test_point: 「非工作日允许打卡」关闭时，员工在非工作日的打卡被拒绝、或虽被受理但不计入考勤统计，不会被记成正常出勤。
+  title: 反向拼出完整上下班打卡后核对是否被记为出勤
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 关闭开关后仍拼出正常出勤，该日会被算作上班，出勤天数虚增且需人工改判
+  preconditions: 规则 R6 已关闭「非工作日允许打卡」；测试日周六；冯一为规则内成员
+  steps:
+  - 以冯一账号在周六 09:00 打上班卡
+  - 以冯一账号在周六 18:00 打下班卡
+  - 进入【打卡记录】查看冯一该日的出勤结论与出勤天数
+  expected:
+  - 冯一该日不被记为正常出勤，出勤天数不因这两次打卡增加
+  - 该日不产生由这两次打卡拼出的上下班配对结论
+  status: active
+  source_context:
+    quote: 非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1206
+  fp_id: FP-12
+  scenario_id: SC-FP-12-02
+  point_id: TP-FP-12-02-01
+  functional_point: 非工作日允许打卡
+  scenario: 在「非工作日允许打卡」关闭、员工于非工作日发起打卡的条件下，验系统对本次打卡的受理结论与是否计入考勤统计。
+  test_point: 「非工作日允许打卡」关闭时，员工在非工作日的打卡被拒绝、或虽被受理但不计入考勤统计，不会被记成正常出勤。
+  title: 开关关闭时提交非工作日打卡并观察受理与落库
+  design_method: 异常法
+  tags:
+  - 异常
+  - 待确认
+  severity: S3
+  severity_reason: 处置方式与产品定义不符时只影响该次打卡多一条或少一条可见记录，该日不出勤的结论不变
+  preconditions: 规则 R6 已关闭「非工作日允许打卡」；测试日周六；冯一为规则内成员
+  steps:
+  - 以冯一账号在周六 10:00 发起一次打卡
+  - 记录客户端返回的提示文案与页面是否出现打卡记录
+  - 进入【打卡记录】查询冯一该日是否存在记录
+  expected:
+  - 待确认：开关关闭时，非工作日的打卡是直接被拒绝（不生成记录），还是受理并生成记录但不计入考勤统计？对应的客户端提示文案是什么？
+  status: pending_confirmation
+  source_context:
+    quote: 非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1207
+  fp_id: FP-12
+  scenario_id: SC-FP-12-02
+  point_id: TP-FP-12-02-01
+  functional_point: 非工作日允许打卡
+  scenario: 在「非工作日允许打卡」关闭、员工于非工作日发起打卡的条件下，验系统对本次打卡的受理结论与是否计入考勤统计。
+  test_point: 「非工作日允许打卡」关闭时，员工在非工作日的打卡被拒绝、或虽被受理但不计入考勤统计，不会被记成正常出勤。
+  title: 用开关状态与是否非工作日两个条件核对出勤结论
+  design_method: 因果图法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 关闭开关若连工作日打卡也一并拦下，会把正常出勤日误判为缺勤，影响整条规则的日常考勤
+  preconditions: 规则 R6 的「非工作日允许打卡」已关闭；测试区间含一个周六（非工作日）与其后的周一（工作日）；冯一为规则内成员
+  steps:
+  - 以冯一账号在周六 09:00 与 18:00 各打卡一次
+  - 以冯一账号在周一按规则时间完成上下班打卡
+  - 进入【打卡记录】分别查看周六与周一两天的出勤结论
+  expected:
+  - 周六的两次打卡不产生正常出勤结论
+  - 周一的上下班打卡仍被计入正常出勤
+  status: active
+  source_context:
+    quote: 非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2401
+  fp_id: FP-24
+  scenario_id: SC-FP-24-01
+  point_id: TP-FP-24-01-01
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 新增分级管理员时管辖范围为空、尚未分配任何部门，验证其规则修改权限的有无
+  test_point: 新增分级管理员且管辖范围为空时，其规则修改权限为空，任一规则修改入口都无法完成修改。
+  title: 以零个与一个部门两个边界点核对规则修改权限
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 权限
+  severity: S2
+  severity_reason: 范围为空被当成有范围处理时，该管理员可改动其管辖范围外的规则，权限边界随配置边界一起失守
+  preconditions: 已通过【管理后台】>【我的企业】>【权限管理】>【添加系统管理员】>【设置管理员信息】新增分级管理员「甲」且管辖范围为空；财务部有在用规则；公司存在多条打卡规则
+  steps:
+  - 以甲账号进入【上下班打卡】>【设置】，修改其中一条规则并点击保存
+  - 由超级管理员把甲的管辖范围设为只含「财务部」
+  - 以甲账号再次修改财务部的一条规则并保存
+  expected:
+  - 管辖范围为空时，甲的修改无法保存，规则内容与修改前一致
+  - 管辖范围只含财务部时，甲对财务部规则的修改可以保存
+  status: active
+  source_context:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2402
+  fp_id: FP-24
+  scenario_id: SC-FP-24-01
+  point_id: TP-FP-24-01-01
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 新增分级管理员时管辖范围为空、尚未分配任何部门，验证其规则修改权限的有无
+  test_point: 新增分级管理员且管辖范围为空时，其规则修改权限为空，任一规则修改入口都无法完成修改。
+  title: 绕过列表入口直接打开规则编辑页尝试保存
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 权限
+  severity: S2
+  severity_reason: 非常规入口未被拦住时，范围为空的管理员可越权改动单条规则，并立即影响该规则下全部人员的判定
+  preconditions: 分级管理员甲管辖范围为空；已存在规则 R7，其编辑页地址可从超级管理员会话中取得
+  steps:
+  - 以甲账号进入【上下班打卡】>【设置】查看规则列表
+  - 在浏览器地址栏直接打开规则 R7 的编辑页地址
+  - 修改规则 R7 中的允许迟到分钟数并点击保存
+  - 由超级管理员重新打开规则 R7 核对内容
+  expected:
+  - 规则 R7 的内容与修改前一致，甲的保存未生效
+  - 甲的这次保存操作返回失败提示
+  status: active
+  source_context:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2403
+  fp_id: FP-24
+  scenario_id: SC-FP-24-01
+  point_id: TP-FP-24-01-01
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 新增分级管理员时管辖范围为空、尚未分配任何部门，验证其规则修改权限的有无
+  test_point: 新增分级管理员且管辖范围为空时，其规则修改权限为空，任一规则修改入口都无法完成修改。
+  title: 用范围为空的管理员身份直调规则保存接口
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 服务端不拦截时，任何范围为空的分级管理员都能直调接口改动全公司规则，权限边界被穿透且界面无痕迹
+  preconditions: 分级管理员甲管辖范围为空；已抓取超级管理员修改规则 R7 的保存请求；甲具备管理后台登录态
+  steps:
+  - 以甲的登录态重放修改规则 R7 的保存请求，把允许迟到分钟数改为另一个值
+  - 查看该请求的响应状态
+  - 以超级管理员身份重新打开规则 R7 核对内容
+  expected:
+  - 该保存请求返回失败，未被服务端接受
+  - 规则 R7 的内容与重放前一致
+  status: active
+  source_context:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2404
+  fp_id: FP-24
+  scenario_id: SC-FP-24-01
+  point_id: TP-FP-24-01-02
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 新增分级管理员时管辖范围为空、尚未分配任何部门，验证其规则修改权限的有无
+  test_point: 管辖范围为空的分级管理员在管理后台与移动端两侧都不具备规则修改能力，限制不因入口不同而放宽。
+  title: 逆推范围为空管理员在两端可用的修改入口
+  design_method: 逆向场景法
+  tags:
+  - 权限
+  - 待确认
+  severity: S3
+  severity_reason: 入口可见性与提示若与实际不符，只会让人误判权限是否生效，已判定的修改结果不受影响
+  preconditions: 分级管理员甲管辖范围为空；甲同时持有管理后台账号与移动端企业微信账号；公司内已有多条打卡规则
+  steps:
+  - 以甲账号在管理后台【上下班打卡】>【设置】逐条查看规则上暴露的操作按钮
+  - 以甲账号在移动端打卡应用的规则页查看是否提供规则修改入口
+  - 记录两端各自出现修改入口的规则条数
+  expected:
+  - 待确认：管辖范围为空的分级管理员在管理后台规则列表中是否仍能看到【修改】按钮，点击后是进入编辑页还是提示无权限？移动端是否提供规则修改入口？
+  status: pending_confirmation
+  source_context:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2405
+  fp_id: FP-24
+  scenario_id: SC-FP-24-01
+  point_id: TP-FP-24-01-02
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 新增分级管理员时管辖范围为空、尚未分配任何部门，验证其规则修改权限的有无
+  test_point: 管辖范围为空的分级管理员在管理后台与移动端两侧都不具备规则修改能力，限制不因入口不同而放宽。
+  title: 用范围为空的管理员身份重放移动端保存请求
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 移动端通道不拦截就形成绕过后台限制的越权入口，可改动全公司规则且后台侧的限制形同虚设
+  preconditions: 分级管理员甲管辖范围为空；已抓取移动端修改规则 R7 的保存请求；甲在管理后台侧的修改已被限制
+  steps:
+  - 以甲的移动端登录态重放该保存请求，把规则 R7 的允许迟到分钟数改为另一值
+  - 查看该请求的响应状态
+  - 以超级管理员身份在管理后台重新核对规则 R7 的内容
+  expected:
+  - 移动端通道的保存请求同样返回失败
+  - 规则 R7 的内容与重放前一致，未因移动端通道被改动
+  status: active
+  source_context:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2406
+  fp_id: FP-24
+  scenario_id: SC-FP-24-01
+  point_id: TP-FP-24-01-02
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 新增分级管理员时管辖范围为空、尚未分配任何部门，验证其规则修改权限的有无
+  test_point: 管辖范围为空的分级管理员在管理后台与移动端两侧都不具备规则修改能力，限制不因入口不同而放宽。
+  title: 按修改既有规则与新建规则两类操作核对两端限制
+  design_method: 等价类划分
+  tags:
+  - 异常
+  - 权限
+  severity: S2
+  severity_reason: 两类操作入口任一可执行都会造成越权改动，改动范围限于被操作的那条规则但会立即生效
+  preconditions: 分级管理员甲管辖范围为空；甲可在管理后台与移动端登录；已存在规则 R7
+  steps:
+  - 以甲账号在管理后台尝试新建一条打卡规则并保存
+  - 以甲账号在管理后台修改既有规则 R7 并保存
+  - 以甲账号在移动端执行同一类修改并保存
+  - 由超级管理员核对规则总数与规则 R7 内容
+  expected:
+  - 新建操作未产生任何新规则
+  - 既有规则 R7 的内容未被改动
+  - 两端尝试后的规则总数与内容都与尝试前一致
+  status: active
+  source_context:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2407
+  fp_id: FP-24
+  scenario_id: SC-FP-24-02
+  point_id: TP-FP-24-02-01
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 分级管理员的管辖范围已完成补充分配、范围外另有其他部门时，验证其获得范围内规则修改权限的条件
+  test_point: 同一分级管理员在补充分配管辖范围后获得范围内的规则修改权限，且权限不溢出该范围。
+  title: 在范围边界内外两侧核对修改权限
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 权限
+  severity: S2
+  severity_reason: 权限边界没有落在范围边界上时，范围外规则会被一并改动，分级管理员的越权面直接扩大
+  preconditions: 分级管理员甲已由超级管理员补充分配管辖范围，范围只含「财务部」；公司另有「销售部」及其在用规则
+  steps:
+  - 以甲账号进入【上下班打卡】>【设置】，修改财务部的一条规则并保存
+  - 以甲账号尝试修改销售部的一条规则并保存
+  - 由超级管理员核对两条规则的内容
+  expected:
+  - 财务部规则的修改保存成功，内容按甲的修改更新
+  - 销售部规则的修改未保存，内容与修改前一致
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2408
+  fp_id: FP-24
+  scenario_id: SC-FP-24-02
+  point_id: TP-FP-24-02-01
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 分级管理员的管辖范围已完成补充分配、范围外另有其他部门时，验证其获得范围内规则修改权限的条件
+  test_point: 同一分级管理员在补充分配管辖范围后获得范围内的规则修改权限，且权限不溢出该范围。
+  title: 补充范围后走完范围内规则的修改与生效链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 补充分配范围后范围内规则仍不可改，分级管理员的设置职责无法履行，日常规则维护全部卡住
+  preconditions: 分级管理员甲原管辖范围为空；超级管理员已把「财务部」补充分配给甲；财务部有在用规则 R8，其允许迟到分钟数当前为 10
+  steps:
+  - 以甲账号登录管理后台进入【上下班打卡】>【设置】
+  - 把规则 R8 的允许迟到分钟数改为 1 并保存
+  - 以财务部员工账号在次日晚到 2 分钟后打卡
+  - 进入【打卡记录】查看该员工的迟到判定
+  expected:
+  - 规则 R8 的允许迟到分钟数被保存为 1
+  - 该员工次日被判定为迟到
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2409
+  fp_id: FP-24
+  scenario_id: SC-FP-24-02
+  point_id: TP-FP-24-02-01
+  functional_point: 未分配管辖范围的权限边界
+  scenario: 分级管理员的管辖范围已完成补充分配、范围外另有其他部门时，验证其获得范围内规则修改权限的条件
+  test_point: 同一分级管理员在补充分配管辖范围后获得范围内的规则修改权限，且权限不溢出该范围。
+  title: 按范围内与范围外两类部门核对规则可操作性
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 范围外部门若被划入可操作类，甲就能改动这些部门的规则，权限归属判断错误会直接变成越权操作
+  preconditions: 甲管辖范围只含财务部，销售部不在范围内；两个部门各有一条在用规则
+  steps:
+  - 以甲账号查看规则列表中财务部与销售部规则各自暴露的操作入口
+  - 对财务部规则执行一次修改并保存
+  - 对销售部规则执行一次修改并保存
+  expected:
+  - 财务部规则在列表中可操作，保存后内容更新
+  - 销售部规则在列表中不暴露可用的修改入口，保存请求不生效
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点

@@ -1,0 +1,35 @@
+# 可直接合并的 DSH 配置补丁片段
+#
+# 用法：把下面条目追加到 ~/.dsh/profiles/web/cordis.patch.yml（同一 id 会覆盖），
+# 重启 dsh web 后生效。字段均已对照本机安装的插件 README 核验：
+#   - dsh-agent-loop: maxParallelToolCalls 是受支持字段（默认 10）
+#   - dsh-compaction-tool-result-pruner: thresholdChars/headChars/tailChars 受支持
+#
+# 注意：agent-loop 不提供"最大轮次"配置项，轮次/空转/重复调用只能由
+# governance.LoopGuard 在编排层约束——别指望改配置解决循环失控。
+
+- id: agent-loop
+  name: '@deepseek-ai/dsh-agent-loop'
+  config:
+    # 并行工具调用从 10 降到 4：闸住"一轮扇出十几个工具"造成的瞬时成本与配额压力
+    maxParallelToolCalls: 4
+
+- id: tool-result-pruner
+  name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+  config:
+    thresholdChars: 8192
+    headChars: 4096
+    tailChars: 1024
+  # 当前 profile 把它显式关掉了；长循环里单条工具输出会持续占上下文
+  disabled: false
+
+# 运行时护栏：挂到 DSH 工具管线上，在执行路径强制
+#   危险命令拒绝 / 同参数重复调用熔断 / 单轮调用预算 / 连续失败纠正
+# name 用绝对路径；路径变了要同步改。加载失败时的退路见 dsh/README.md。
+- insert:
+    - id: loop-guard
+      name: <PROJECT_ROOT>/governance/hooks/dsh-loop-guard.mjs
+      config:
+        maxToolCalls: 120
+        maxConsecutiveFailures: 2
+        duplicateCallThreshold: 3

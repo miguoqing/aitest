@@ -1,0 +1,2470 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: test-points
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  shard_count: 3
+  knowledge_sources: []
+test_points:
+- id: TP-FP-01-01-01
+  scenario_id: SC-FP-01-01
+  statement: 固定时间上下班规则绑定的员工按企业统一时间打卡时，考勤判定取该固定时间，不取排班时间。
+  evidence:
+    quote: 规则类型决定考勤的统计口径（固定时间、按班次、自由上下班），打卡方式决定打卡凭证的来源（手机定位/Wi-Fi、智能考勤机、传统U盘考勤机导入）。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 因果图法
+    skipped:
+    - method: 边界值法
+      reason: 该断言判的是规则类型到判定基准的映射，没有可取的数值临界点
+    - method: 错误推测法
+      reason: 判定依据是文档明示的三种类型枚举，无需凭经验猜测隐藏口径
+    - method: 穷举法
+      reason: 类型只有三种，等价类已逐一覆盖，逐项穷举不产生新结论
+    - method: 逆向场景法
+      reason: 本条是正向口径校验，绕过规则类型的路径由相邻反向断言承担
+    - method: 异常法
+      reason: 本断言只验正常打卡时间下的判定，异常时间入参不在其范围
+    - method: 并发法
+      reason: 只读单人单日一条考勤结论，无共享可变状态
+    - method: 安全性法
+      reason: 不涉及凭证伪造、越权读取或数据越界
+- id: TP-FP-01-01-02
+  scenario_id: SC-FP-01-01
+  statement: 自由上下班规则下员工可随时打卡，考勤统计只计旷工，工作时长按实际打卡区间记录而不判迟到早退。
+  evidence:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 自由上下班不设打卡时间限制，不存在可取的迟到/早退分钟阈值
+    - method: 错误推测法
+      reason: 该口径由文档明示，不需要额外猜测非工作时间打卡的特殊处理
+    - method: 穷举法
+      reason: 打卡时刻是连续量，无法穷举，等价类按时间区间划分即可
+    - method: 因果图法
+      reason: 规则类型与统计结果一对一对应，无多条件组合
+    - method: 异常法
+      reason: 本断言只看有打卡记录时的统计结果，无记录的情况由同一场景的另一断言验
+    - method: 并发法
+      reason: 只读单人单日一条统计结果，无共享可变状态，并发不改变结论
+    - method: 安全性法
+      reason: 统计口径是规则类型到结果的映射，不涉及鉴权、越权访问或凭证校验
+- id: TP-FP-01-02-01
+  scenario_id: SC-FP-01-02
+  statement: 员工所在规则为自由上下班且当日完成打卡时，考勤明细中不出现迟到或早退结论。
+  evidence:
+    quote: 三种规则类型的统计口径不同：自由上下班不得产出迟到/早退判定，只统计旷工。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 该判定本身不设时间阈值，没有可取的临界分钟数
+    - method: 错误推测法
+      reason: 文档已把这条口径写成禁止项，无需再推测边界情况
+    - method: 穷举法
+      reason: 打卡时刻连续分布，穷举无意义，按三种规则类型分等价类即可
+    - method: 因果图法
+      reason: 单个条件（规则类型）决定单个结果（是否产出迟到早退）
+    - method: 异常法
+      reason: 本断言验的是正常打卡后的统计输出，不引入异常输入
+    - method: 并发法
+      reason: 只读取该员工当日考勤明细，无共享可变状态
+    - method: 安全性法
+      reason: 不涉及越权查看他人考勤或凭证伪造
+- id: TP-FP-01-02-02
+  scenario_id: SC-FP-01-02
+  statement: 自由上下班规则下员工当日无任何打卡记录时，系统只把该日计为旷工，不额外生成迟到或早退记录。
+  evidence:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+  methods:
+    applicable:
+    - 逆向场景法
+    - 异常法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 无打卡记录是一种离散状态，不存在连续取值上的临界点
+    - method: 等价类划分
+      reason: 该断言只覆盖「当日无记录」一种输入形态，再分类不产生新用例
+    - method: 错误推测法
+      reason: 旷工统计口径已由原文写明，无需猜测缺卡是否转为异常
+    - method: 穷举法
+      reason: 缺卡形态只有全缺一种，逐项穷举无新增输入
+    - method: 因果图法
+      reason: 缺卡与旷工是单条件单结果，无需画组合关系
+    - method: 并发法
+      reason: 单员工单日缺卡判定，无共享可变状态
+    - method: 安全性法
+      reason: 不涉及权限或凭证，纯统计口径校验
+- id: TP-FP-01-03-01
+  scenario_id: SC-FP-01-03
+  statement: 设备运维部门套按班次上下班、销售部套自由上下班后，销售部成员不产出迟到/早退判定，其判定不被另一条规则的口径覆盖。
+  evidence:
+    quote: 文档给出的典型组合是按工作性质分派：需要“三班倒”的设备运维部门套用按班次上下班，办公时间更灵活的销售部套用自由上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    - 因果图法
+    skipped:
+    - method: 边界值法
+      reason: 该断言比较两条规则的口径归属，无数值阈值可测
+    - method: 错误推测法
+      reason: 分派组合由文档给出，无需猜测未列举部门的归属
+    - method: 穷举法
+      reason: 部门与规则类型的组合随组织架构变化，无法穷举，按类型等价类覆盖
+    - method: 逆向场景法
+      reason: 本条验分派后的正向口径，反向路径由同场景的另一断言承担
+    - method: 异常法
+      reason: 不引入异常人员或异常时间，只验口径归属
+    - method: 并发法
+      reason: 两条规则的判定相互独立，无共享可变状态
+    - method: 安全性法
+      reason: 口径隔离不是权限隔离，不涉及越权
+- id: TP-FP-01-03-02
+  scenario_id: SC-FP-01-03
+  statement: 同一批打卡记录在规则类型改为自由上下班后，考勤结果不再产出迟到或早退判定。
+  evidence:
+    quote: 三种规则类型的统计口径不同：自由上下班不得产出迟到/早退判定，只统计旷工。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 判定输出是「有无迟到早退」的二值结果，无数值边界
+    - method: 等价类划分
+      reason: 输入已固定为同一批记录，两种类型各一条，分类不增加覆盖
+    - method: 错误推测法
+      reason: 口径变化已由文档禁止项界定，无需推测改名后的残留判定
+    - method: 穷举法
+      reason: 只需对比改型前后两份结果，逐项穷举记录无增量结论
+    - method: 因果图法
+      reason: 单一变量（规则类型）改变单一结果，无组合条件
+    - method: 异常法
+      reason: 本断言不注入异常打卡数据，只比对同一批记录的结果变化
+    - method: 并发法
+      reason: 改型是配置动作，判定不依赖并发读写
+    - method: 安全性法
+      reason: 只比对同一批记录改型前后的结果，不涉及凭证校验或越权访问
+- id: TP-FP-02-01-01
+  scenario_id: SC-FP-02-01
+  statement: 规则同时选到部门与具体成员时，集合内成员按该规则参与打卡，同部门但不在集合内的成员不受该规则约束。
+  evidence:
+    quote: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可以选到部门，也可以选到具体成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 因果图法
+    skipped:
+    - method: 边界值法
+      reason: 人员集合是离散名单，不存在数值临界点
+    - method: 错误推测法
+      reason: 集合构成由原文界定，无需猜测部门与成员的优先级
+    - method: 穷举法
+      reason: 成员规模随组织变化无法穷举，按集合内/集合外两类等价类覆盖
+    - method: 逆向场景法
+      reason: 本条验集合边界，绕过集合的路径由白名单场景覆盖
+    - method: 异常法
+      reason: 该断言不注入异常人员数据，只验人员集合归属是否正确
+    - method: 并发法
+      reason: 人员名单为配置读取，不涉及多人同时写同一份数据，无竞态可构造
+    - method: 安全性法
+      reason: 人员范围是考勤配置，不是访问控制
+- id: TP-FP-02-01-02
+  scenario_id: SC-FP-02-01
+  statement: 规则只选到具体成员而未选中其所属部门时，该部门其余成员不进入本规则的打卡人员集合。
+  evidence:
+    quote: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可以选到部门，也可以选到具体成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    skipped:
+    - method: 边界值法
+      reason: 选人粒度只有部门与成员两种，没有可取的数值边界
+    - method: 错误推测法
+      reason: 两种选人方式在原文中并列，无需猜测隐含的部门级联
+    - method: 穷举法
+      reason: 部门人数不定，穷举成员无意义，按选中/未选中两类覆盖
+    - method: 因果图法
+      reason: 选人方式与生效范围一对一，无多条件组合
+    - method: 场景法
+      reason: 该断言可直接读人员集合判定，不需要串联业务流程
+    - method: 异常法
+      reason: 断言不涉及异常输入，只核对集合成员
+    - method: 并发法
+      reason: 打卡人员集合是静态配置，读取期间无并发写入，不产生竞态
+    - method: 安全性法
+      reason: 该断言只核对集合成员，不涉及鉴权、敏感数据或越权访问
+- id: TP-FP-02-02-01
+  scenario_id: SC-FP-02-02
+  statement: 白名单内的员工当日无打卡记录时，不出现在待打卡名单与异常名单中。
+  evidence:
+    quote: 白名单内的员工不参与打卡，且不得出现在待打卡/异常名单中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 名单呈现是名单包含与否的离散判定，无数值阈值
+    - method: 错误推测法
+      reason: 原文已明确不得出现在名单中，无需推测其他豁免入口
+    - method: 穷举法
+      reason: 白名单人数可变，按名单内/名单外两类等价类覆盖即可
+    - method: 因果图法
+      reason: 白名单成员身份单条件决定名单呈现
+    - method: 异常法
+      reason: 本断言只验无打卡记录时的名单，不注入异常打卡数据
+    - method: 并发法
+      reason: 名单为一次读取的快照，无共享写状态
+    - method: 安全性法
+      reason: 该断言只读本人名单呈现结果，不涉及越权读取他人考勤数据
+- id: TP-FP-02-02-02
+  scenario_id: SC-FP-02-02
+  statement: 被加入规则白名单的领导或特殊员工不再被要求完成该规则的上下班打卡。
+  evidence:
+    quote: 另有例外通道：领导或特殊员工可通过配置白名单，不参与打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 是否参与打卡是二值状态，不存在数值临界点
+    - method: 错误推测法
+      reason: 例外通道的适用对象原文已点明，无需猜测额外豁免人群
+    - method: 穷举法
+      reason: 账号类型有限且按名单内/外两类划分已足够
+    - method: 逆向场景法
+      reason: 本条验豁免的正向效果，非名单成员的对照由同场景另一断言验
+    - method: 因果图法
+      reason: 白名单身份单条件决定是否要求打卡
+    - method: 异常法
+      reason: 该断言不注入异常打卡数据，只验白名单豁免状态是否生效
+    - method: 并发法
+      reason: 白名单是静态配置，判定期间无并发写入，构造并发无观测差异
+    - method: 安全性法
+      reason: 白名单是考勤范围配置，不赋予后台权限
+- id: TP-FP-02-03-01
+  scenario_id: SC-FP-02-03
+  statement: 同一员工在 A 规则白名单内、同时属于 B 规则打卡人员时，A 规则的豁免不解除其在 B 规则的打卡要求。
+  evidence:
+    quote: 白名单是规则级的豁免，而非全局的权限开关。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 豁免范围是名单边界而非数值边界，无可取临界值
+    - method: 等价类划分
+      reason: 断言只有「在 A 名单且在 B 人员」一种组合，再分类不产生新用例
+    - method: 错误推测法
+      reason: 原文已把规则级与全局级的区别写死，无需猜测例外
+    - method: 穷举法
+      reason: 规则组合随企业配置增长，不可穷举，按单规则/跨规则两类覆盖
+    - method: 因果图法
+      reason: 每条规则的豁免各自独立，不存在条件共享
+    - method: 异常法
+      reason: 本断言不注入异常打卡，只验跨规则的豁免边界
+    - method: 并发法
+      reason: 两条规则的名单读取互不写入，无竞态
+- id: TP-FP-02-03-02
+  scenario_id: SC-FP-02-03
+  statement: 员工未被加入任何白名单时，仍需按所属规则完成打卡，不能因同部门存在白名单员工而获得豁免。
+  evidence:
+    quote: 另有例外通道：领导或特殊员工可通过配置白名单，不参与打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    skipped:
+    - method: 边界值法
+      reason: 豁免与否是名单成员与否的二值状态，不存在可取的数值临界点
+    - method: 错误推测法
+      reason: 例外通道的对象已由原文限定，无需断言未列举人群的特殊处理
+    - method: 穷举法
+      reason: 员工名单可变，按名单内/外两类等价类覆盖已足够
+    - method: 因果图法
+      reason: 是否在名单内是唯一条件，一对一决定豁免结果，没有与/或组合
+    - method: 场景法
+      reason: 该断言可直接读打卡要求判定，无需端到端串联
+    - method: 异常法
+      reason: 不涉及异常入参，只验豁免是否误扩散
+    - method: 并发法
+      reason: 名单读取为静态快照，无共享写状态
+    - method: 安全性法
+      reason: 豁免扩散属于范围校验，不构成越权访问
+- id: TP-FP-03-01-01
+  scenario_id: SC-FP-03-01
+  statement: 员工手机定位落在有效范围内但未连办公 Wi-Fi 时，手机端仍直接产生一条打卡记录。
+  evidence:
+    quote: 手机打卡——系统确认打卡人位置，或判断打卡人是否连上办公地点的 WIFI，满足其中任意一项即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 因果图法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本断言固定定位在有效范围内侧，边界距离由打卡范围场景单独验
+    - method: 错误推测法
+      reason: 「或」关系由原文写明，无需猜测两依据的优先级
+    - method: 穷举法
+      reason: 两依据的取值组合仅四种，等价类已全部覆盖
+    - method: 逆向场景法
+      reason: 本条验放行路径，两依据都不满足的被拒路径由相邻断言承担
+    - method: 异常法
+      reason: 不引入异常入参，只验单依据满足的正常路径
+    - method: 并发法
+      reason: 单次打卡写入一条记录，无共享可变状态
+    - method: 安全性法
+      reason: 定位是业务校验，不涉及凭证伪造与鉴权
+- id: TP-FP-03-01-02
+  scenario_id: SC-FP-03-01
+  statement: 员工未进入定位有效范围但连上办公 Wi-Fi 时，手机端仍直接产生一条打卡记录。
+  evidence:
+    quote: 手机打卡的两条依据（定位、办公 WIFI）为「或」关系，任一满足即应放行；智能考勤机方式下其他设备打卡应被拒绝。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 因果图法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 该断言取定位范围外的远端位置，不取临界距离
+    - method: 等价类划分
+      reason: 输入已限定为「定位不满足且 Wi-Fi 满足」，再分类无新覆盖
+    - method: 错误推测法
+      reason: 「或」关系已明文，无需猜测 Wi-Fi 是否要被定位覆盖
+    - method: 穷举法
+      reason: 已在同一场景另一断言覆盖另一组合，此处穷举重复
+    - method: 逆向场景法
+      reason: 本条验放行，两依据皆不满足的拒绝路径由反向断言覆盖
+    - method: 异常法
+      reason: 不注入异常入参，只验 Wi-Fi 单依据成立
+    - method: 并发法
+      reason: 单次打卡一次写入，无并发共享状态
+    - method: 安全性法
+      reason: 人员范围与方式归属都是配置项，不涉及越权访问或凭证伪造
+- id: TP-FP-03-02-01
+  scenario_id: SC-FP-03-02
+  statement: 采用智能考勤机方式的规则，打卡人只能在规则选定的考勤机上打卡，在其他考勤机上的打卡不产生有效记录。
+  evidence:
+    quote: 智能考勤机——打卡人只能在指定考勤机上打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 逆向场景法
+    - 场景法
+    - 错误推测法
+    skipped:
+    - method: 边界值法
+      reason: 设备白名单是集合成员判定，不存在数值临界点
+    - method: 等价类划分
+      reason: 设备只分指定与非指定两类，已由本断言的对照关系覆盖
+    - method: 穷举法
+      reason: 企业考勤机数量不定，逐台穷举无增量结论
+    - method: 因果图法
+      reason: 设备是否被选定单条件决定打卡是否有效
+    - method: 异常法
+      reason: 非指定设备打卡在本断言中就是被测的反向路径，不再另设异常注入
+    - method: 并发法
+      reason: 一次打卡对应一次设备校验，无共享可变状态
+    - method: 安全性法
+      reason: 设备校验是业务规则，不涉及鉴权绕过
+- id: TP-FP-03-02-02
+  scenario_id: SC-FP-03-02
+  statement: 规则按设备名称选定考勤机后，规则内打卡人员的打卡只在被选中的该台设备上成立，在其他设备上不成立。
+  evidence:
+    quote: 智能考勤机方式下需按设备名称选择具体考勤机，规则内的打卡人员只能在该考勤机上打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 设备选择是名称精确匹配，不存在可取的数值区间与临界点
+    - method: 错误推测法
+      reason: 选定方式已由原文限定为按设备名称，无需猜测其他选法
+    - method: 穷举法
+      reason: 设备清单随企业变化，按选中/未选中两类覆盖即可
+    - method: 逆向场景法
+      reason: 本条验指定设备上的成立性，非指定设备的对照由同场景另一断言覆盖
+    - method: 因果图法
+      reason: 设备名称与规则绑定关系是单条件映射
+    - method: 异常法
+      reason: 不注入异常入参，只验绑定关系生效
+    - method: 并发法
+      reason: 规则与设备的绑定为静态配置，无并发写
+    - method: 安全性法
+      reason: 设备绑定是配置读取，不涉及越权查看他人记录或篡改打卡凭证
+- id: TP-FP-03-03-01
+  scenario_id: SC-FP-03-03
+  statement: U 盘考勤机导出的打卡记录定期导回企业微信后，系统按该规则已设定的口径核算这批记录。
+  evidence:
+    quote: U盘导入是唯一「先离线采集、后批量导入」的路径：先在通讯录中导出到考勤机，之后定期把打卡记录导回企业微信，再由系统按规则核算。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种打卡方式
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 导入批量大小不构成判定阈值，核算结果与记录条数无关
+    - method: 错误推测法
+      reason: 导入流程步骤已由原文写全，无需猜测中间环节
+    - method: 穷举法
+      reason: 记录条数随考勤机规模变化，按有效/无效记录两类覆盖
+    - method: 逆向场景法
+      reason: 本条验导入后的正常核算，未导入时的状态由同场景另一断言覆盖
+    - method: 因果图法
+      reason: 导入与核算是一条链路，不存在多条件组合分支
+    - method: 异常法
+      reason: 不注入格式异常的导入文件，只验正常批次
+    - method: 并发法
+      reason: 导入为定时批量作业，单批次内无并发判定点
+    - method: 安全性法
+      reason: 导入核算只作用于本企业考勤数据，不涉及跨租户访问或越权导入
+- id: TP-FP-03-03-02
+  scenario_id: SC-FP-03-03
+  statement: 手机打卡与智能考勤机打卡不经过离线导出再导回的环节，只有 U 盘导入走先采集后批量导入的路径。
+  evidence:
+    quote: U盘导入是唯一「先离线采集、后批量导入」的路径：先在通讯录中导出到考勤机，之后定期把打卡记录导回企业微信，再由系统按规则核算。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种打卡方式
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    skipped:
+    - method: 边界值法
+      reason: 三种方式的记录路径是离散枚举，不含数值边界
+    - method: 错误推测法
+      reason: 「唯一」已由原文限定，无需猜测其他离线路径
+    - method: 穷举法
+      reason: 方式只有三种且已逐一列举，穷举不产生新路径
+    - method: 因果图法
+      reason: 打卡方式是唯一变量，单一条件直接决定记录路径，不存在与/或条件组合
+    - method: 场景法
+      reason: 该断言比对路径归属，不需要串联完整业务流程
+    - method: 异常法
+      reason: 该断言不注入异常导入数据，只验三种方式的记录路径归属
+    - method: 并发法
+      reason: 记录路径由打卡方式静态映射得出，没有共享可变状态参与判定
+    - method: 安全性法
+      reason: 该断言只比对记录的产生路径，不涉及任何凭证校验或越权访问
+- id: TP-FP-04-01-01
+  scenario_id: SC-FP-04-01
+  statement: 定位距办公地点 100 米与 300 米处的手机打卡都落在有效范围内并被放行，超出 300 米处的打卡不被放行。
+  evidence:
+    quote: 添加打卡位置时，以地图上的企业办公地点为中心，100至300米范围内均可成为打卡有效范围；员工携带装有企业微信的手机进入该区域即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 边界值法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 错误推测法
+      reason: 范围上下限已由原文给出，无需凭经验猜阈值
+    - method: 穷举法
+      reason: 距离是连续量，只能取边界与代表值，无法穷举
+    - method: 逆向场景法
+      reason: 本条覆盖边界内外两侧，已内含反向路径，不另立反向断言
+    - method: 因果图法
+      reason: 距离单条件决定放行与否，无组合条件
+    - method: 异常法
+      reason: 超范围打卡在本断言中是边界对照，不另设异常注入
+    - method: 并发法
+      reason: 单点定位校验只读当前坐标，无共享可变状态，并发不改变判定
+    - method: 安全性法
+      reason: 定位校验比对地理坐标，不涉及身份鉴权、凭证伪造或越权访问
+- id: TP-FP-04-01-02
+  scenario_id: SC-FP-04-01
+  statement: 打卡有效范围的 100 至 300 米边界按打卡地点各自生效，一个地点设定的范围不套用到另一个地点。
+  evidence:
+    quote: 打卡范围的边界值（100至300米）需按地点维度验证生效。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 边界值法
+    - 场景法
+    skipped:
+    - method: 等价类划分
+      reason: 断言固定为两个地点同一临界距离的对照，再分类不产生新输入
+    - method: 错误推测法
+      reason: 按地点维度生效已明文，无需推测跨地点继承
+    - method: 穷举法
+      reason: 地点数量随企业变化，取两个地点的临界点已足够判定
+    - method: 逆向场景法
+      reason: 本条验地点维度隔离的正向一致性，无绕行路径可走
+    - method: 因果图法
+      reason: 地点单条件决定生效范围，无条件组合
+    - method: 异常法
+      reason: 不注入异常定位，只比两地点的边界结论
+    - method: 并发法
+      reason: 两地点的范围配置互不写入，无竞态
+    - method: 安全性法
+      reason: 地点范围是纯地理配置，不涉及账号鉴权、敏感数据与凭证校验
+- id: TP-FP-04-02-01
+  scenario_id: SC-FP-04-02
+  statement: 人数已达上限的考勤机不出现在可选打卡设备列表中，无法被规则选中。
+  evidence:
+    quote: 人数已达上限的考勤机不得出现在可选设备列表中；若已被规则引用后达到上限，需确认打卡是否被拒。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 边界值法
+    - 逆向场景法
+    - 场景法
+    skipped:
+    - method: 等价类划分
+      reason: 断言只针对「已达上限」这一临界状态，其他人数档位由边界值法覆盖
+    - method: 错误推测法
+      reason: 上限与列表呈现的关系已明文，无需猜测隐藏灰名单
+    - method: 穷举法
+      reason: 设备数量随企业变化，取上限前后两点即可判定
+    - method: 因果图法
+      reason: 人数是否达上限单条件决定设备是否可选
+    - method: 异常法
+      reason: 达上限即为被测边界状态，不再叠加其他异常入参
+    - method: 并发法
+      reason: 设备列表为配置页读取，未并发写入人数
+    - method: 安全性法
+      reason: 设备可选性由人数与规则引用关系决定，与账号鉴权和越权访问无关
+- id: TP-FP-04-02-02
+  scenario_id: SC-FP-04-02
+  statement: 考勤机人数超过上限后不能作为打卡设备被规则选中。
+  evidence:
+    quote: 这里存在容量约束：每台考勤机有相应的人数上限，人数超限的考勤机不能作为打卡设备被选中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 边界值法
+    - 等价类划分
+    skipped:
+    - method: 错误推测法
+      reason: 超限即不可选已由原文写死，无需猜测上限后的降级处理
+    - method: 穷举法
+      reason: 设备清单规模不定，取上限/超限两类已覆盖判定
+    - method: 逆向场景法
+      reason: 本条验超限设备的不可选性，正常设备可选由同场景另一断言覆盖
+    - method: 因果图法
+      reason: 人数是否达上限是唯一条件，一对一决定设备可选性，没有组合条件
+    - method: 场景法
+      reason: 可在配置页直接读取设备列表判定，无需端到端串联
+    - method: 异常法
+      reason: 超限是容量边界而非异常入参，已由边界值法承担
+    - method: 并发法
+      reason: 未构造多人同时打卡抬高人数的并发写入
+    - method: 安全性法
+      reason: 人数上限是容量配置约束，不涉及任何越权访问或凭证校验
+- id: TP-FP-04-03-01
+  scenario_id: SC-FP-04-03
+  statement: 员工连上目标 Wi-Fi 后扫描添加 WIFI 页面上的二维码，能取得该 Wi-Fi 的 bssid 地址用于规则配置。
+  evidence:
+    quote: 获取途径有两条：向网络 IT 管理员询问，或用手机连上目标 Wi-Fi 后，用最新版企业微信手机客户端扫描添加 WIFI 页面上的二维码获取地址。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: bssid 是标识串而非数值，不存在临界取值
+    - method: 错误推测法
+      reason: 两条获取途径已由原文列全，无需猜测第三条路径
+    - method: 穷举法
+      reason: 两条途径已逐一列举，穷举不产生新路径
+    - method: 逆向场景法
+      reason: 本条验凭证获取的成功路径，失败路径不在本文档可断言范围
+    - method: 因果图法
+      reason: 扫码是唯一动作，单条件产出地址，不存在与/或条件组合需要剪裁
+    - method: 异常法
+      reason: 只验正常客户端联网扫码，不注入旧版本或断网等异常入参
+    - method: 并发法
+      reason: 扫码取地址为单次读取，无共享可变状态
+    - method: 安全性法
+      reason: 获取的是办公 Wi-Fi 标识，不涉及账号凭证
+- id: TP-FP-04-03-02
+  scenario_id: SC-FP-04-03
+  statement: 规则中提交的 Wi-Fi 凭证是 MAC 地址/bssid，员工连上该 Wi-Fi 后即满足手机打卡的地点校验条件。
+  evidence:
+    quote: WIFI 打卡需要提交 Wi-Fi 的 MAC 地址/bssid。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 因果图法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: MAC 地址为定长标识，校验判定没有数值区间
+    - method: 等价类划分
+      reason: 凭证形态只有匹配与不匹配两类，已由本断言的因果对照覆盖
+    - method: 错误推测法
+      reason: 凭证字段已明文规定，无需猜测是否接受 SSID 名称
+    - method: 穷举法
+      reason: 地址空间过大不可穷举，取合法地址即可判定
+    - method: 逆向场景法
+      reason: 匹配失败的拒绝路径由手机打卡被拒的相邻断言覆盖
+    - method: 异常法
+      reason: 不注入格式非法的 bssid，只验合法凭证的放行
+    - method: 并发法
+      reason: 单次打卡只读一次凭证配置，无并发写入，构不成竞态观测点
+    - method: 安全性法
+      reason: 校验对象是网络标识，不是身份凭证
+- id: TP-FP-05-01-01
+  scenario_id: SC-FP-05-01
+  statement: 规则允许迟到 N 分钟时，员工晚 N 分钟打卡不判迟到，晚 N+1 分钟打卡判为迟到。
+  evidence:
+    quote: 这是规则级的容差阈值，决定了迟到/早退判定的触发点。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+  methods:
+    applicable:
+    - 边界值法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 错误推测法
+      reason: 触发点由容差分钟数定义，无需凭经验猜测舍入规则
+    - method: 穷举法
+      reason: 分钟数为连续区间，取 N 与 N+1 两个边界点即可判定
+    - method: 逆向场景法
+      reason: N+1 分钟这一侧已构成反向判定，无需另设绕行断言
+    - method: 因果图法
+      reason: 迟到分钟数与判定结果是单变量映射
+    - method: 异常法
+      reason: 超阈值为边界对照，不额外注入异常打卡时间
+    - method: 并发法
+      reason: 单人单日一条判定，无共享可变状态
+    - method: 安全性法
+      reason: 容差判定只比对分钟数与结论，不涉及账号鉴权或打卡凭证伪造
+- id: TP-FP-05-01-02
+  scenario_id: SC-FP-05-01
+  statement: 迟到容差是规则级配置，调整某条规则允许迟到的分钟数后只改变该规则下人员的迟到判定，不改动其他规则。
+  evidence:
+    quote: 添加企业的上下班时间之后，可在高级设置中设定允许迟到、早退的分钟数。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+  methods:
+    applicable:
+    - 场景法
+    - 边界值法
+    skipped:
+    - method: 等价类划分
+      reason: 断言固定为改前改后两份判定对照，再分类不产生新输入
+    - method: 错误推测法
+      reason: 规则级作用域已由原文限定，无需推测全局生效
+    - method: 穷举法
+      reason: 分钟数取值连续，只需在阈值两侧取点判定
+    - method: 逆向场景法
+      reason: 本条验作用域不扩散，反向扩散路径即为被测对象
+    - method: 因果图法
+      reason: 单条规则的分钟数单条件影响本规则判定
+    - method: 异常法
+      reason: 不注入异常打卡时间，只比对改配置前后的判定
+    - method: 并发法
+      reason: 配置改动为一次读取一次写入，未构造并发提交
+    - method: 安全性法
+      reason: 容差分钟数是纯时间配置，不含鉴权逻辑与敏感数据，无安全面可测
+- id: TP-FP-05-02-01
+  scenario_id: SC-FP-05-02
+  statement: 允许早退 N 分钟时，员工提前 N 分钟打卡不判早退，提前 N+1 分钟打卡判为早退。
+  evidence:
+    quote: 添加企业的上下班时间之后，可在高级设置中设定允许迟到、早退的分钟数。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+  methods:
+    applicable:
+    - 边界值法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 错误推测法
+      reason: 早退判定点由允许早退分钟数定义，无需猜测四舍五入
+    - method: 穷举法
+      reason: 提前分钟数连续，取 N 与 N+1 两个边界点即可判定
+    - method: 逆向场景法
+      reason: N+1 分钟这一侧已是反向判定，无需另设绕行路径
+    - method: 因果图法
+      reason: 早退分钟数与判定结果是单变量映射
+    - method: 异常法
+      reason: 超阈值为边界对照，不额外注入异常打卡时间
+    - method: 并发法
+      reason: 单人单日一次判定，无并发共享状态
+    - method: 安全性法
+      reason: 早退判定只比对提前分钟数，不涉及权限校验或凭证伪造
+- id: TP-FP-05-02-02
+  scenario_id: SC-FP-05-02
+  statement: 员工提前离岗的分钟数落在允许早退分钟数之内时，不产生早退异常记录。
+  evidence:
+    quote: 这是规则级的容差阈值，决定了迟到/早退判定的触发点。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+  methods:
+    applicable:
+    - 边界值法
+    - 逆向场景法
+    skipped:
+    - method: 等价类划分
+      reason: 输入已限定在容差内，再分类不产生新的判定结论
+    - method: 错误推测法
+      reason: 容差内不判异常由阈值定义直接给出，无需经验猜测
+    - method: 穷举法
+      reason: 分钟数连续，取容差内代表点即可，穷举无增量
+    - method: 因果图法
+      reason: 提前分钟数是唯一变量，一对一决定是否记早退，无组合条件
+    - method: 场景法
+      reason: 可直接读该员工当日异常记录判定，无需端到端串联
+    - method: 异常法
+      reason: 本条验容差内不误报，超阈值的误报由同场景另一断言覆盖
+    - method: 并发法
+      reason: 单人单日记录读取，无共享可变状态
+    - method: 安全性法
+      reason: 异常记录生成只比对分钟数与结论，不涉及权限校验或凭证伪造
+- id: TP-FP-06-01-01
+  scenario_id: SC-FP-06-01
+  statement: 外出人员上传位置定位并拍照后，该次外出打卡成立并作为其当日打卡依据。
+  evidence:
+    quote: 配置外出打卡规则后，外出人员在企业微信手机客户端上传位置定位和拍照作为打卡依据。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 该断言验的是两项依据齐备，不涉及距离或时间的数值阈值
+    - method: 错误推测法
+      reason: 打卡依据已由原文列为定位与拍照，无需猜测附加条件
+    - method: 穷举法
+      reason: 依据组合仅定位/拍照四种，等价类覆盖即可
+    - method: 逆向场景法
+      reason: 本条验成立的正向路径，依据缺失的路径由相邻断言覆盖
+    - method: 因果图法
+      reason: 本断言只看依据齐备的单一路径，不做组合剪裁
+    - method: 异常法
+      reason: 不注入异常定位或损坏照片，只验正常提交
+    - method: 并发法
+      reason: 单次外出打卡写入一条记录，无共享可变状态
+    - method: 安全性法
+      reason: 该断言只验来源限制，不涉及越权提交、代打卡伪造或身份冒用
+- id: TP-FP-06-01-02
+  scenario_id: SC-FP-06-01
+  statement: 外出打卡与上下班打卡并列存在，出差外勤等无法在办公区域打卡的成员按外出打卡规则单独配置。
+  evidence:
+    quote: 外出打卡是与上下班打卡并列的另一种打卡方式，面向出差外勤等无法在办公区域打卡的成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 适用人群划分是离散集合，没有数值边界
+    - method: 错误推测法
+      reason: 适用对象已由原文限定为出差外勤类成员，无需猜测其他人群
+    - method: 穷举法
+      reason: 人员构成随组织变化，按适用/不适用两类覆盖即可
+    - method: 逆向场景法
+      reason: 本条验适用人群的正向归属，不适用人群的判定由相邻断言覆盖
+    - method: 因果图法
+      reason: 规则类型单条件决定是否走外出打卡
+    - method: 异常法
+      reason: 该断言不注入异常定位或照片，只验打卡方式的归属划分
+    - method: 并发法
+      reason: 规则与外出打卡的绑定是静态配置，判定期间无并发写入
+    - method: 安全性法
+      reason: 外出打卡归属由规则类型与人员配置决定，不涉及权限控制与越权访问
+- id: TP-FP-06-02-01
+  scenario_id: SC-FP-06-02
+  statement: 启用照片来源限制后，外出人员从相册选取图片提交的路径被阻断，该图片不能作为打卡依据。
+  evidence:
+    quote: 为防作弊，管理员可以限制照片来源：设置后，添加的照片只能通过拍照提交，不能从相册选取。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 图片来源是相册与相机两种枚举，没有数值阈值
+    - method: 等价类划分
+      reason: 断言只针对相册这一条被禁路径，另一路径由同场景另一断言覆盖
+    - method: 错误推测法
+      reason: 只能拍照、不能从相册选取已明文写死，无需猜测例外
+    - method: 穷举法
+      reason: 来源只有两种且已分别断言，穷举不产生新路径
+    - method: 因果图法
+      reason: 照片来源是唯一变量，单一条件决定提交结果，不存在与/或条件组合
+    - method: 场景法
+      reason: 可直接读提交结果判定，无需串联完整外勤流程
+    - method: 并发法
+      reason: 单次提交只读一次规则开关，无共享写入
+- id: TP-FP-06-02-02
+  scenario_id: SC-FP-06-02
+  statement: 启用照片来源限制后，相机现场拍照提交的照片仍可正常作为外出打卡依据。
+  evidence:
+    quote: 外出打卡启用「只能拍照」后，相册图片上传路径必须被阻断。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 场景法
+    - 安全性法
+    skipped:
+    - method: 边界值法
+      reason: 照片像素或文件大小在本断言中不构成判定阈值
+    - method: 等价类划分
+      reason: 断言固定为拍照来源这一条合法路径，另立分类无增量
+    - method: 错误推测法
+      reason: 拦截只作用于相册，原文已限定范围，无需猜测拍照也被拦
+    - method: 穷举法
+      reason: 来源仅两种且各有一条断言，穷举重复
+    - method: 逆向场景法
+      reason: 本条验合法路径不被误伤，被拦路径由同场景另一断言承担
+    - method: 因果图法
+      reason: 照片来源是唯一变量，单一条件直接决定是否放行，无需画多条件组合图
+    - method: 异常法
+      reason: 不注入异常图片，只验正常拍照提交
+    - method: 并发法
+      reason: 单次提交只读一次照片来源开关，无共享可变状态参与判定
+- id: TP-FP-09-01-01
+  scenario_id: SC-FP-09-01
+  statement: 规则未勾选「员工打卡必须拍照」时，员工提交的不含照片的打卡被受理并写入当日考勤记录。
+  evidence:
+    quote: 未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，拍照开关与照片有无为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，拍照开关与照片有无看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，拍照开关与照片有无的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，拍照开关与照片有无不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，拍照开关与照片有无的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，拍照开关与照片有无无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，拍照开关与照片有无无越权面
+- id: TP-FP-09-02-01
+  scenario_id: SC-FP-09-02
+  statement: 规则勾选「员工打卡必须拍照」后，不携带照片的打卡请求被拒绝，当日该时段不生成打卡记录。
+  evidence:
+    quote: 未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，照片有无与开关勾选状态为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，照片有无与开关勾选状态看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 因果图法
+      reason: 本点为单条件单结果，照片有无与开关勾选状态不构成多条件组合的因果约束
+    - method: 场景法
+      reason: 本点只做单一判定，照片有无与开关勾选状态不构成需要串联的业务流程
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，照片有无与开关勾选状态无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，照片有无与开关勾选状态无越权面
+- id: TP-FP-09-03-01
+  scenario_id: SC-FP-09-03
+  statement: 勾选「备注不允许上传本地图片，只能拍照」后，以本地相册图片作为异常打卡备注图片来源的提交被拦截。
+  evidence:
+    quote: 开启“备注不允许上传本地图片，只能拍照”后，相册来源的备注图必须被拦截。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 异常法
+    - 逆向场景法
+    - 错误推测法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，异常备注的图片来源为离散状态
+    - method: 等价类划分
+      reason: 备注来源只有相册与现场拍摄两类，已被两个测试点分别覆盖
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 因果图法
+      reason: 本点为单条件单结果，异常备注的图片来源不构成多条件组合的因果约束
+    - method: 场景法
+      reason: 本点只做单一判定，异常备注的图片来源不构成需要串联的业务流程
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，异常备注的图片来源无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，异常备注的图片来源无越权面
+- id: TP-FP-09-03-02
+  scenario_id: SC-FP-09-03
+  statement: 同一规则下，现场拍摄的备注图片仍可提交成功并随该条异常打卡记录保存。
+  evidence:
+    quote: 配套的强约束针对异常打卡的备注图片：勾选“备注不允许上传本地图片，只能拍照”后，备注只能现场拍摄上传，本地相册图片被禁止。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 拍照打卡
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，备注图片的两种来源为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，备注图片的两种来源看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，备注图片的两种来源的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，备注图片的两种来源不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，备注图片的两种来源的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，备注图片的两种来源无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，备注图片的两种来源无越权面
+- id: TP-FP-10-01-01
+  scenario_id: SC-FP-10-01
+  statement: 补卡申请审批通过后，该员工当日被打上异常标记的打卡状态被系统自动校正为正常。
+  evidence:
+    quote: 审批通过后，系统自动将异常打卡状态校正为正常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+  methods:
+    applicable:
+    - 场景法
+    - 因果图法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，补卡审批结论与打卡状态为离散状态
+    - method: 等价类划分
+      reason: 本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，补卡审批结论与打卡状态看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，补卡审批结论与打卡状态的逆路径由同场景其他测试点承担
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，补卡审批结论与打卡状态的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，补卡审批结论与打卡状态无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，补卡审批结论与打卡状态无越权面
+- id: TP-FP-10-01-02
+  scenario_id: SC-FP-10-01
+  statement: 补卡审批通过后的校准结果在【打卡记录】>【校准状态】中可见。
+  evidence:
+    quote: 审批通过后异常状态自动转为正常，且校准结果在【打卡记录】>【校准状态】中可见。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，校准结果的展示字段为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，校准结果的展示字段看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，校准结果的展示字段的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，校准结果的展示字段不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，校准结果的展示字段的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，校准结果的展示字段无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，校准结果的展示字段无越权面
+- id: TP-FP-10-02-01
+  scenario_id: SC-FP-10-02
+  statement: 补卡申请审批未通过时，该员工当日的异常打卡状态保持原值，不出现任何自动校准。
+  evidence:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 因果图法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，审批未通过与状态保持为离散状态
+    - method: 等价类划分
+      reason: 本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，审批未通过与状态保持看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 场景法
+      reason: 本点只做单一判定，审批未通过与状态保持不构成需要串联的业务流程
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，审批未通过与状态保持无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，审批未通过与状态保持无越权面
+- id: TP-FP-10-03-01
+  scenario_id: SC-FP-10-03
+  statement: 打卡规则未勾选补卡申请开关时，【审批】应用中不出现补卡申请，员工无法发起补卡申请。
+  evidence:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 错误推测法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，补卡入口与开关状态为离散状态
+    - method: 等价类划分
+      reason: 补卡入口只有开启与关闭两种取值，两类都已由测试点覆盖
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 因果图法
+      reason: 本点为单条件单结果，补卡入口与开关状态不构成多条件组合的因果约束
+    - method: 场景法
+      reason: 本点只做单一判定，补卡入口与开关状态不构成需要串联的业务流程
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，补卡入口与开关状态的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，补卡入口与开关状态无共享可变状态
+- id: TP-FP-10-03-02
+  scenario_id: SC-FP-10-03
+  statement: 员工不存在跳过上级审批直接改变异常打卡状态的路径，任何状态变更都以审批通过为前提。
+  evidence:
+    quote: 补卡申请由员工发起、经上级审批后才能改变打卡状态，不存在跳过审批环节的路径。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+  methods:
+    applicable:
+    - 安全性法
+    - 逆向场景法
+    - 错误推测法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，审批环节与状态改写路径为离散状态
+    - method: 等价类划分
+      reason: 本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 因果图法
+      reason: 本点为单条件单结果，审批环节与状态改写路径不构成多条件组合的因果约束
+    - method: 场景法
+      reason: 本点只做单一判定，审批环节与状态改写路径不构成需要串联的业务流程
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，审批环节与状态改写路径的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，审批环节与状态改写路径无共享可变状态
+- id: TP-FP-11-01-01
+  scenario_id: SC-FP-11-01
+  statement: 某日期被设置为「不用打卡」后，员工当日没有任何打卡记录，该日也不产生缺卡类异常。
+  evidence:
+    quote: 特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，不用打卡日期与当日无记录为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，不用打卡日期与当日无记录看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，不用打卡日期与当日无记录的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，不用打卡日期与当日无记录不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，不用打卡日期与当日无记录的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，不用打卡日期与当日无记录无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，不用打卡日期与当日无记录无越权面
+- id: TP-FP-11-02-01
+  scenario_id: SC-FP-11-02
+  statement: 某日期被设置为必须打卡后，员工在该日配置时段内没有有效打卡，该日被判定为缺卡异常。
+  evidence:
+    quote: 特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，必须打卡日期与缺卡判定为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，必须打卡日期与缺卡判定看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 因果图法
+      reason: 本点为单条件单结果，必须打卡日期与缺卡判定不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，必须打卡日期与缺卡判定的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，必须打卡日期与缺卡判定无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，必须打卡日期与缺卡判定无越权面
+- id: TP-FP-11-03-01
+  scenario_id: SC-FP-11-03
+  statement: 同一日期新增两个时段后，两个时段各自产生独立的打卡要求，仅其中一个时段缺卡也会被判为异常。
+  evidence:
+    quote: 设置方法：在添加打卡规则页面点击特殊日期的添加按钮，选择需要打卡的日期、时段和打卡事由；同一日期如需多个时间，可新增时段。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+  methods:
+    applicable:
+    - 等价类划分
+    - 穷举法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，同一日期的时段数量与缺卡组合为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，同一日期的时段数量与缺卡组合看不出易错分支
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，同一日期的时段数量与缺卡组合的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，同一日期的时段数量与缺卡组合不构成多条件组合的因果约束
+    - method: 场景法
+      reason: 本点只做单一判定，同一日期的时段数量与缺卡组合不构成需要串联的业务流程
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，同一日期的时段数量与缺卡组合的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，同一日期的时段数量与缺卡组合无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，同一日期的时段数量与缺卡组合无越权面
+- id: TP-FP-12-01-01
+  scenario_id: SC-FP-12-01
+  statement: 「非工作日允许打卡」开启后，员工在非工作日签到成功并被记录工作时长，该日不计为考勤异常。
+  evidence:
+    quote: 另一条独立开关是「非工作日允许打卡」：公司在非工作日有加班需求时可开启，员工可自由签到并记录工作时长。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，非工作日签到的时长与异常标记为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，非工作日签到的时长与异常标记看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，非工作日签到的时长与异常标记的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，非工作日签到的时长与异常标记不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，非工作日签到的时长与异常标记的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，非工作日签到的时长与异常标记无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，非工作日签到的时长与异常标记无越权面
+- id: TP-FP-12-01-02
+  scenario_id: SC-FP-12-01
+  statement: 「非工作日允许打卡」开启后，非工作日签到产生的记录不被判为考勤异常。
+  evidence:
+    quote: 非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 因果图法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，非工作日签到与异常标记为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，非工作日签到与异常标记看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，非工作日签到与异常标记的逆路径由同场景其他测试点承担
+    - method: 场景法
+      reason: 本点只做单一判定，非工作日签到与异常标记不构成需要串联的业务流程
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，非工作日签到与异常标记的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，非工作日签到与异常标记无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，非工作日签到与异常标记无越权面
+- id: TP-FP-12-02-01
+  scenario_id: SC-FP-12-02
+  statement: 「非工作日允许打卡」关闭时，员工在非工作日的打卡被拒绝、或虽被受理但不计入考勤统计，不会被记成正常出勤。
+  evidence:
+    quote: 非工作日允许打卡开启后，非工作日签到应记录时长且不计异常；关闭时非工作日打卡应被拒绝或不计入。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 异常法
+    - 因果图法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，开关关闭与非工作日打卡受理为离散状态
+    - method: 等价类划分
+      reason: 本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，开关关闭与非工作日打卡受理看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 场景法
+      reason: 本点只做单一判定，开关关闭与非工作日打卡受理不构成需要串联的业务流程
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，开关关闭与非工作日打卡受理无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，开关关闭与非工作日打卡受理无越权面
+- id: TP-FP-13-01-01
+  scenario_id: SC-FP-13-01
+  statement: 打卡规则在下拉列表选定提醒时间后，该规则适用员工在指定时间通过企业微信收到一条打卡提醒。
+  evidence:
+    quote: 届时员工的企业微信将在指定时间收到打卡提醒。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，提醒时间与消息送达为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，提醒时间与消息送达看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，提醒时间与消息送达的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，提醒时间与消息送达不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，提醒时间与消息送达的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，提醒时间与消息送达无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，提醒时间与消息送达无越权面
+- id: TP-FP-13-02-01
+  scenario_id: SC-FP-13-02
+  statement: 提醒取「准点」时触达时点与打卡时间相同，取「提前」时触达时点早于打卡时间，两类取值不出现相反的时点关系。
+  evidence:
+    quote: 针对忘记打卡的情况，可在【添加打卡规则页面】>【提醒】的下拉列表中选择提醒时间，打卡时间准点或提前提醒。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+  methods:
+    applicable:
+    - 边界值法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，提醒时点相对打卡时间的偏移看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，提醒时点相对打卡时间的偏移的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，提醒时点相对打卡时间的偏移不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，提醒时点相对打卡时间的偏移的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，提醒时点相对打卡时间的偏移无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，提醒时点相对打卡时间的偏移无越权面
+- id: TP-FP-14-01-01
+  scenario_id: SC-FP-14-01
+  statement: 打卡应用未做任何可见范围配置时，通讯录内全部成员在手机端都能看到并使用打卡应用入口。
+  evidence:
+    quote: 系统默认打卡应用为所有人可见。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡应用的可见范围
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，默认可见范围与成员覆盖面为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，默认可见范围与成员覆盖面看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，默认可见范围与成员覆盖面的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，默认可见范围与成员覆盖面不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，默认可见范围与成员覆盖面的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，默认可见范围与成员覆盖面无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，默认可见范围与成员覆盖面无越权面
+- id: TP-FP-14-02-01
+  scenario_id: SC-FP-14-02
+  statement: 可见范围被配置为指定部门与成员后，不在该范围内的员工在手机端看不到打卡应用入口。
+  evidence:
+    quote: 可见范围调整后，范围外成员不应再看到打卡应用入口。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，范围外成员与应用入口为离散状态
+    - method: 等价类划分
+      reason: 本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，范围外成员与应用入口看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 因果图法
+      reason: 本点为单条件单结果，范围外成员与应用入口不构成多条件组合的因果约束
+    - method: 场景法
+      reason: 本点只做单一判定，范围外成员与应用入口不构成需要串联的业务流程
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，范围外成员与应用入口的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，范围外成员与应用入口无共享可变状态
+- id: TP-FP-14-03-01
+  scenario_id: SC-FP-14-03
+  statement: 分别按整个部门和按单个成员配置可见范围后，两类配置覆盖到的成员都能看到打卡应用入口。
+  evidence:
+    quote: 可见范围指能在手机中看到并使用打卡应用的人群范围，在打卡应用首页点击【修改】，从通讯录列表中选择部门和成员即可配置。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡应用的可见范围
+  methods:
+    applicable:
+    - 等价类划分
+    - 穷举法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，部门对象与成员对象的配置覆盖为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，部门对象与成员对象的配置覆盖看不出易错分支
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，部门对象与成员对象的配置覆盖的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，部门对象与成员对象的配置覆盖不构成多条件组合的因果约束
+    - method: 场景法
+      reason: 本点只做单一判定，部门对象与成员对象的配置覆盖不构成需要串联的业务流程
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，部门对象与成员对象的配置覆盖的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，部门对象与成员对象的配置覆盖无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，部门对象与成员对象的配置覆盖无越权面
+- id: TP-FP-15-01-01
+  scenario_id: SC-FP-15-01
+  statement: 员工上班早退 2 小时且存在同一时间段 2 小时已通过事假时，其当日打卡状态被校准为「正常」。
+  evidence:
+    quote: 两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，审批时段与异常时段的匹配结果为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，审批时段与异常时段的匹配结果看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，审批时段与异常时段的匹配结果的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，审批时段与异常时段的匹配结果不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，审批时段与异常时段的匹配结果的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，审批时段与异常时段的匹配结果无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，审批时段与异常时段的匹配结果无越权面
+- id: TP-FP-15-02-01
+  scenario_id: SC-FP-15-02
+  statement: 员工非工作日打了 10 小时加班卡且当日存在已通过加班申请时，校准后该日状态为「加班正常」。
+  evidence:
+    quote: 开启模板后，针对当天打卡状态异常的员工，系统自动核对该员工已通过的请假、出差、外出、加班、打卡补卡审批单据；若正好匹配，则校准其打卡状态，并展示在【打卡记录】>【校准状态】。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+  methods:
+    applicable:
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，加班申请与加班卡的匹配结果为离散状态
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，加班申请与加班卡的匹配结果看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 逆向场景法
+      reason: 本点只验正向可达路径，加班申请与加班卡的匹配结果的逆路径由同场景其他测试点承担
+    - method: 因果图法
+      reason: 本点为单条件单结果，加班申请与加班卡的匹配结果不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，加班申请与加班卡的匹配结果的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，加班申请与加班卡的匹配结果无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，加班申请与加班卡的匹配结果无越权面
+- id: TP-FP-15-03-01
+  scenario_id: SC-FP-15-03
+  statement: 异常时段不存在匹配的已通过审批时，该异常状态保持原样，不出现任何校准记录。
+  evidence:
+    quote: 两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+  methods:
+    applicable:
+    - 逆向场景法
+    - 因果图法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 本点无取值的数值阈值，无匹配审批时的状态保持为离散状态
+    - method: 等价类划分
+      reason: 本点的输入类已被同场景其他测试点覆盖，再划等价类不新增判定
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，无匹配审批时的状态保持看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 场景法
+      reason: 本点只做单一判定，无匹配审批时的状态保持不构成需要串联的业务流程
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，无匹配审批时的状态保持无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，无匹配审批时的状态保持无越权面
+- id: TP-FP-15-03-02
+  scenario_id: SC-FP-15-03
+  statement: 审批覆盖时段之外的异常不被一并校准，只有与审批时段重叠的那部分异常转为正常。
+  evidence:
+    quote: 校准需按时间段匹配：审批覆盖时段之外的异常不得被一并校准。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 边界值法
+    - 逆向场景法
+    - 场景法
+    skipped:
+    - method: 等价类划分
+      reason: 覆盖范围已按审批时段的起止边界取值，再划等价类不新增判定
+    - method: 错误推测法
+      reason: 无历史缺陷或已知失误模式可推测，审批时段边界与异常覆盖范围看不出易错分支
+    - method: 穷举法
+      reason: 本点的取值组合已被等价类与场景覆盖，穷举不增加覆盖
+    - method: 因果图法
+      reason: 本点为单条件单结果，审批时段边界与异常覆盖范围不构成多条件组合的因果约束
+    - method: 异常法
+      reason: 本点断言合规输入下的结果，审批时段边界与异常覆盖范围的异常输入由同场景其他测试点承担
+    - method: 并发法
+      reason: 本点只涉及单人单条记录，审批时段边界与异常覆盖范围无共享可变状态
+    - method: 安全性法
+      reason: 本点不涉及身份校验或越权访问，审批时段边界与异常覆盖范围无越权面
+- id: TP-FP-17-01-01
+  scenario_id: SC-FP-17-01
+  statement: 超级管理员的规则设置范围覆盖公司全员且查看统计范围同为全员，不因部门归属被截断。
+  evidence:
+    quote: '| 超级管理员 | 可在管理后台和移动端给公司全员设置打卡规则 | 全员打卡统计 |'
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 安全性法
+    skipped:
+    - method: 边界值法
+      reason: 范围判定只有「全员」与「管辖范围」两个类别，无数值阈值或区间端点可取
+    - method: 错误推测法
+      reason: 该判定由管理员表格条款直接给出，无历史缺陷可供推测
+    - method: 穷举法
+      reason: 接口与部门组合数量随组织规模增长，穷举没有边界
+    - method: 逆向场景法
+      reason: 该点只验覆盖全员的正向路径，反向路径由 SC-FP-17-03 与 FP-20 承担
+    - method: 因果图法
+      reason: 管理员类型单条件即决定范围，不存在待组合的条件约束
+    - method: 异常法
+      reason: 该点只验范围归属，不涉及运行时异常
+    - method: 并发法
+      reason: 单管理员单次操作，无共享可变状态
+- id: TP-FP-17-01-02
+  scenario_id: SC-FP-17-01
+  statement: 超级管理员与分级管理员的权限边界按「全员」与「管辖范围」两条线划界，不存在两类管理员都覆盖不到的员工。
+  evidence:
+    quote: 企业微信把管理员分成超级管理员与分级管理员两类，权限按「全员」与「管辖范围」划界；打卡记录则提供管理后台的筛选与 Excel 导出、以及面向开发者的 API 导出两条通道。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: Overview
+  methods:
+    applicable:
+    - 等价类划分
+    - 因果图法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 划界是类别归属判定，无数值阈值可取值
+    - method: 错误推测法
+      reason: 划界规则由概述段直接给出，无经验性风险假设可依
+    - method: 穷举法
+      reason: 管理员种类与部门组合数量随组织架构增长，不可穷举
+    - method: 逆向场景法
+      reason: 该点为正向划界判定，反向由 SC-FP-17-03 承担
+    - method: 异常法
+      reason: 不涉及运行时异常，只验管理员类别与范围的对应
+    - method: 并发法
+      reason: 单账号单次判定，无共享可变状态
+    - method: 安全性法
+      reason: 该点只验范围归属，越权拦截由 FP-20 单独判定
+- id: TP-FP-17-02-01
+  scenario_id: SC-FP-17-02
+  statement: 分级管理员设置规则的作用范围只落在其管辖范围内，范围外部门的规则不受其操作影响。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 安全性法
+    skipped:
+    - method: 边界值法
+      reason: 作用范围是部门集合的归属判定，无数值端点
+    - method: 错误推测法
+      reason: 作用范围由文档条款明确给出，无需经验推测
+    - method: 穷举法
+      reason: 跨部门组合随组织架构增长，全组合不可穷举
+    - method: 逆向场景法
+      reason: 反向路径由 SC-FP-17-03 单独覆盖
+    - method: 因果图法
+      reason: 管辖范围单条件即决定作用范围
+    - method: 异常法
+      reason: 不涉及运行时异常，只验作用范围归属
+    - method: 并发法
+      reason: 单管理员串行操作，无共享可变状态
+- id: TP-FP-17-02-02
+  scenario_id: SC-FP-17-02
+  statement: 分级管理员的查看统计范围等于其管辖范围，统计结果不含范围外员工的数据。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 穷举法
+    skipped:
+    - method: 边界值法
+      reason: 统计范围是员工集合归属，无数值阈值
+    - method: 错误推测法
+      reason: 统计范围口径由条款给出，不靠经验假设
+    - method: 逆向场景法
+      reason: 该点验范围内统计的完整性，反向由 SC-FP-20-02 承担
+    - method: 因果图法
+      reason: 管辖范围单条件决定统计范围
+    - method: 异常法
+      reason: 不涉及异常路径，只比对统计集合
+    - method: 并发法
+      reason: 单管理员单次查询，无共享可变状态
+    - method: 安全性法
+      reason: 该点验数据完整性，越权拒绝由 SC-FP-20-03 判定
+- id: TP-FP-17-03-01
+  scenario_id: SC-FP-17-03
+  statement: 分级管理员对管辖范围外部门提交的规则修改被拒绝，且不产生任何规则变更。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 拒绝结果是布尔判定，无数值阈值
+    - method: 等价类划分
+      reason: 只验单一拒绝路径，无多类输入可划分
+    - method: 错误推测法
+      reason: 拒绝条件由条款直接给出，非经验推测
+    - method: 穷举法
+      reason: 越权入口随页面增长，列举没有边界
+    - method: 因果图法
+      reason: 范围外这一单条件即决定拒绝结果
+    - method: 场景法
+      reason: 单步判定，不构成多步骤业务流程
+    - method: 并发法
+      reason: 单次请求，无共享可变状态
+- id: TP-FP-17-03-02
+  scenario_id: SC-FP-17-03
+  statement: 分级管理员的可见列表与筛选项中不出现管辖范围外的部门与员工。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 可见性是布尔判定，无数值阈值
+    - method: 错误推测法
+      reason: 不可见要求由条款明示，无需推测
+    - method: 穷举法
+      reason: 范围外部门数量不可穷举，抽样覆盖即可判定
+    - method: 因果图法
+      reason: 范围归属单条件决定可见性
+    - method: 场景法
+      reason: 单点可见性核对，不是多步流程
+    - method: 异常法
+      reason: 该点只核对范围外对象的可见性，不构造异常输入，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 单账号单次加载，无共享可变状态
+- id: TP-FP-18-01-01
+  scenario_id: SC-FP-18-01
+  statement: 超级管理员经权限管理入口添加系统管理员并填写管理员信息后，被添加者获得其管辖范围内的管理能力。
+  evidence:
+    quote: 管理员配置入口：【管理后台】>【我的企业】>【权限管理】>【添加系统管理员】>【设置管理员信息】。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+  methods:
+    applicable:
+    - 场景法
+    - 安全性法
+    - 逆向场景法
+    skipped:
+    - method: 边界值法
+      reason: 管理员信息表单无数值阈值，长度与格式边界不在本点判定
+    - method: 等价类划分
+      reason: 只验一条完整配置路径，无多类别输入
+    - method: 错误推测法
+      reason: 入口路径由文档逐级给出，无经验性风险可推测
+    - method: 穷举法
+      reason: 管理员数量与权限项组合不可穷举
+    - method: 因果图法
+      reason: 一次配置动作对应一组权限，无多条件交叉
+    - method: 异常法
+      reason: 表单输入校验不在本点，异常输入由同场景另点覆盖
+    - method: 并发法
+      reason: 单次配置操作，无共享可变状态
+- id: TP-FP-18-01-02
+  scenario_id: SC-FP-18-01
+  statement: 权限分配的发起方限定为超级管理员，且可分配对象覆盖全部管理员。
+  evidence:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+  methods:
+    applicable:
+    - 等价类划分
+    - 安全性法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 分配对象是管理员集合，无数值阈值
+    - method: 错误推测法
+      reason: 发起方限制由条款直接给出
+    - method: 穷举法
+      reason: 管理员与权限项组合不可穷举，按类别抽样
+    - method: 逆向场景法
+      reason: 反向由 SC-FP-18-02 覆盖
+    - method: 因果图法
+      reason: 发起方身份单条件决定可否分配
+    - method: 异常法
+      reason: 该点只核对权限分配对象是否覆盖全部管理员，无异常输入参与
+    - method: 并发法
+      reason: 单次分配操作，无共享可变状态
+- id: TP-FP-18-02-01
+  scenario_id: SC-FP-18-02
+  statement: 非超级管理员账号无法对管理员权限进行分配，权限管理入口对其不可达。
+  evidence:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 可达性是布尔判定，无数值阈值
+    - method: 等价类划分
+      reason: 只验单一非超级管理员身份，无多类拆分
+    - method: 错误推测法
+      reason: 限制由条款明示，非经验推测
+    - method: 穷举法
+      reason: 入口与角色组合随版本增长，不可穷举
+    - method: 因果图法
+      reason: 角色单条件即决定入口可达性
+    - method: 场景法
+      reason: 入口可达性为单点事实核对，不构成多步骤业务流程
+    - method: 并发法
+      reason: 单次访问，无共享可变状态
+- id: TP-FP-19-01-01
+  scenario_id: SC-FP-19-01
+  statement: 超级管理员在管理后台侧设置规则后，全员当日打卡与统计按新规则产出，不残留旧规则结果。
+  evidence:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 场景法
+    - 错误推测法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 规则判定无单一数值阈值可取值
+    - method: 穷举法
+      reason: 部门与员工组合随组织规模增长，不可穷举
+    - method: 逆向场景法
+      reason: 反向路径由 SC-FP-19-03 承担
+    - method: 因果图法
+      reason: 单一规则类型决定判定口径，无组合约束
+    - method: 异常法
+      reason: 该点只核对后台侧设置后的规则生效结果，不构造异常输入
+    - method: 并发法
+      reason: 单管理员一次规则设置串行执行，无共享可变状态可竞争
+    - method: 安全性法
+      reason: 该点只核对规则生效结果，不涉及跨身份越权与数据泄露面
+- id: TP-FP-19-02-01
+  scenario_id: SC-FP-19-02
+  statement: 同一规则在移动端设置后产出的打卡判定与管理后台设置的结果一致。
+  evidence:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 穷举法
+    skipped:
+    - method: 边界值法
+      reason: 两端判定一致性比对无数值阈值，也无区间端点
+    - method: 错误推测法
+      reason: 双端一致要求由条款明示，无需经验假设
+    - method: 逆向场景法
+      reason: 反向由 SC-FP-19-03 覆盖
+    - method: 因果图法
+      reason: 单端设置直接决定结果，无组合因果
+    - method: 异常法
+      reason: 该点只核对移动端设置后的判定结果，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 单次设置，无共享可变状态
+    - method: 安全性法
+      reason: 该点只比对两端判定口径，不涉及跨身份越权与数据泄露
+- id: TP-FP-19-03-01
+  scenario_id: SC-FP-19-03
+  statement: 同一规则在管理后台与移动端两侧读取到的内容一致，不出现一端新值一端旧值。
+  evidence:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 场景法
+    - 穷举法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 双端内容比对是等值判定，规则内容无数值阈值与区间端点
+    - method: 错误推测法
+      reason: 双端一致性是明确条款，不作为经验假设
+    - method: 逆向场景法
+      reason: 该点验两侧读取一致性，不是反向操作
+    - method: 因果图法
+      reason: 两个读取点彼此独立，无组合因果
+    - method: 异常法
+      reason: 该点只比对两端读取到的规则内容，不构造异常输入
+    - method: 并发法
+      reason: 该点只比对读取结果，未并发改写规则
+    - method: 安全性法
+      reason: 该点只核对内容一致性，不涉及身份越权与数据泄露面
+- id: TP-FP-19-03-02
+  scenario_id: SC-FP-19-03
+  statement: 在一端修改规则后另一端的打卡判定随之收敛到新规则，不出现两端判定结果长期分叉。
+  evidence:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 并发法
+    - 异常法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 两端判定是否收敛是布尔比对，无边界取值可构造
+    - method: 等价类划分
+      reason: 只验一次跨端改写后的收敛，无多类输入
+    - method: 错误推测法
+      reason: 分叉风险由双端一致条款隐含，不作额外经验假设
+    - method: 穷举法
+      reason: 本点只验一次跨端改写后的收敛，不遍历端与规则类型的全部组合
+    - method: 逆向场景法
+      reason: 该点是修改后的正向收敛验证
+    - method: 因果图法
+      reason: 单次跨端修改单条件影响判定，无组合约束
+    - method: 安全性法
+      reason: 该点只核对跨端判定收敛，不涉及身份越权与数据泄露
+- id: TP-FP-20-01-01
+  scenario_id: SC-FP-20-01
+  statement: 分级管理员在管辖范围内的规则可修改、统计可查看，不被范围限制误伤。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 安全性法
+    skipped:
+    - method: 边界值法
+      reason: 范围内外是类别判定，无数值端点
+    - method: 错误推测法
+      reason: 范围内可操作由条款直接给出
+    - method: 穷举法
+      reason: 范围内部门数量随组织变化，抽样覆盖即可
+    - method: 逆向场景法
+      reason: 反向由 SC-FP-20-02 与 SC-FP-20-03 覆盖
+    - method: 因果图法
+      reason: 范围归属单条件决定可操作性
+    - method: 异常法
+      reason: 该点只核对范围内规则可改、统计可看，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 单管理员串行访问范围内规则与统计，无共享可变状态可竞争
+- id: TP-FP-20-02-01
+  scenario_id: SC-FP-20-02
+  statement: 管辖范围外的部门与员工不出现在分级管理员的列表、下拉选项与筛选结果中。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    - 安全性法
+    skipped:
+    - method: 边界值法
+      reason: 可见性判定是类别判定，无数值阈值
+    - method: 错误推测法
+      reason: 不可见要求由条款明示，不是可推测的经验风险
+    - method: 穷举法
+      reason: 范围外部门数量不可穷举，抽样覆盖即可判定
+    - method: 因果图法
+      reason: 范围归属单条件决定可见性
+    - method: 场景法
+      reason: 单点可见性核对，不构成多步流程
+    - method: 异常法
+      reason: 该点只核对范围外对象的可见性，不构造异常输入
+    - method: 并发法
+      reason: 单账号单次加载，无共享可变状态
+- id: TP-FP-20-03-01
+  scenario_id: SC-FP-20-03
+  statement: 以分级管理员身份直接请求范围外员工数据时，服务端返回拒绝而不是数据内容。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 安全性法
+    - 逆向场景法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 拒绝结果是布尔判定，无数值阈值
+    - method: 等价类划分
+      reason: 只验单一越权请求，无多类输入
+    - method: 错误推测法
+      reason: 拦截要求由条款直接给出，不依赖经验假设
+    - method: 穷举法
+      reason: 接口与参数组合数量随版本增长，穷举没有边界
+    - method: 因果图法
+      reason: 身份与范围条件在场景中已固定，无待组合项
+    - method: 场景法
+      reason: 单次请求判定，不是多步流程
+    - method: 并发法
+      reason: 越权请求串行发送，无并发写，无共享可变状态可竞争
+- id: TP-FP-20-03-02
+  scenario_id: SC-FP-20-03
+  statement: 越权请求被拒绝后范围外的规则与统计数据均未发生写入或变更。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 写入前后状态比对无数值阈值
+    - method: 等价类划分
+      reason: 只核对一次拒绝后的状态，无多类别
+    - method: 错误推测法
+      reason: 该点核对拒绝后的副作用，无历史缺陷可推测
+    - method: 穷举法
+      reason: 越权入口数量随页面增长，不可穷举
+    - method: 因果图法
+      reason: 拒绝结果由单条件决定，副作用判定不涉组合
+    - method: 场景法
+      reason: 状态核对不是多步业务流程
+    - method: 并发法
+      reason: 拒绝后的状态核对串行执行，无并发写参与
+- id: TP-FP-21-01-01
+  scenario_id: SC-FP-21-01
+  statement: 按时间、部门、打卡人员、打卡状态中任一单条件筛选后，结果集只包含满足该条件的记录。
+  evidence:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+  methods:
+    applicable:
+    - 等价类划分
+    - 穷举法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点只验单条件命中集合，不取时间区间端点
+    - method: 错误推测法
+      reason: 筛选维度由文档逐一列举，无推测空间
+    - method: 逆向场景法
+      reason: 反向由 SC-FP-21-03 承担
+    - method: 因果图法
+      reason: 单条件生效，无条件组合，无待建模的因果约束
+    - method: 异常法
+      reason: 该点只核对单条件筛选的命中集合，不构造异常输入
+    - method: 并发法
+      reason: 单管理员一次筛选查询，无并发写入，无共享可变状态可竞争
+    - method: 安全性法
+      reason: 该点只核对筛选命中集合，不涉及跨身份越权，鉴权由 FP-20 判定
+- id: TP-FP-21-02-01
+  scenario_id: SC-FP-21-02
+  statement: 时间、部门、打卡人员、打卡状态四个条件同时生效时，结果集是四个条件各自结果集的交集。
+  evidence:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 因果图法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 四个维度取值为枚举，不存在数值区间端点
+    - method: 错误推测法
+      reason: 交集规则由文档明示，不依赖经验假设
+    - method: 穷举法
+      reason: 四维条件组合随记录量爆炸，不可穷举
+    - method: 逆向场景法
+      reason: 该点验组合结果，不是反向操作
+    - method: 异常法
+      reason: 该点只核对四条件交集结果，无异常输入参与
+    - method: 并发法
+      reason: 单会话单次查询，无共享可变状态
+    - method: 安全性法
+      reason: 该点只核对交集计算结果，不涉及跨管理员身份越权
+- id: TP-FP-21-02-02
+  scenario_id: SC-FP-21-02
+  statement: 组合筛选中任一维度不满足的记录都不出现在结果集里，交集不退化回并集。
+  evidence:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 因果图法
+    - 逆向场景法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 交集与并集的区分是集合关系判定，无数值阈值
+    - method: 错误推测法
+      reason: 该点声明交集与并集的区分，不基于历史缺陷推测
+    - method: 穷举法
+      reason: 条件组合随记录量爆炸，不可穷举
+    - method: 场景法
+      reason: 单次查询即可判定，无需多步流程
+    - method: 异常法
+      reason: 该点只核对交集是否退化为并集，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 单管理员一次组合查询，无并发写入参与
+    - method: 安全性法
+      reason: 该点只核对集合关系，不涉及身份越权与数据泄露面
+- id: TP-FP-21-03-01
+  scenario_id: SC-FP-21-03
+  statement: 筛选条件在数据集中无任何匹配时，结果集为空而不是回退到全量记录。
+  evidence:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+  methods:
+    applicable:
+    - 边界值法
+    - 逆向场景法
+    - 等价类划分
+    skipped:
+    - method: 错误推测法
+      reason: 空集行为由筛选语义直接决定，无须经验假设
+    - method: 穷举法
+      reason: 构造无匹配组合的方式无穷多，穷举无意义
+    - method: 因果图法
+      reason: 单条件组合即决定空集，无多条件因果
+    - method: 场景法
+      reason: 单次查询判定，不是多步流程
+    - method: 异常法
+      reason: 空结果是正常的筛选结果，不属于异常路径
+    - method: 并发法
+      reason: 单管理员一次无匹配查询，无共享可变状态可竞争
+    - method: 安全性法
+      reason: 该点只核对空结果集，不涉及跨身份越权
+- id: TP-FP-21-03-02
+  scenario_id: SC-FP-21-03
+  statement: 某个筛选维度取空值或未选时，筛选结果与不施加该条件时的结果一致。
+  evidence:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+  methods:
+    applicable:
+    - 边界值法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 错误推测法
+      reason: 空条件语义由筛选控件的既定行为决定，不靠推测
+    - method: 穷举法
+      reason: 维度与空值取值组合不可穷举
+    - method: 逆向场景法
+      reason: 该点验空条件的中性行为，不是反向操作
+    - method: 因果图法
+      reason: 省略单个条件不构成条件间因果约束
+    - method: 异常法
+      reason: 空条件不是异常输入，该点只核对中性筛选行为
+    - method: 并发法
+      reason: 单管理员一次查询，无并发写入，无共享可变状态
+    - method: 安全性法
+      reason: 该点只核对空条件筛选结果，不涉及身份越权
+- id: TP-FP-22-01-01
+  scenario_id: SC-FP-22-01
+  statement: 按日统计 Tab 导出的 Excel 记录与该 Tab 当前筛选条件下的列表逐条一致。
+  evidence:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 穷举法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 记录集合比对无数值阈值，条数不构成边界判定
+    - method: 错误推测法
+      reason: 一致性要求由条款给出，不依赖经验假设
+    - method: 逆向场景法
+      reason: 该点为两组导出的正向核对，反向由 SC-FP-22-03-01 的变更路径承担
+    - method: 因果图法
+      reason: Tab 单条件决定导出数据源
+    - method: 异常法
+      reason: 该点只比对导出文件与列表记录，不构造异常输入
+    - method: 并发法
+      reason: 单管理员一次导出，串行执行，无并发写参与
+    - method: 安全性法
+      reason: 该点只核对导出记录一致性，不涉及跨身份越权与数据泄露
+- id: TP-FP-22-01-02
+  scenario_id: SC-FP-22-01
+  statement: 按日统计与按月统计两个 Tab 的右上角均存在导出入口，两处都能产出 Excel 文件。
+  evidence:
+    quote: 导出：在「按日统计」和「按月统计」Tab 右上角导出 Excel 打卡数据。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+  methods:
+    applicable:
+    - 场景法
+    - 穷举法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 入口存在性判定无数值阈值
+    - method: 错误推测法
+      reason: 入口位置由文档逐字给出，无经验推测空间
+    - method: 逆向场景法
+      reason: 该点只验入口可达与产物存在
+    - method: 因果图法
+      reason: 单入口存在性判定，无条件组合
+    - method: 异常法
+      reason: 该点只核对两个 Tab 的导出入口与产物，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 单人单次点击导出，无共享可变状态可竞争
+    - method: 安全性法
+      reason: 该点只核对入口可达与文件产出，不涉及身份越权
+- id: TP-FP-22-02-01
+  scenario_id: SC-FP-22-02
+  statement: 按月统计 Tab 导出的 Excel 与该 Tab 的月度汇总口径一致，不是按日明细的简单堆叠。
+  evidence:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 穷举法
+    skipped:
+    - method: 边界值法
+      reason: 月度汇总比对无数值阈值可取值
+    - method: 错误推测法
+      reason: 口径由 Tab 定义给出，无需推测
+    - method: 逆向场景法
+      reason: 反向由 SC-FP-22-03 承担
+    - method: 因果图法
+      reason: Tab 单条件决定汇总口径
+    - method: 异常法
+      reason: 该点只比对月度汇总口径，不构造异常输入
+    - method: 并发法
+      reason: 单次导出，无共享可变状态
+    - method: 安全性法
+      reason: 该点只核对汇总口径，不涉及跨身份越权与数据泄露
+- id: TP-FP-22-03-01
+  scenario_id: SC-FP-22-03
+  statement: 变更筛选条件后再次导出，导出内容随条件变化，不复用上一次导出的文件口径。
+  evidence:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 场景法
+    - 错误推测法
+    skipped:
+    - method: 边界值法
+      reason: 两次导出内容比对无数值阈值
+    - method: 穷举法
+      reason: 筛选组合不可穷举，取两组条件对照即可判定
+    - method: 逆向场景法
+      reason: 该点为变更后的正向核对，反向由 SC-FP-22-03-02 的组合路径承担
+    - method: 因果图法
+      reason: 筛选条件是唯一输入变量，无组合因果
+    - method: 异常法
+      reason: 该点只比对两次导出内容，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 两次导出串行执行，无并发写
+    - method: 安全性法
+      reason: 该点只核对导出随条件变化，不涉及身份越权
+- id: TP-FP-22-03-02
+  scenario_id: SC-FP-22-03
+  statement: 任一 Tab 与任一组筛选条件搭配时，导出数据只与「该 Tab + 该组条件」这一组合一致。
+  evidence:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 穷举法
+    - 等价类划分
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 组合一致性判定无数值阈值
+    - method: 错误推测法
+      reason: 组合一致性由条款明示，不靠经验假设
+    - method: 逆向场景法
+      reason: 该点做正向组合核对，反向由 SC-FP-22-03-01 的变更路径承担
+    - method: 因果图法
+      reason: 两个维度直接组合决定结果，无需因果图建模
+    - method: 异常法
+      reason: 该点只核对 Tab 与条件的组合一致性，无异常输入参与
+    - method: 并发法
+      reason: 串行导出，无共享可变状态
+    - method: 安全性法
+      reason: 该点只核对组合导出的一致性，不涉及跨管理员身份越权
+- id: TP-FP-23-01-01
+  scenario_id: SC-FP-23-01
+  statement: 同一时间范围下 API 导出的打卡记录与后台 Excel 导出的记录逐条一致。
+  evidence:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 等价类划分
+    - 穷举法
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 本点比对同一范围内的记录集合，不取时间端点做边界
+    - method: 错误推测法
+      reason: 口径一致是明确条款，不依赖经验假设
+    - method: 逆向场景法
+      reason: 该点比对两通道同范围数据，属正向核对，非反向操作
+    - method: 因果图法
+      reason: 时间范围单条件即决定比对范围
+    - method: 异常法
+      reason: 该点只比对 API 与后台的同范围记录，不构造异常输入
+    - method: 并发法
+      reason: 两次导出串行执行，无并发写参与
+    - method: 安全性法
+      reason: 该点只核对两通道记录一致性，不涉及身份越权，鉴权由 FP-23-02 判定
+- id: TP-FP-23-01-02
+  scenario_id: SC-FP-23-01
+  statement: API 导出与后台导出互为并列通道，调用 API 不改变后台导出内容，后台侧的导出记录也不改变 API 的返回结果。
+  evidence:
+    quote: 这条路径与后台 Excel 导出是并列通道，面向的是系统间集成而非人工核对。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+  methods:
+    applicable:
+    - 场景法
+    - 错误推测法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 通道独立性判定无数值阈值
+    - method: 穷举法
+      reason: 两通道的先后组合仅四种，判定只看结果集合是否同一，穷举无增量信息
+    - method: 逆向场景法
+      reason: 该点验并列性，不涉及反向操作
+    - method: 因果图法
+      reason: 该点要验的正是两通道之间没有因果依赖，因果图无建模对象
+    - method: 异常法
+      reason: 该点只核对两通道是否互相影响，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 本点串行调用两次，不并发
+    - method: 安全性法
+      reason: 该点只核对通道并列性，不涉及跨身份越权与数据泄露
+- id: TP-FP-23-02-01
+  scenario_id: SC-FP-23-02
+  statement: 非管理员或未获授权的应用调用导出接口时被拒绝，响应中不含任何打卡数据。
+  evidence:
+    quote: 企业微信提供 API 接口，管理员可通过接口调用导出打卡数据，并结合企业的假期管理、工资结算系统高效输出薪酬报表。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+  methods:
+    applicable:
+    - 安全性法
+    - 逆向场景法
+    - 异常法
+    skipped:
+    - method: 边界值法
+      reason: 鉴权结果是布尔判定，无数值阈值
+    - method: 等价类划分
+      reason: 只验单一未授权身份，无多类输入划分
+    - method: 错误推测法
+      reason: 鉴权要求由接口面向管理员的表述给出
+    - method: 穷举法
+      reason: 未授权身份的构造方式不可穷举
+    - method: 因果图法
+      reason: 身份单条件即决定拒绝结果
+    - method: 场景法
+      reason: 单次调用判定，不是多步流程
+    - method: 并发法
+      reason: 单次调用，无共享可变状态
+- id: TP-FP-23-03-01
+  scenario_id: SC-FP-23-03
+  statement: 请求时间范围内无打卡记录时，接口返回空数据集而非报错或全量数据。
+  evidence:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 边界值法
+    - 逆向场景法
+    - 异常法
+    skipped:
+    - method: 等价类划分
+      reason: 只构造单一空区间，无多类别输入可划分
+    - method: 错误推测法
+      reason: 空区间的返回形态由接口契约决定，无可据以推测的历史缺陷
+    - method: 穷举法
+      reason: 空区间的构造方式无穷多，穷举无意义
+    - method: 因果图法
+      reason: 时间范围单条件决定返回集合
+    - method: 场景法
+      reason: 空区间返回形态由单次调用即可判定，无需串联多步骤流程
+    - method: 并发法
+      reason: 单次调用，无共享可变状态
+    - method: 安全性法
+      reason: 该点只核对空数据集返回形态，不涉及身份越权
+- id: TP-FP-24-01-01
+  scenario_id: SC-FP-24-01
+  statement: 新增分级管理员且管辖范围为空时，其规则修改权限为空，任一规则修改入口都无法完成修改。
+  evidence:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 边界值法
+    - 逆向场景法
+    - 安全性法
+    skipped:
+    - method: 等价类划分
+      reason: 范围内外两类已由 FP-17 覆盖，本点只取「范围为空」这一边界
+    - method: 错误推测法
+      reason: 文档已标注该边界需按实际产品行为确认，不宜叠加经验推测
+    - method: 穷举法
+      reason: 规则修改入口数量随版本增长，列举没有边界
+    - method: 因果图法
+      reason: 范围为空这一单条件即决定权限为空
+    - method: 场景法
+      reason: 单次判定，不构成多步骤流程
+    - method: 异常法
+      reason: 该点只核对范围为空时的权限结果，不构造异常输入
+    - method: 并发法
+      reason: 单账号串行操作，无共享可变状态
+- id: TP-FP-24-01-02
+  scenario_id: SC-FP-24-01
+  statement: 管辖范围为空的分级管理员在管理后台与移动端两侧都不具备规则修改能力，限制不因入口不同而放宽。
+  evidence:
+    quote: 新增的分级管理员未分配管辖范围时，不应具备任何规则修改权限（边界场景，需按实际产品行为确认）。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 逆向场景法
+    - 安全性法
+    - 等价类划分
+    skipped:
+    - method: 边界值法
+      reason: 权限是有无的布尔判定，无数值阈值
+    - method: 错误推测法
+      reason: 文档标注该边界需按实际产品行为确认，不宜再叠加经验推测
+    - method: 穷举法
+      reason: 两侧入口已按等价处理，穷举入口无增量信息
+    - method: 因果图法
+      reason: 范围为空单条件即决定权限结果
+    - method: 场景法
+      reason: 两侧入口的权限核对为单点事实，不构成多步骤业务流程
+    - method: 异常法
+      reason: 该点只核对两侧入口的权限结果，不经过可抛错的运行时分支
+    - method: 并发法
+      reason: 无共享可变状态，串行核对
+- id: TP-FP-24-02-01
+  scenario_id: SC-FP-24-02
+  statement: 同一分级管理员在补充分配管辖范围后获得范围内的规则修改权限，且权限不溢出该范围。
+  evidence:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+  methods:
+    applicable:
+    - 边界值法
+    - 场景法
+    - 等价类划分
+    skipped:
+    - method: 错误推测法
+      reason: 权限随范围变化的方向由条款给出，不靠经验假设
+    - method: 穷举法
+      reason: 部门组合随组织架构增长，不可穷举
+    - method: 逆向场景法
+      reason: 该点是补充分配后的正向核对
+    - method: 因果图法
+      reason: 范围与身份单条件即决定权限边界
+    - method: 异常法
+      reason: 该点只核对补充范围后的权限边界，不构造异常输入
+    - method: 并发法
+      reason: 单账号串行核对补充前后的权限，无共享可变状态可竞争
+    - method: 安全性法
+      reason: 范围外拦截已由 SC-FP-20-03 覆盖

@@ -1,0 +1,55 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: functional-points
+
+functional_points:
+  - id: FP-09
+    name: "打卡拍照与备注图片来源约束"
+    module: "打卡规则设置"
+    summary: "拍照打卡用于防止打卡作弊，规则可要求员工打卡时必须拍照，未开启时对照片无强制要求。配套开关进一步限制异常打卡备注图片的来源，勾选后只能现场拍摄、本地相册图片被禁止。该功能点的判定边界是照片的有无与来源，不涉及照片内容识别。"
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "拍照打卡"
+  - id: FP-10
+    name: "补卡申请与审批修正异常"
+    module: "补卡申请"
+    summary: "补卡申请是员工对迟到、早退异常的申诉通道，需在规则中勾选开关后才可提交。开关开启后【审批】应用出现补卡申请，由员工发起、上级审批，审批通过才由系统自动把异常状态校正为正常。开关未开启时不存在补卡入口，也不存在跳过审批直接改状态的路径。"
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "补卡申请"
+  - id: FP-11
+    name: "特殊日期打卡设置"
+    module: "特殊日期"
+    summary: "特殊日期按公司放假安排覆盖常规打卡时间，可把某日期设为必须打卡或不用打卡。配置时需要选择日期、时段与打卡事由，同一日期可新增多个时段。该设置直接决定该日是否产生缺卡类异常。"
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "特殊日期打卡"
+  - id: FP-12
+    name: "非工作日允许打卡"
+    module: "特殊日期"
+    summary: "「非工作日允许打卡」是与特殊日期并列的独立开关，面向非工作日加班场景。开启后员工可自由签到并记录工作时长，关闭时非工作日的打卡被拒绝或不计入。它与特殊日期的必须打卡、不用打卡设置相互独立。"
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "特殊日期打卡"
+  - id: FP-13
+    name: "打卡提醒触达"
+    module: "打卡提醒"
+    summary: "打卡提醒针对忘记打卡的情况，在添加打卡规则页面的提醒下拉列表中选择提醒时间。提醒可在打卡时间准点或提前触发，届时员工企业微信在指定时间收到提醒。该能力只影响消息触达时点，不改变打卡本身的考勤判定。"
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡提醒"
+  - id: FP-14
+    name: "打卡应用可见范围"
+    module: "应用可见范围"
+    summary: "可见范围决定哪些成员能在手机端看到并使用打卡应用，入口在打卡应用首页的【修改】，从通讯录中选择部门与成员。系统默认打卡应用为所有人可见。范围调整后，范围外成员不再看到打卡应用入口。"
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡应用的可见范围"
+  - id: FP-15
+    name: "审批数据关联与异常校准"
+    module: "审批校准"
+    summary: "请假、出差、外出、加班、打卡补卡五种审批模板的审批数据可与打卡数据自动关联。系统对当天状态异常的员工核对已通过单据，时间段匹配即把异常校准为正常，未匹配的异常保持原样。校准结果在【打卡记录】>【校准状态】展示。"
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: "打卡与审批的关联"

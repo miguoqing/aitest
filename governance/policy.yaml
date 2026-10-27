@@ -1,0 +1,77 @@
+# Agent 循环治理策略 —— 单一事实源
+# 所有阈值集中在这里；代码只读不写，改规则不用改代码。
+version: 1
+
+loop:
+  max_rounds: 30              # 单次任务最多 30 轮，超过即停并交回人工
+  max_tool_calls: 120         # 单次任务工具调用总上限
+  deadline_seconds: 1800      # 30 分钟墙钟上限
+  no_progress_rounds: 3       # 连续 3 轮没有新信息即判空转
+  max_consecutive_failures: 2 # AGENTS.md 强制：同一工具连续失败 2 次必须停
+  duplicate_call_threshold: 3 # 同一 (工具, 参数) 第 3 次调用即熔断
+
+retry:
+  tool:
+    max_attempts: 2           # 工具层最多 2 次（与连续失败阈值对齐）
+    base_delay_seconds: 0.5
+    max_delay_seconds: 8.0
+    jitter_ratio: 0.2         # ±20% 抖动，避免重试风暴同步
+  llm:
+    max_attempts: 4           # 模型层可多试，但必须分类后重试
+  breaker:
+    failure_threshold: 5      # 单工具累计 5 次失败进入熔断
+    cooldown_seconds: 60      # 熔断 60 秒后半开试探
+
+budget:
+  max_agents: 12              # 与 multi-agent-playbook 的 12 个上限一致
+  max_parallel_agents: 8
+  max_tokens: 200000
+  max_cost_usd: 2.0
+
+context:
+  max_tokens: 120000
+  keep_recent_turns: 6
+  tool_result_max_chars: 8192
+  tool_result_head_chars: 4096
+  tool_result_tail_chars: 1024
+  evidence_reserve_tokens: 20000   # 引用原文（证据）预留，不参与裁剪
+
+safety:
+  mode: workspace-write
+  require_approval:
+    - write
+    - delete
+    - network
+    - config
+  allow_write_roots:
+    - .
+  max_write_bytes: 2000000
+  deny_path_parts:
+    - .git
+    - node_modules
+  deny_command_patterns:
+    - '\brm\s+-[a-zA-Z]*[rf][a-zA-Z]*\s+/(?:\s|$)'
+    - '\bgit\s+push\b[^\n]*--force'
+    - '\bgit\s+reset\s+--hard\b'
+    - '\b(?:drop|truncate)\s+(?:table|database)\b'
+    - '\bchmod\s+777\b'
+    - '\bcurl\b[^\n|]*\|\s*(?:ba|z|k)?sh\b'
+    - '\bdd\s+if=[^\n]*of=/dev/'
+    - '\bmkfs\b'
+    - '\bsudo\b'
+    - ':\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:'
+
+mcp:
+  startup_timeout_seconds: 20
+  health_check_attempts: 2
+  backoff_seconds: 0.5
+  required_env: []            # 由具体 server 的 env 声明推导，见 governance.mcp
+
+audit:
+  fail_on: high               # CI 门禁：出现 high 级问题即失败
+  ignore_paths:
+    - .git
+    - node_modules
+    - output
+    - tmp
+    - __pycache__

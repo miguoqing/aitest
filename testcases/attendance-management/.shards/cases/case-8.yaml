@@ -1,0 +1,513 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  shard: case-8
+  functional_points:
+  - FP-23
+  knowledge_sources:
+  - path: wiki/attendance-management/permissions-and-export.md
+    title: 分级管理权限与打卡数据导出
+open_items:
+- id: OI-64
+  question: 打卡数据导出接口返回的记录包含哪些字段，各对应后台【按日统计】Excel 导出中的哪一列（打卡时间、打卡地点、考勤判定分别对应哪一列）？
+  related_case_ids:
+  - TC-ATT-2305
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-65
+  question: 导出接口是否有调用频次或并发上限？触发上限时是返回限流错误还是排队等待，且是否会影响同一时刻的后台 Excel 导出？
+  related_case_ids:
+  - TC-ATT-2309
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-66
+  question: 分级管理员是否允许调用打卡数据导出接口？若允许，返回结果是否按其管辖范围裁剪，请求范围外部门时是拒绝还是返回空集？
+  related_case_ids:
+  - TC-ATT-2313
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-67
+  question: 时间参数格式非法或起止时间颠倒时，导出接口返回参数错误还是按空数据集处理？三种非法输入的返回方式是否一致？
+  related_case_ids:
+  - TC-ATT-2316
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-68
+  question: 请求区间无打卡记录时，响应中承载记录的字段是空数组还是 null，是否带总条数字段（取值为 0），HTTP 状态码是 200 还是其他值？
+  related_case_ids:
+  - TC-ATT-2317
+  source_ref: wiki/attendance-management/permissions-and-export.md
+cases:
+- id: TC-ATT-2301
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: 同一时间范围下 API 导出的打卡记录与后台 Excel 导出的记录逐条一致。
+  title: 取同一整月区间，按员工当月打卡记录的三种覆盖程度分别比对两侧记录条数
+  design_method: 等价类划分
+  tags:
+  - 数据一致性
+  - 导出
+  severity: S1
+  severity_reason: 两侧记录条数或有记录日期不一致时，工资与假期结算会按错误的天数计算，且出错后无法从导出结果判断该以哪一侧为准。
+  preconditions: 2026-09-01 至 2026-09-30 的后台导出可用；同一部门下准备员工 A（当月每天上下班各一次）、员工 B（当月 10 天有记录、其余日期缺卡）、员工 C（当月无任何打卡）；持有超级管理员 access_token。
+  steps:
+  - 在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】>【按日统计】导出 2026-09-01 至 2026-09-30 的 Excel
+  - 用超级管理员 access_token 调用打卡数据导出接口，请求同一区间 2026-09-01 至 2026-09-30
+  - 把两份结果分别按员工 A、B、C 分组，统计每人的记录条数与有记录的日期
+  - 逐个员工比对两侧的条数与有记录日期集合
+  expected:
+  - 员工 A：两侧各返回 30 天上下班记录，条数相同且有记录日期完全一致
+  - 员工 B：两侧记录条数相同，有记录的 10 个日期完全相同
+  - 员工 C：两侧都不返回该员工的打卡记录，均未退化为返回全公司数据
+  status: active
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2302
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: 同一时间范围下 API 导出的打卡记录与后台 Excel 导出的记录逐条一致。
+  title: 逐一切换正常、迟到、早退、缺卡四种打卡状态，核对两侧导出的状态判定列
+  design_method: 穷举法
+  tags:
+  - 数据准确性
+  - 导出
+  severity: S2
+  severity_reason: 某个状态的判定列在两侧不一致时，按接口结果做的月度考勤汇总会把该状态的次数算错，需逐月人工复核。
+  preconditions: 员工 D 在 2026-09-07 至 2026-09-10 四天分别呈现正常、迟到、早退、缺卡（09-10 无任何打卡）；规则为固定时间上下班；超级管理员 access_token 可用。
+  steps:
+  - 在后台【按日统计】Tab 导出 2026-09-07 至 2026-09-10 的 Excel
+  - 调用导出接口取同一区间 2026-09-07 至 2026-09-10 的记录
+  - 按日期对齐两份结果，逐个日期读取状态判定列
+  - 记录四种状态下两侧的判定值
+  expected:
+  - 09-07 正常：两侧判定均为正常
+  - 09-08 迟到：两侧判定均为迟到，迟到分钟数相同
+  - 09-09 早退：两侧判定均为早退，早退分钟数相同
+  - 09-10 缺卡：后台标记缺卡，接口该日不返回打卡记录，两侧缺卡天数统计相同
+  status: active
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2303
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: 同一时间范围下 API 导出的打卡记录与后台 Excel 导出的记录逐条一致。
+  title: 用一名员工一个工作日的两次打卡走通后台导出与接口导出，逐字段比对打卡时间与打卡地点
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 主链路上两侧字段对不齐时，集成方拿不到可直接用于结算的记录，只能退回人工比对，接口通道失去替代后台导出的能力。
+  preconditions: 员工 D 在 2026-09-11 有上班 09:02、下班 18:31 两次手机打卡，打卡地点为办公地点；超级管理员 access_token 可用。
+  steps:
+  - 在后台【按日统计】Tab 导出 2026-09-11 的 Excel，读出 D 的两次打卡时间与打卡地点
+  - 调用导出接口取 2026-09-11 00:00:00 至 2026-09-11 23:59:59 的记录，读出 D 的两次打卡
+  - 逐字段比对两次打卡的时间、地点与当日考勤判定
+  expected:
+  - 两侧都返回 D 在 2026-09-11 的两次打卡记录
+  - 两次打卡的时间 09:02 与 18:31 在两侧完全相同
+  - 两次打卡的打卡地点在两侧完全相同
+  - 两侧对该日的考勤判定相同
+  status: active
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2304
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: 同一时间范围下 API 导出的打卡记录与后台 Excel 导出的记录逐条一致。
+  title: 同一月份分别从按月统计 Tab 与接口取数，比对三个人的月度汇总数值
+  design_method: 场景法
+  tags:
+  - 数据准确性
+  - 导出
+  severity: S2
+  severity_reason: 月度汇总数不一致时，按接口汇总出的工资报表与后台核对结果对不上，整月数据需要人工重新核算。
+  preconditions: 部门 E 共 3 人，2026-09 整月打卡记录已生成；后台【按月统计】Tab 可导出该月汇总；超级管理员 access_token 可用。
+  steps:
+  - 在后台【按月统计】Tab 导出部门 E 的 2026-09 汇总 Excel
+  - 调用导出接口取 2026-09-01 至 2026-09-30 部门 E 的打卡记录
+  - 用接口返回的记录自行汇总 3 人的出勤天数、迟到次数、缺卡天数
+  - 逐人比对汇总值与后台按月统计值
+  expected:
+  - 3 人的出勤天数在两侧相同
+  - 3 人的迟到次数在两侧相同
+  - 3 人的缺卡天数在两侧相同
+  status: active
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2305
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: 同一时间范围下 API 导出的打卡记录与后台 Excel 导出的记录逐条一致。
+  title: 先枚举接口返回与后台 Excel 导出的全部字段，再按字段一一对应做穷举比对
+  design_method: 穷举法
+  tags:
+  - 待确认
+  - 数据一致性
+  severity: S3
+  severity_reason: 字段对应关系缺失时，逐条一致只能验到记录条数，字段级的口径差异无法判定，集成方按自己的字段理解接入容易出现错列。
+  preconditions: 已取得一次接口返回样例与一份后台同一区间的 Excel 导出。
+  steps:
+  - 把接口返回样例中的字段名与取值范围整理成清单
+  - 把后台 Excel 导出的列名整理成清单
+  - 尝试按语义把两份清单的字段逐一配对
+  expected:
+  - 待确认：打卡数据导出接口返回的记录包含哪些字段，各对应后台【按日统计】Excel 导出中的哪一列（打卡时间、打卡地点、考勤判定分别对应哪一列）？
+  status: pending_confirmation
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2306
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-02
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: API 导出与后台导出互为并列通道，调用 API 不改变后台导出内容，后台侧的导出记录也不改变 API 的返回结果。
+  title: 先经接口导出整月记录，再从后台导出同一区间，核对后台导出是否被这次调用改变
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 后台导出是人工核对的基准，一旦被接口调用改变，管理员每次复核看到的数都可能不同，核对结论失去基准。
+  preconditions: 已在未调用任何接口的情况下导出 2026-09 整月 Excel 并存档为基线；超级管理员 access_token 可用。
+  steps:
+  - 调用导出接口取 2026-09-01 至 2026-09-30 的全员记录
+  - 在后台【按日统计】Tab 导出同一区间 2026-09-01 至 2026-09-30 的 Excel
+  - 把新导出的 Excel 与基线逐行比对记录条数与考勤判定列
+  expected:
+  - 新导出的记录条数与基线相同
+  - 每条记录的考勤判定列与基线相同
+  status: active
+  source_context:
+    quote: 这条路径与后台 Excel 导出是并列通道，面向的是系统间集成而非人工核对。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2307
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-02
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: API 导出与后台导出互为并列通道，调用 API 不改变后台导出内容，后台侧的导出记录也不改变 API 的返回结果。
+  title: 接口按 A 部门导出后紧接着把后台筛选切到 B 部门导出，检查两侧筛选条件是否串用
+  design_method: 错误推测法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 两条通道若共用同一个导出任务对象，后一次调用的条件会覆盖前一次，后台导出里混入其他部门员工，人工核对与工资分摊都会算错人。
+  preconditions: 部门 A 与部门 B 各有 3 名在职员工且当月均有打卡；后台可按部门筛选导出；超级管理员 access_token 可用。
+  steps:
+  - 调用导出接口取 2026-09-01 至 2026-09-30 部门 A 的记录
+  - 紧接着在后台把筛选条件设为部门 B，导出同一区间的 Excel
+  - 检查后台导出结果涉及哪些员工，再回查接口返回涉及哪些员工
+  expected:
+  - 后台导出结果只包含部门 B 的员工，不含部门 A 独有员工
+  - 接口返回结果只包含部门 A 的员工，不含部门 B 独有员工
+  status: active
+  source_context:
+    quote: 这条路径与后台 Excel 导出是并列通道，面向的是系统间集成而非人工核对。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2308
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-02
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: API 导出与后台导出互为并列通道，调用 API 不改变后台导出内容，后台侧的导出记录也不改变 API 的返回结果。
+  title: 按全员、单部门、单人三种调用范围分别导出，每次回查后台同条件导出的条数
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  - 导出
+  severity: S3
+  severity_reason: 某类调用范围反向影响后台导出时，影响面局限在集成方的核对流程，管理员仍可换时间段重导，不会丢失数据。
+  preconditions: 全员、部门 E（3 人）、员工 D 三类范围的后台基线导出结果均已存档；超级管理员 access_token 可用。
+  steps:
+  - 调用导出接口按全员范围取 2026-09-01 至 2026-09-30 的记录
+  - 调用导出接口按部门 E 范围取同一区间
+  - 调用导出接口按员工 D 范围取同一区间
+  - 每次调用后在后台按相同范围导出一份 Excel，与对应基线比对条数
+  expected:
+  - 全员范围：调用后后台导出条数与全员基线相同
+  - 单部门范围：调用后后台导出条数与部门基线相同
+  - 单人范围：调用后后台导出条数与个人基线相同
+  status: active
+  source_context:
+    quote: 这条路径与后台 Excel 导出是并列通道，面向的是系统间集成而非人工核对。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2309
+  fp_id: FP-23
+  scenario_id: SC-FP-23-01
+  point_id: TP-FP-23-01-02
+  functional_point: API 导出通道与后台口径一致
+  scenario: 同一时间范围内分别经 API 接口与后台 Excel 导出打卡数据时，验证两侧的记录与统计口径
+  test_point: API 导出与后台导出互为并列通道，调用 API 不改变后台导出内容，后台侧的导出记录也不改变 API 的返回结果。
+  title: 以远超常规的频率循环调用导出接口并同时执行后台导出
+  design_method: 错误推测法
+  tags:
+  - 待确认
+  - 集成
+  severity: S3
+  severity_reason: 调用频次上限未定义时，集成方无法判断批量取数何时被限流，也无法判断限流是否连带影响后台导出通道。
+  preconditions: 可连续发送接口请求的脚本已就绪；超级管理员 access_token 可用。
+  steps:
+  - 用脚本在 60 秒内调用导出接口 60 次，每次请求 2026-09-01 至 2026-09-30
+  - 记录是否有调用被拒绝或进入排队
+  - 在被拒绝的那次之后立即执行一次后台 Excel 导出
+  expected:
+  - 待确认：导出接口是否有调用频次或并发上限？触发上限时是返回限流错误还是排队等待，且是否会影响同一时刻的后台 Excel 导出？
+  status: pending_confirmation
+  source_context:
+    quote: 这条路径与后台 Excel 导出是并列通道，面向的是系统间集成而非人工核对。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2310
+  fp_id: FP-23
+  scenario_id: SC-FP-23-02
+  point_id: TP-FP-23-02-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 调用方为非管理员或未获授权的应用时，验证接口对调用方身份的访问控制
+  test_point: 非管理员或未获授权的应用调用导出接口时被拒绝，响应中不含任何打卡数据。
+  title: 用一名无管理员身份的普通员工 access_token 调用导出接口请求全员整月数据
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 非管理员经接口取到全员打卡记录时，考勤数据与定位地点越权外泄，且泄露不留后台操作痕迹，事后无法定位是谁取的数。
+  preconditions: 已取得公司内一名普通员工的 access_token，该员工无任何管理员身份；全员 2026-09 打卡数据已存在。
+  steps:
+  - 用该员工的 access_token 调用打卡数据导出接口，请求 2026-09-01 至 2026-09-30 的全员记录
+  - 读取响应状态与响应体
+  - 在后台任取一名其他员工的打卡记录，与响应体中的时间、地点字段做比对
+  expected:
+  - 该调用未成功，响应为错误而非打卡记录集合
+  - 响应体中不出现任何员工的打卡时间与打卡地点
+  - 无法从响应体还原出任意一条他人打卡记录
+  status: active
+  source_context:
+    quote: 企业微信提供 API 接口，管理员可通过接口调用导出打卡数据，并结合企业的假期管理、工资结算系统高效输出薪酬报表。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2311
+  fp_id: FP-23
+  scenario_id: SC-FP-23-02
+  point_id: TP-FP-23-02-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 调用方为非管理员或未获授权的应用时，验证接口对调用方身份的访问控制
+  test_point: 非管理员或未获授权的应用调用导出接口时被拒绝，响应中不含任何打卡数据。
+  title: 在普通员工令牌的请求体里补上管理员的 role、userid、department 参数后重新调用
+  design_method: 逆向场景法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 鉴权若取信于请求参数，任何持有普通令牌的调用方都能自行声明管理员身份导出全员考勤，越权不需要任何额外凭证。
+  preconditions: 已取得普通员工 access_token；已知管理员请求样例包含 role、userid、department 三个参数；全员 2026-09 打卡数据已存在。
+  steps:
+  - 以普通员工令牌为基础，构造与管理员样例一致的请求体，role 填 admin、userid 填超管 ID、department 填全员
+  - 调用导出接口请求 2026-09-01 至 2026-09-30 的全员记录
+  - 把 role 改填 super_admin 后再调用一次
+  - 读取两次调用的响应状态与响应体
+  expected:
+  - 两次调用都按令牌对应的普通员工身份被拒绝
+  - 两次响应体都不含任何打卡记录
+  - 改写 role 与 userid 参数不改变拒绝结果
+  status: active
+  source_context:
+    quote: 企业微信提供 API 接口，管理员可通过接口调用导出打卡数据，并结合企业的假期管理、工资结算系统高效输出薪酬报表。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2312
+  fp_id: FP-23
+  scenario_id: SC-FP-23-02
+  point_id: TP-FP-23-02-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 调用方为非管理员或未获授权的应用时，验证接口对调用方身份的访问控制
+  test_point: 非管理员或未获授权的应用调用导出接口时被拒绝，响应中不含任何打卡数据。
+  title: 分别用随机令牌、已过期令牌、已吊销应用的密钥调用导出接口
+  design_method: 异常法
+  tags:
+  - 异常
+  - 安全
+  severity: S1
+  severity_reason: 失效凭证仍能取数时，任何拿到旧令牌或离职应用密钥的人都能持续导出全员考勤，吊销动作形同失效。
+  preconditions: 已准备三个无效凭证：随机字符串令牌、签发已过期的令牌、已吊销应用的 corpsecret；全员 2026-09 打卡数据已存在。
+  steps:
+  - 用随机字符串令牌调用导出接口，请求 2026-09-01 至 2026-09-30 的全员记录
+  - 用已过期令牌调用同一接口
+  - 用已吊销应用的 corpsecret 换取令牌后调用同一接口
+  - 读取三次调用的响应状态与响应体
+  expected:
+  - 三次调用均未成功，响应为鉴权错误而非打卡记录集合
+  - 三次响应体都不含任何打卡时间与打卡地点
+  - 三次响应体都不含员工姓名或 userid 等身份字段
+  status: active
+  source_context:
+    quote: 企业微信提供 API 接口，管理员可通过接口调用导出打卡数据，并结合企业的假期管理、工资结算系统高效输出薪酬报表。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2313
+  fp_id: FP-23
+  scenario_id: SC-FP-23-02
+  point_id: TP-FP-23-02-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 调用方为非管理员或未获授权的应用时，验证接口对调用方身份的访问控制
+  test_point: 非管理员或未获授权的应用调用导出接口时被拒绝，响应中不含任何打卡数据。
+  title: 用管辖范围仅覆盖部门 E 的分级管理员令牌调用导出接口请求全员数据
+  design_method: 安全性法
+  tags:
+  - 待确认
+  - 权限
+  severity: S2
+  severity_reason: 分级管理员能否使用接口通道、返回结果是否按管辖范围裁剪都没有定义，集成方无法判断该账号接入后拿到的是本部门数据还是全员数据。
+  preconditions: 已创建分级管理员 G，管辖范围仅部门 E；超级管理员 access_token 可用；全员 2026-09 打卡数据已存在。
+  steps:
+  - 用 G 的 access_token 调用导出接口，请求 2026-09-01 至 2026-09-30 的全员记录
+  - 再用 G 的 access_token 调用同一接口，请求部门 E 记录
+  - 比对两次返回的记录分别涉及哪些部门
+  expected:
+  - 待确认：分级管理员是否允许调用打卡数据导出接口？若允许，返回结果是否按其管辖范围裁剪，请求范围外部门时是拒绝还是返回空集？
+  status: pending_confirmation
+  source_context:
+    quote: 企业微信提供 API 接口，管理员可通过接口调用导出打卡数据，并结合企业的假期管理、工资结算系统高效输出薪酬报表。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: TC-ATT-2314
+  fp_id: FP-23
+  scenario_id: SC-FP-23-03
+  point_id: TP-FP-23-03-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 请求的时间范围内不存在任何打卡记录时，验证接口返回结构与非空字段的表达方式
+  test_point: 请求时间范围内无打卡记录时，接口返回空数据集而非报错或全量数据。
+  title: 取三种不含任何打卡记录的边界区间分别调用导出接口，检查返回的记录集合
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S2
+  severity_reason: 无记录区间若返回全量数据，集成方按区间做的月度结算会把其他日期或其他员工的记录算进来。
+  preconditions: 员工 D 在 2026-09-11 的打卡为 09:02 与 18:31；2026-09-12 为休息日无任何打卡；2026-09-13 08:30 有一条打卡；超级管理员 access_token 可用。
+  steps:
+  - 调用导出接口取 2026-09-11 12:00:00 至 2026-09-11 13:00:00，即当天两次打卡之间的空隙
+  - 调用导出接口取 2026-09-12 00:00:00 至 2026-09-12 23:59:59，即整天无打卡
+  - 调用导出接口取 2026-09-11 19:00:00 至 2026-09-12 23:59:59，即跨日且两端都无打卡
+  - 读取三次响应的记录集合与记录数
+  expected:
+  - 12:00 至 13:00：返回空数据集，不含 09:02 与 18:31 两条记录
+  - 09-12 全天：返回空数据集，记录数为 0
+  - 19:00 至次日 23:59：返回空数据集，不含 18:31 与 09-13 08:30 的记录
+  status: active
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2315
+  fp_id: FP-23
+  scenario_id: SC-FP-23-03
+  point_id: TP-FP-23-03-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 请求的时间范围内不存在任何打卡记录时，验证接口返回结构与非空字段的表达方式
+  test_point: 请求时间范围内无打卡记录时，接口返回空数据集而非报错或全量数据。
+  title: 把请求区间的起止时间设为同一时刻后调用导出接口
+  design_method: 逆向场景法
+  tags:
+  - 边界
+  - 异常
+  severity: S2
+  severity_reason: 零长度区间若退化为全量返回，集成方在区间参数拼接出错时会静默把全量记录写入结算报表，错误要等到对账才暴露。
+  preconditions: 员工 D 在 2026-09-14 10:00:00 有一条打卡记录；超级管理员 access_token 可用。
+  steps:
+  - 调用导出接口取 2026-09-14 10:00:00 至 2026-09-14 10:00:00
+  - 读取响应的记录集合与记录数
+  - 把该区间内的打卡记录条数与响应记录数对照
+  expected:
+  - 本次调用成功返回，未报错
+  - 返回的记录数为 0，为空数据集
+  - 返回结果不含 2026-09-14 10:00:00 的打卡记录，也未返回全量记录
+  status: active
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2316
+  fp_id: FP-23
+  scenario_id: SC-FP-23-03
+  point_id: TP-FP-23-03-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 请求的时间范围内不存在任何打卡记录时，验证接口返回结构与非空字段的表达方式
+  test_point: 请求时间范围内无打卡记录时，接口返回空数据集而非报错或全量数据。
+  title: 用非法时间格式与起止颠倒的区间调用导出接口
+  design_method: 异常法
+  tags:
+  - 待确认
+  - 异常
+  severity: S3
+  severity_reason: 非法参数的处理方式未定义时，集成方无法区分“区间内确实没有记录”与“参数被忽略”，可能把空结果当成零考勤提交。
+  preconditions: 超级管理员 access_token 可用；接口时间参数格式为 yyyy-MM-dd HH:mm:ss。
+  steps:
+  - 用 2026-13-01 00:00:00 至 2026-13-02 00:00:00 调用导出接口
+  - 用 2026-09-14 10:00:00 至 2026-09-14 09:00:00 调用导出接口
+  - 用缺少时间部分的 2026-09-14 至 2026-09-15 调用导出接口
+  - 读取三次响应的状态与响应体
+  expected:
+  - 待确认：时间参数格式非法或起止时间颠倒时，接口返回参数错误还是按空数据集处理？三种非法输入的返回方式是否一致？
+  status: pending_confirmation
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2317
+  fp_id: FP-23
+  scenario_id: SC-FP-23-03
+  point_id: TP-FP-23-03-01
+  functional_point: API 导出通道与后台口径一致
+  scenario: 请求的时间范围内不存在任何打卡记录时，验证接口返回结构与非空字段的表达方式
+  test_point: 请求时间范围内无打卡记录时，接口返回空数据集而非报错或全量数据。
+  title: 读取无打卡记录区间的响应结构字段与取值
+  design_method: 边界值法
+  tags:
+  - 待确认
+  - 数据准确性
+  severity: S3
+  severity_reason: 空数据的表达方式未定义时，集成方写不出稳定的解析逻辑，区分“无记录”与“字段缺失”只能靠试错。
+  preconditions: 已确认 2026-09-12 全天无任何打卡记录；超级管理员 access_token 可用。
+  steps:
+  - 调用导出接口取 2026-09-12 00:00:00 至 2026-09-12 23:59:59
+  - 记录响应中承载记录的字段名与其取值
+  - 记录响应中与总条数相关的字段取值及 HTTP 状态码
+  expected:
+  - 待确认：无打卡记录时，响应中承载记录的字段是空数组还是 null，是否带总条数字段（取值为 0），HTTP 状态码是 200 还是其他值？
+  status: pending_confirmation
+  source_context:
+    quote: API 导出数据应与后台导出在相同时间范围下口径一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点

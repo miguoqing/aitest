@@ -1,0 +1,156 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: functional-points
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  shard_count: 3
+  knowledge_sources: []
+functional_points:
+- id: FP-01
+  name: 规则类型与统计口径
+  module: 规则配置
+  summary: 规则类型分固定时间、按班次、自由上下班三种，直接决定考勤的统计口径。固定时间按统一时间判定，按班次以排班为基准，自由上下班只统计旷工、工作时长仅作记录。边界在于类型一经选定就决定是否产出迟到/早退判定，与人员、地点、容差等配置互不替代。
+  source_ref:
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: FP-02
+  name: 打卡人员范围与白名单豁免
+  module: 人员范围
+  summary: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可划到部门也可划到具体成员，决定谁受这条规则约束。白名单是例外通道，名单内的领导或特殊员工不参与打卡。边界在于白名单是规则级豁免，不改变该员工在其他规则下的打卡要求，也不是全局权限开关。
+  source_ref:
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: FP-03
+  name: 打卡方式与凭证来源
+  module: 打卡方式
+  summary: 打卡方式决定凭证来源与记录路径：手机打卡由手机端直接产生记录，智能考勤机联网时实时同步，U盘导入先离线采集再批量导回核算。边界在于三条路径的凭证形态互不相同，U盘导入是唯一先离线后批量导入的路径，不能与另外两种混为一谈。
+  source_ref:
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种打卡方式
+- id: FP-04
+  name: 打卡地点与设备范围校验
+  module: 地点与设备
+  summary: 地点校验依据随打卡方式而变：手机打卡取定位或办公 Wi-Fi 二者之一，智能考勤机只能在指定设备上打卡。手机打卡有效范围以办公地点为中心取 100 至 300 米，考勤机受每台人数上限约束，超限设备不可被选中。边界在于范围按地点维度各自生效，设备约束在规则引用之后仍需成立。
+  source_ref:
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: FP-05
+  name: 上下班时间与迟到早退容差
+  module: 时间与容差
+  summary: 添加上下班时间后可在高级设置中设定允许迟到、早退的分钟数，该分钟数是规则级容差阈值。容差阈值决定迟到/早退判定的触发点，超出阈值的打卡才计入异常。边界在于容差只对自己所属规则生效，不同规则各自维护自己的分钟数。
+  source_ref:
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: FP-06
+  name: 外出打卡与照片来源限制
+  module: 外出打卡
+  summary: 外出打卡与上下班打卡并列，面向出差外勤等无法在办公区域打卡的成员，以位置定位加拍照作为打卡依据。管理员可限制照片来源，设置后只能拍照提交、不能从相册选取。边界在于该限制只约束照片来源，不改变外出打卡本身的定位与拍照要求。
+  source_ref:
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: FP-09
+  name: 打卡拍照与备注图片来源约束
+  module: 打卡规则设置
+  summary: 拍照打卡用于防止打卡作弊，规则可要求员工打卡时必须拍照，未开启时对照片无强制要求。配套开关进一步限制异常打卡备注图片的来源，勾选后只能现场拍摄、本地相册图片被禁止。该功能点的判定边界是照片的有无与来源，不涉及照片内容识别。
+  source_ref:
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 拍照打卡
+- id: FP-10
+  name: 补卡申请与审批修正异常
+  module: 补卡申请
+  summary: 补卡申请是员工对迟到、早退异常的申诉通道，需在规则中勾选开关后才可提交。开关开启后【审批】应用出现补卡申请，由员工发起、上级审批，审批通过才由系统自动把异常状态校正为正常。开关未开启时不存在补卡入口，也不存在跳过审批直接改状态的路径。
+  source_ref:
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+- id: FP-11
+  name: 特殊日期打卡设置
+  module: 特殊日期
+  summary: 特殊日期按公司放假安排覆盖常规打卡时间，可把某日期设为必须打卡或不用打卡。配置时需要选择日期、时段与打卡事由，同一日期可新增多个时段。该设置直接决定该日是否产生缺卡类异常。
+  source_ref:
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+- id: FP-12
+  name: 非工作日允许打卡
+  module: 特殊日期
+  summary: 「非工作日允许打卡」是与特殊日期并列的独立开关，面向非工作日加班场景。开启后员工可自由签到并记录工作时长，关闭时非工作日的打卡被拒绝或不计入。它与特殊日期的必须打卡、不用打卡设置相互独立。
+  source_ref:
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+- id: FP-13
+  name: 打卡提醒触达
+  module: 打卡提醒
+  summary: 打卡提醒针对忘记打卡的情况，在添加打卡规则页面的提醒下拉列表中选择提醒时间。提醒可在打卡时间准点或提前触发，届时员工企业微信在指定时间收到提醒。该能力只影响消息触达时点，不改变打卡本身的考勤判定。
+  source_ref:
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+- id: FP-14
+  name: 打卡应用可见范围
+  module: 应用可见范围
+  summary: 可见范围决定哪些成员能在手机端看到并使用打卡应用，入口在打卡应用首页的【修改】，从通讯录中选择部门与成员。系统默认打卡应用为所有人可见。范围调整后，范围外成员不再看到打卡应用入口。
+  source_ref:
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡应用的可见范围
+- id: FP-15
+  name: 审批数据关联与异常校准
+  module: 审批校准
+  summary: 请假、出差、外出、加班、打卡补卡五种审批模板的审批数据可与打卡数据自动关联。系统对当天状态异常的员工核对已通过单据，时间段匹配即把异常校准为正常，未匹配的异常保持原样。校准结果在【打卡记录】>【校准状态】展示。
+  source_ref:
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: FP-17
+  name: 两类管理员的设置范围与统计范围
+  module: 权限管理
+  summary: 管理员分为超级管理员与分级管理员两类，规则设置范围与查看统计范围分别按「全员」与「管辖范围」划界。超级管理员覆盖公司全员，分级管理员只覆盖本人管辖范围内的员工。该功能点只判定范围划界本身，不含权限分配动作，也不含越权拦截。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: FP-18
+  name: 管理员配置与权限分配
+  module: 权限管理
+  summary: 超级管理员承担权限分配职责，可对所有管理员的权限进行分配。管理员经管理后台的添加系统管理员入口填写管理员信息后获得对应权限。边界在于分配动作只能由超级管理员发起，分级管理员不具备分配他人的能力。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: FP-19
+  name: 超级管理员规则的双端生效
+  module: 规则配置
+  summary: 超级管理员的规则设置在管理后台与移动端两侧均须生效，同一规则在两端读取与判定上应指向同一份内容。该功能点验证的是两端通道的一致性，而不是某一端的配置项本身。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: FP-20
+  name: 分级管理员的范围外不可见与不可操作
+  module: 权限管理
+  summary: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门与员工在可见性与可操作性上都必须被排除。范围外对象不可见，直接触达该对象也不能完成修改或读取。该功能点判定的是范围外这一侧的行为，与范围内的正常操作互为对照。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: FP-21
+  name: 打卡记录的筛选
+  module: 打卡记录
+  summary: 顶部工具栏支持按时间、部门、打卡人员、打卡状态筛选打卡记录。多个条件组合使用时结果取各条件的交集而非并集。筛选结果是后续 Excel 导出的输入口径，筛选错了导出必然跟着错。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: FP-22
+  name: 按日与按月统计的 Excel 导出
+  module: 打卡记录
+  summary: 管理后台在「按日统计」与「按月统计」两个 Tab 右上角提供 Excel 打卡数据导出。两份导出数据须分别与对应 Tab 及当前筛选条件一致，导出文件承载的是当时的口径而不是全量数据。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: FP-23
+  name: API 导出通道与后台口径一致
+  module: 数据导出
+  summary: 企业微信提供 API 接口，管理员可通过接口调用导出打卡数据，用于与假期管理、工资结算等系统集成。该通道与后台 Excel 导出是并列关系，相同时间范围下两边数据口径须一致。它面向系统间集成，不为人工核对设计。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: API 导出数据
+- id: FP-24
+  name: 未分配管辖范围的权限边界
+  module: 权限管理
+  summary: 新增分级管理员时若未分配管辖范围，其规则修改权限应为空，任一规则修改入口都不应可操作。该边界只判定「范围为空」这一初始态，不覆盖已分配范围后的权限回收。
+  source_ref:
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点

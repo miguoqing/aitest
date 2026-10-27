@@ -1,0 +1,273 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: test-points
+  generated_at: '2026-10-19'
+  generator: testcase-generator
+test_points:
+- id: TP-FP-01-01-01
+  scenario_id: SC-FP-01-01
+  statement: 自由上下班规则下不产出迟到/早退判定，只统计旷工
+  evidence:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+  methods:
+    applicable:
+    - 等价类划分
+    - 逆向场景法
+    skipped:
+    - method: 边界值法
+      reason: 该判定无数值阈值，旷工按日计
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 场景法
+      reason: 单点判定，无需串联业务链路
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 判定只依赖单人单日记录，无共享可变状态
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+- id: TP-FP-01-01-02
+  scenario_id: SC-FP-01-01
+  statement: 固定时间规则下同部门员工按统一上下班时间判定
+  evidence:
+    quote: 员工按照相同时间打卡
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+  methods:
+    applicable:
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 时间阈值的边界由容差测试点覆盖，不在此重复
+    - method: 等价类划分
+      reason: 该测试点只验证一种规则类型，不构成互斥类
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 逆向场景法
+      reason: 反向路径已由同场景的其他测试点覆盖
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 无共享可变状态或并发写入
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+- id: TP-FP-01-02-01
+  scenario_id: SC-FP-01-02
+  statement: 按班次规则以员工各自排班时间作为判定基准
+  evidence:
+    quote: 员工按各自排班时间打卡
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+  methods:
+    applicable:
+    - 场景法
+    skipped:
+    - method: 边界值法
+      reason: 该判定无数值阈值
+    - method: 等价类划分
+      reason: 输入不构成互斥类别
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 逆向场景法
+      reason: 反向路径已由同场景的其他测试点覆盖
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 排班数据只读参与判定，无并发写入
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+- id: TP-FP-02-01-01
+  scenario_id: SC-FP-02-01
+  statement: 手机打卡时定位命中范围或连上办公 WIFI，满足其一即可打卡成功
+  evidence:
+    quote: 满足其中任意一项即可打卡
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 判定表法
+    - 逆向场景法
+    skipped:
+    - method: 边界值法
+      reason: 本测试点验两条依据的逻辑关系，距离阈值另设测试点
+    - method: 等价类划分
+      reason: 两条依据只有满足与不满足两类，已由判定表覆盖
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 因果图法
+      reason: 或关系组合简单，判定表足以表达
+    - method: 场景法
+      reason: 单点判定，无需串联业务链路
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 无共享可变状态或并发写入
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+- id: TP-FP-02-01-02
+  scenario_id: SC-FP-02-01
+  statement: 打卡有效范围的下界与上界分别为 100 米与 300 米，恰好越界不可打卡
+  evidence:
+    quote: 100至300米范围内均可成为打卡有效范围
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 边界值法
+    skipped:
+    - method: 等价类划分
+      reason: 距离为连续量，有效/无效类已由边界值法覆盖
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 距离取值连续，无法穷举
+    - method: 逆向场景法
+      reason: 反向路径已由同场景的其他测试点覆盖
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 场景法
+      reason: 单点判定，无需串联业务链路
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 无共享可变状态或并发写入
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+    - method: 状态迁移法
+      reason: 距离判定无状态机
+- id: TP-FP-02-02-01
+  scenario_id: SC-FP-02-02
+  statement: 人数已达上限的考勤机不出现在规则的可选设备列表中
+  evidence:
+    quote: 每台考勤机有相应的人数上限，人数超限的考勤机不能作为打卡设备被选中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+  methods:
+    applicable:
+    - 边界值法
+    skipped:
+    - method: 等价类划分
+      reason: 输入不构成互斥类别
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 逆向场景法
+      reason: 反向路径已由同场景的其他测试点覆盖
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 场景法
+      reason: 单点判定，无需串联业务链路
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 已引用设备达上限后的打卡行为文档未定义，见 open_items
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+- id: TP-FP-03-01-01
+  scenario_id: SC-FP-03-01
+  statement: 审批通过与异常匹配后，异常打卡状态被校准为正常并在校准状态中可见
+  evidence:
+    quote: 审批通过后，系统自动将异常打卡状态校正为正常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+  methods:
+    applicable:
+    - 状态迁移法
+    skipped:
+    - method: 边界值法
+      reason: 校准是状态迁移，不涉及数值阈值
+    - method: 等价类划分
+      reason: 输入不构成互斥类别
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 逆向场景法
+      reason: 反向路径已由同场景的其他测试点覆盖
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 场景法
+      reason: 状态迁移本身即业务主线，由状态迁移法覆盖
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 无共享可变状态或并发写入
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+- id: TP-FP-03-01-02
+  scenario_id: SC-FP-03-01
+  statement: 开启备注仅拍照后，相册来源的备注图片被拦截
+  evidence:
+    quote: 备注不允许上传本地图片，只能拍照
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 拍照打卡
+  methods:
+    applicable:
+    - 安全性法
+    - 逆向场景法
+    skipped:
+    - method: 边界值法
+      reason: 拦截判定与数值无关
+    - method: 等价类划分
+      reason: 输入不构成互斥类别
+    - method: 错误推测法
+      reason: 未发现可绕过的入口或文档留白
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 场景法
+      reason: 单点判定，无需串联业务链路
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 无共享可变状态或并发写入
+- id: TP-FP-03-02-01
+  scenario_id: SC-FP-03-02
+  statement: 审批时段只覆盖部分异常时长时，校准范围如何界定（知识未定义，待确认）
+  evidence:
+    quote: 匹配即校准，未匹配的异常状态保持原样
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+  methods:
+    applicable:
+    - 错误推测法
+    skipped:
+    - method: 边界值法
+      reason: 该判定无数值阈值
+    - method: 等价类划分
+      reason: 输入不构成互斥类别
+    - method: 穷举法
+      reason: 条件取值连续，组合无法穷举
+    - method: 逆向场景法
+      reason: 反向路径已由同场景的其他测试点覆盖
+    - method: 因果图法
+      reason: 条件与结果为单线判定，无组合逻辑
+    - method: 场景法
+      reason: 该测试点只问匹配边界，不串联链路
+    - method: 异常法
+      reason: 无外部依赖与用户输入
+    - method: 并发法
+      reason: 无共享可变状态或并发写入
+    - method: 安全性法
+      reason: 不涉及权限、防作弊或敏感数据
+    - method: 状态迁移法
+      reason: 状态迁移本身已由 TP-FP-03-01-01 覆盖，此处只问匹配边界

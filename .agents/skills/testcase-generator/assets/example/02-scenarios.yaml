@@ -1,0 +1,43 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: scenarios
+  generated_at: "2026-10-19"
+  generator: testcase-generator
+scenarios:
+  - id: SC-FP-01-01
+    fp_id: FP-01
+    name: 规则类型的统计口径
+    description: 分别采用三种规则类型，验证各自产出的考勤判定与统计列
+    basis: 文档「三种规则类型」表格及其后的关键差异说明
+    focus: [正向, 数据准确性]
+  - id: SC-FP-01-02
+    fp_id: FP-01
+    name: 固定时间规则的时间基准
+    description: 同一部门员工套用固定时间规则时，考勤判定使用的时间基准
+    basis: 文档「固定时间上下班：员工按相同时间打卡」
+    focus: [正向]
+  - id: SC-FP-02-01
+    fp_id: FP-02
+    name: 手机打卡的地点与网络判定
+    description: 员工携带手机在办公地点附近打卡，验证定位与办公 WIFI 的判定关系
+    basis: 文档「打卡地点与打卡范围」中手机打卡的判定依据
+    focus: [正向, 边界]
+  - id: SC-FP-02-02
+    fp_id: FP-02
+    name: 考勤机的可选范围与容量
+    description: 规则选择智能考勤机作为打卡方式时，设备列表的可选项与人数容量约束
+    basis: 文档「智能考勤机方式下需按设备名称选择具体考勤机」
+    focus: [边界]
+  - id: SC-FP-03-01
+    fp_id: FP-03
+    name: 审批通过后的异常校准
+    description: 员工存在异常打卡且当日有匹配的已通过审批时，校准结果与展示位置
+    basis: 文档「同步并智能校准」与两个校准示例
+    focus: [正向, 数据准确性]
+  - id: SC-FP-03-02
+    fp_id: FP-03
+    name: 审批与异常的匹配边界
+    description: 审批时段与异常时段不完全重合时，校准范围如何界定
+    basis: 文档「匹配即校准，未匹配的异常状态保持原样」，未定义部分时段匹配
+    focus: [待确认]

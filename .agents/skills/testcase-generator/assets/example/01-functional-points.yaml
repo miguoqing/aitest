@@ -1,0 +1,28 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: functional-points
+  generated_at: "2026-10-19"
+  generator: testcase-generator
+functional_points:
+  - id: FP-01
+    name: 规则类型与统计口径
+    module: 规则配置
+    summary: 三种规则类型决定考勤统计口径。固定时间按统一时间判定，按班次以排班为基准，自由上下班只统计旷工且不产出迟到/早退判定。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 三种规则类型
+  - id: FP-02
+    name: 打卡方式与地点判定
+    module: 打卡方式
+    summary: 手机打卡以定位或办公 WIFI 二选一作为凭证，智能考勤机限定在指定设备打卡。打卡范围以办公地点为中心，100 至 300 米有效；考勤机存在人数容量上限。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 打卡地点与打卡范围
+  - id: FP-03
+    name: 审批关联与异常校准
+    module: 审批校准
+    summary: 请假、出差、外出、加班、补卡五类审批数据与打卡数据自动关联，匹配成功的异常打卡状态被智能校准，未匹配的保持原样。
+    source_ref:
+      path: wiki/attendance-management/special-rules-and-approval.md
+      section: 打卡与审批的关联

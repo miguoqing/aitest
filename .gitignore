@@ -1,0 +1,31 @@
+# ---- OS / 编辑器 ----
+.DS_Store
+Thumbs.db
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# ---- 本地运行时产物（含 cookie / 页面快照，禁止入库）----
+.playwright-cli/
+.pwhome/
+
+# ---- DSH 生成物与本机配置（含绝对路径，重建后会变）----
+dsh-web-config.yml
+dsh-web-config.err
+cordis.patch.yml
+
+# ---- 临时目录 / 草稿 ----
+.tmp/
+tmp/
+output/
+
+# ---- 技能评测产物（体积大、可重跑；要留证据只挑 benchmark 文件）----
+testcase-generator-workspace/
+
+# ---- agent 在分片目录里留下的临时脚本 ----
+testcases/**/.shards/_*.py
+testcases/**/.shards/*.bak

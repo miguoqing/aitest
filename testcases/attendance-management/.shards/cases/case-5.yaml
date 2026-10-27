@@ -1,0 +1,884 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  shard: case-5
+  functional_points:
+  - FP-10
+  - FP-17
+  knowledge_sources:
+  - path: wiki/attendance-management/special-rules-and-approval.md
+    title: 特殊打卡规则与审批校准
+  - path: wiki/attendance-management/permissions-and-export.md
+    title: 分级管理权限与打卡数据导出
+cases:
+- id: TC-ATT-1001
+  fp_id: FP-10
+  scenario_id: SC-FP-10-01
+  point_id: TP-FP-10-01-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在补卡开关已开启、员工对迟到或早退异常提交补卡申请且上级审批通过的条件下，验打卡状态的最终取值与校准结果的展示位置。
+  test_point: 补卡申请审批通过后，该员工当日被打上异常标记的打卡状态被系统自动校正为正常。
+  title: 员工提交补卡申请并由上级审批通过后查看当日打卡状态
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S1
+  severity_reason: 审批通过后状态未校正会让补卡白做，迟到结论错误地进入考勤汇总与后续薪酬核对，且事后无法从记录中区分是未校准还是校准失败。
+  preconditions: 打卡规则已勾选「员工异常打卡时可提交申请，审批通过后修正异常」；员工 A 当日上班迟到形成异常打卡记录；A 的上级 B 已被配置为该单据的审批人。
+  steps:
+  - 员工 A 在【审批】应用中提交「打卡补卡」申请，选择当日迟到时段
+  - 上级 B 在【审批】应用中审批通过该补卡申请
+  - 在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】中打开 A 当日打卡记录
+  expected:
+  - 审批通过后 A 当日打卡状态由迟到异常变为正常
+  - A 当日不再计入迟到异常条数
+  status: active
+  source_context:
+    quote: 审批通过后，系统自动将异常打卡状态校正为正常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+- id: TC-ATT-1002
+  fp_id: FP-10
+  scenario_id: SC-FP-10-01
+  point_id: TP-FP-10-01-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在补卡开关已开启、员工对迟到或早退异常提交补卡申请且上级审批通过的条件下，验打卡状态的最终取值与校准结果的展示位置。
+  test_point: 补卡申请审批通过后，该员工当日被打上异常标记的打卡状态被系统自动校正为正常。
+  title: 用迟到与早退两类异常分别走审批通过的组合核对校正结果
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 若只对其中一类异常触发校正，另一类员工即使审批通过也无法消除异常，这条申诉通道对该类异常实际不可用。
+  preconditions: 补卡开关已开启；员工 A 当日上班迟到、员工 C 当日下班早退，两人均已形成异常记录；A 与 C 的上级 B 为共同审批人。
+  steps:
+  - 员工 A 就当日迟到异常提交补卡申请
+  - 员工 C 就当日早退异常提交补卡申请
+  - 上级 B 依次审批通过 A 与 C 的补卡申请
+  - 打开 A 与 C 当日打卡记录比对状态
+  expected:
+  - A（迟到异常 + 审批通过）的打卡状态变为正常
+  - C（早退异常 + 审批通过）的打卡状态变为正常
+  status: active
+  source_context:
+    quote: 审批通过后，系统自动将异常打卡状态校正为正常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+- id: TC-ATT-1003
+  fp_id: FP-10
+  scenario_id: SC-FP-10-01
+  point_id: TP-FP-10-01-02
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在补卡开关已开启、员工对迟到或早退异常提交补卡申请且上级审批通过的条件下，验打卡状态的最终取值与校准结果的展示位置。
+  test_point: 补卡审批通过后的校准结果在【打卡记录】>【校准状态】中可见。
+  title: 对比有审批覆盖与无审批覆盖两类异常记录的校准状态取值
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  severity: S3
+  severity_reason: 校准状态取值分不开两类记录时，人事无法判断哪条异常已被审批解释，核对只能回查原始单据，效率损失大但不改变考勤结论。
+  preconditions: 补卡开关已开启；员工 A 当日迟到异常已有审批通过的补卡申请；员工 C 当日迟到异常未提交任何申请；两人同属一个部门并适用同一规则。
+  steps:
+  - 打开【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】的【打卡记录】列表
+  - 定位 A 与 C 两条当日异常记录
+  - 读取两条记录的「校准状态」列取值
+  expected:
+  - A 的「校准状态」显示为经补卡审批校准后的正常
+  - C 的「校准状态」保持原异常、不显示任何校准来源
+  status: active
+  source_context:
+    quote: 审批通过后异常状态自动转为正常，且校准结果在【打卡记录】>【校准状态】中可见。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1004
+  fp_id: FP-10
+  scenario_id: SC-FP-10-01
+  point_id: TP-FP-10-01-02
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在补卡开关已开启、员工对迟到或早退异常提交补卡申请且上级审批通过的条件下，验打卡状态的最终取值与校准结果的展示位置。
+  test_point: 补卡审批通过后的校准结果在【打卡记录】>【校准状态】中可见。
+  title: 走完补卡审批全流程后到校准状态中查找该次校准结果
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S3
+  severity_reason: 校准结果不在此处展示时，状态虽已转为正常但无校准痕迹可查，HR 无法向员工解释当天为何不算迟到。
+  preconditions: 补卡开关已开启；员工 A 当日上班迟到形成异常；A 已提交当日迟到时段的补卡申请且尚未审批。
+  steps:
+  - 员工 A 在【审批】应用中提交当日迟到时段的补卡申请
+  - 上级 B 在【审批】应用中审批通过该申请
+  - 进入【打卡记录】>【校准状态】查看 A 当日记录
+  expected:
+  - 【打卡记录】>【校准状态】中出现 A 当日这一次校准结果
+  - 该校准结果对应的日期为 A 的异常发生日
+  status: active
+  source_context:
+    quote: 审批通过后异常状态自动转为正常，且校准结果在【打卡记录】>【校准状态】中可见。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1005
+  fp_id: FP-10
+  scenario_id: SC-FP-10-02
+  point_id: TP-FP-10-02-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在补卡申请已提交但审批未通过、或仍在流转中的条件下，验原异常打卡状态是否保持不变。
+  test_point: 补卡申请审批未通过时，该员工当日的异常打卡状态保持原值，不出现任何自动校准。
+  title: 上级驳回补卡申请后回查该员工当日打卡状态
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据一致性
+  severity: S2
+  severity_reason: 驳回后状态仍被校正，等于员工绕过审批消除异常，考勤结论与审批结论相互矛盾。
+  preconditions: 补卡开关已开启；员工 A 当日下班早退形成异常记录；A 已提交补卡申请并处于待审批状态。
+  steps:
+  - 上级 B 在【审批】应用中驳回 A 的补卡申请
+  - 打开 A 当日打卡记录查看状态与校准状态
+  - 打开当日考勤统计核对迟到早退条数
+  expected:
+  - A 当日打卡状态仍为早退异常，未被校正
+  - A 当日记录中不出现由该驳回申请产生的校准结果
+  status: active
+  source_context:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1006
+  fp_id: FP-10
+  scenario_id: SC-FP-10-02
+  point_id: TP-FP-10-02-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在补卡申请已提交但审批未通过、或仍在流转中的条件下，验原异常打卡状态是否保持不变。
+  test_point: 补卡申请审批未通过时，该员工当日的异常打卡状态保持原值，不出现任何自动校准。
+  title: 让三张同类补卡申请分别处于通过、驳回、待审批状态后比对状态取值
+  design_method: 因果图法
+  tags:
+  - 异常
+  - 数据一致性
+  severity: S2
+  severity_reason: 三种审批结果中只要有一种把状态改了，考勤结论就与审批结论脱钩，员工可通过制造状态差异获得不应有的正常记录。
+  preconditions: 补卡开关已开启；员工 A、C、D 当日均有下班早退异常并各自提交了补卡申请；三人的上级 B 为同一审批人。
+  steps:
+  - 上级 B 审批通过 A 的补卡申请
+  - 上级 B 驳回 C 的补卡申请
+  - 让 D 的补卡申请停留在待审批状态不做处理
+  - 分别查看 A、C、D 当日打卡状态
+  expected:
+  - A（审批通过）的打卡状态变为正常
+  - C（审批驳回）的打卡状态保持早退异常
+  - D（待审批）的打卡状态保持早退异常
+  status: active
+  source_context:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1007
+  fp_id: FP-10
+  scenario_id: SC-FP-10-02
+  point_id: TP-FP-10-02-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在补卡申请已提交但审批未通过、或仍在流转中的条件下，验原异常打卡状态是否保持不变。
+  test_point: 补卡申请审批未通过时，该员工当日的异常打卡状态保持原值，不出现任何自动校准。
+  title: 对当日没有迟到早退的打卡记录提交补卡申请并由上级通过
+  design_method: 异常法
+  tags:
+  - 异常
+  - 待确认
+  severity: S3
+  severity_reason: 无异常可校正的单据若被通过，会产生指向不存在异常的校准记录，污染校准状态列并干扰人事核对。
+  preconditions: 补卡开关已开启；员工 A 当日按时上下班，打卡记录中无迟到、早退异常；A 的上级 B 为审批人。
+  steps:
+  - 员工 A 在【审批】应用中尝试就当日提交补卡申请
+  - 若申请可提交，由上级 B 审批通过
+  - 查看 A 当日打卡状态与校准状态
+  expected:
+  - 待确认：员工当日没有迟到/早退异常时，是否允许提交补卡申请？若允许且审批通过，系统对不存在的异常是否完全不产生状态变更与校准记录？
+  status: pending_confirmation
+  source_context:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1008
+  fp_id: FP-10
+  scenario_id: SC-FP-10-03
+  point_id: TP-FP-10-03-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在打卡规则未勾选补卡申请开关的条件下，验【审批】应用中是否存在补卡申请入口，以及是否存在绕过上级审批直接改变打卡状态的路径。
+  test_point: 打卡规则未勾选补卡申请开关时，【审批】应用中不出现补卡申请，员工无法发起补卡申请。
+  title: 关闭补卡开关后在审批应用中查找补卡申请模板并尝试发起
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 权限
+  severity: S2
+  severity_reason: 开关关闭后仍能发起补卡申请，意味着企业对补卡通道的开关控制失效，未开通该制度的企业也会收到补卡单。
+  preconditions: 打卡规则未勾选「员工异常打卡时可提交申请，审批通过后修正异常」；员工 A 当日上班迟到形成异常记录。
+  steps:
+  - 在【管理后台】>【企业应用】>【审批】中查看当前可用审批模板列表
+  - 以员工 A 的账号打开【审批】应用，查找补卡相关模板
+  - 让 A 尝试就当日迟到异常发起补卡
+  expected:
+  - 【审批】应用的可发起模板中不出现补卡申请
+  - A 无法发起补卡申请，当日打卡状态保持迟到异常
+  status: active
+  source_context:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1009
+  fp_id: FP-10
+  scenario_id: SC-FP-10-03
+  point_id: TP-FP-10-03-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在打卡规则未勾选补卡申请开关的条件下，验【审批】应用中是否存在补卡申请入口，以及是否存在绕过上级审批直接改变打卡状态的路径。
+  test_point: 打卡规则未勾选补卡申请开关时，【审批】应用中不出现补卡申请，员工无法发起补卡申请。
+  title: 开关关闭后用历史保存的补卡申请链接与参数直接提交请求
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S2
+  severity_reason: 前端入口藏起来但请求仍被受理时，开关只是界面装饰，任何记得入口的员工都能提交补卡单据。
+  preconditions: 补卡开关已由开启改为关闭；测试准备中已留存补卡申请页面的历史链接与提交参数；员工 A 当日上班迟到形成异常记录。
+  steps:
+  - 在开关已关闭状态下，用 A 的账号打开历史保存的补卡申请链接
+  - 直接提交一份针对当日迟到时段的补卡申请请求
+  - 查看 A 当日打卡状态与【审批】中是否生成单据
+  expected:
+  - 提交不成功，【审批】中不生成该补卡申请单据
+  - A 当日打卡状态保持迟到异常
+  status: active
+  source_context:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1010
+  fp_id: FP-10
+  scenario_id: SC-FP-10-03
+  point_id: TP-FP-10-03-01
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在打卡规则未勾选补卡申请开关的条件下，验【审批】应用中是否存在补卡申请入口，以及是否存在绕过上级审批直接改变打卡状态的路径。
+  test_point: 打卡规则未勾选补卡申请开关时，【审批】应用中不出现补卡申请，员工无法发起补卡申请。
+  title: 先提单再关闭补卡开关，回查已提交的待审批单据能否继续流转
+  design_method: 错误推测法
+  tags:
+  - 异常
+  - 待确认
+  severity: S3
+  severity_reason: 关开关后遗留单据的去向未定义时，配置调整会在中途留下无法解释的一半流程，人事无法判断该单是否仍然有效。
+  preconditions: 补卡开关初始为开启；员工 A 已就当日迟到异常提交补卡申请且处于待审批状态；随后管理员在规则中关闭补卡开关。
+  steps:
+  - 管理员在【管理后台】的打卡规则中关闭补卡开关
+  - 以审批人 B 的账号打开该待审批的补卡申请单据
+  - 尝试审批通过该单据并回查 A 当日打卡状态
+  expected:
+  - 待确认：补卡开关关闭后，此前已提交且未审完的补卡申请是否仍可被审批通过？若可以，审批通过后是否仍会把打卡状态校正为正常？
+  status: pending_confirmation
+  source_context:
+    quote: 补卡申请仅在开关开启后出现于【审批】应用；审批未通过时打卡状态不得变化。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1011
+  fp_id: FP-10
+  scenario_id: SC-FP-10-03
+  point_id: TP-FP-10-03-02
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在打卡规则未勾选补卡申请开关的条件下，验【审批】应用中是否存在补卡申请入口，以及是否存在绕过上级审批直接改变打卡状态的路径。
+  test_point: 员工不存在跳过上级审批直接改变异常打卡状态的路径，任何状态变更都以审批通过为前提。
+  title: 员工尝试不经审批直接改写自己的异常打卡状态
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 若能绕过审批改写打卡状态，任何员工都可自行消除迟到记录，考勤结论失去可信度，审批制度同时被架空。
+  preconditions: 补卡开关已关闭；员工 A 当日上班迟到形成异常记录且未提交任何补卡申请；A 仅有员工账号权限。
+  steps:
+  - 以 A 的账号在打卡记录与打卡应用内查找是否存在直接修改当日打卡状态的入口
+  - 用 A 的凭证构造一次把当日状态改为正常的请求并提交
+  - 回查 A 当日打卡状态与【审批】中的单据
+  expected:
+  - 员工端不提供修改打卡状态的入口
+  - 直接改状态的请求不成功，A 当日状态仍为迟到异常
+  - 该尝试不生成任何补卡审批单据
+  status: active
+  source_context:
+    quote: 补卡申请由员工发起、经上级审批后才能改变打卡状态，不存在跳过审批环节的路径。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+- id: TC-ATT-1012
+  fp_id: FP-10
+  scenario_id: SC-FP-10-03
+  point_id: TP-FP-10-03-02
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在打卡规则未勾选补卡申请开关的条件下，验【审批】应用中是否存在补卡申请入口，以及是否存在绕过上级审批直接改变打卡状态的路径。
+  test_point: 员工不存在跳过上级审批直接改变异常打卡状态的路径，任何状态变更都以审批通过为前提。
+  title: 让申请人本人成为补卡单据的审批人并尝试通过自己的单据
+  design_method: 逆向场景法
+  tags:
+  - 权限
+  - 待确认
+  severity: S2
+  severity_reason: 若申请人可以审批自己的单据，审批环节形同虚设，小团队里迟到记录可被当事人自行消除而无人复核。
+  preconditions: 补卡开关已关闭；员工 A 在关闭前已提交补卡申请且单据仍在流转；A 同时是所在部门的管理员，测试中把该单据的审批人指向 A 自己。
+  steps:
+  - 以 A 的账号打开自己提交的补卡审批单据
+  - 尝试对该单据执行同意操作
+  - 回查 A 当日打卡状态与校准状态
+  expected:
+  - 待确认：补卡申请的审批人是否可能为申请人本人（例如员工同时是所在部门管理员）？若可能，本人审批自己的补卡申请是否被允许并触发状态校正？
+  status: pending_confirmation
+  source_context:
+    quote: 补卡申请由员工发起、经上级审批后才能改变打卡状态，不存在跳过审批环节的路径。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+- id: TC-ATT-1013
+  fp_id: FP-10
+  scenario_id: SC-FP-10-03
+  point_id: TP-FP-10-03-02
+  functional_point: 补卡申请与审批修正异常
+  scenario: 在打卡规则未勾选补卡申请开关的条件下，验【审批】应用中是否存在补卡申请入口，以及是否存在绕过上级审批直接改变打卡状态的路径。
+  test_point: 员工不存在跳过上级审批直接改变异常打卡状态的路径，任何状态变更都以审批通过为前提。
+  title: 用超级管理员账号在打卡记录里查找直接改打卡状态的入口
+  design_method: 错误推测法
+  tags:
+  - 权限
+  - 安全
+  severity: S2
+  severity_reason: 若管理员可在打卡记录中直接改状态，所有补卡审批都可被一句话绕过，且改动不留审批痕迹，无法追责。
+  preconditions: 补卡开关已关闭；员工 A 当日下班早退形成异常记录且未提交补卡申请；测试账号为超级管理员。
+  steps:
+  - 用超级管理员账号打开【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 在 A 的打卡记录行查找修改打卡状态的入口
+  - 若存在入口，尝试把状态改为正常并回查记录
+  expected:
+  - 打卡记录页面只提供查看、筛选与导出，不提供修改打卡状态的入口
+  - A 当日打卡状态保持早退异常，只能经由审批通过改变
+  status: active
+  source_context:
+    quote: 补卡申请由员工发起、经上级审批后才能改变打卡状态，不存在跳过审批环节的路径。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 补卡申请
+- id: TC-ATT-1701
+  fp_id: FP-17
+  scenario_id: SC-FP-17-01
+  point_id: TP-FP-17-01-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为超级管理员且企业内存在多个部门与员工时，验证规则设置范围与统计查看范围是否以全员为界
+  test_point: 超级管理员的规则设置范围覆盖公司全员且查看统计范围同为全员，不因部门归属被截断。
+  title: 超级管理员在管理后台为全公司设置规则后检查跨部门员工的判定
+  design_method: 场景法
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 超级管理员设置只落到部分部门时，其余部门继续按旧规则判定，全公司口径无法统一，且不会有任何报错提示。
+  preconditions: 测试账号为超级管理员；企业内有总部与分公司两个部门，每个部门各有 1 名员工；两人当前适用同一条默认规则。
+  steps:
+  - 超级管理员在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【设置】中为全公司设置新的上班时间
+  - 总部员工 A 与分公司员工 C 分别按新时间迟到打卡
+  - 在【查看】中打开 A 与 C 的当日判定
+  expected:
+  - A 的迟到判定按新设上班时间计算
+  - C 的迟到判定同样按新设上班时间计算，未继续沿用旧规则
+  status: active
+  source_context:
+    quote: '| 超级管理员 | 可在管理后台和移动端给公司全员设置打卡规则 | 全员打卡统计 |'
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1702
+  fp_id: FP-17
+  scenario_id: SC-FP-17-01
+  point_id: TP-FP-17-01-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为超级管理员且企业内存在多个部门与员工时，验证规则设置范围与统计查看范围是否以全员为界
+  test_point: 超级管理员的规则设置范围覆盖公司全员且查看统计范围同为全员，不因部门归属被截断。
+  title: 按总部直属、分公司、三级子部门三类员工分别核对规则生效情况
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 任一层级员工被漏在规则范围外时会按旧规则打卡，其考勤判定与全公司口径不一致，人事需要逐人手工纠正。
+  preconditions: 测试账号为超级管理员；组织架构为总部直属、总部 > 研发部 > 前端组、分公司 > 销售部三条线，每条线各有 1 名测试员工。
+  steps:
+  - 超级管理员设置一条对全员生效的上班时间规则
+  - 分别让总部直属员工、销售部员工、前端组员工按新时间迟到打卡
+  - 在【查看】中核对三人当日判定所用的规则
+  expected:
+  - 总部直属员工的迟到判定使用该全员规则
+  - 分公司销售部员工的迟到判定使用该全员规则
+  - 总部三级子部门前端组员工的迟到判定使用该全员规则
+  status: active
+  source_context:
+    quote: '| 超级管理员 | 可在管理后台和移动端给公司全员设置打卡规则 | 全员打卡统计 |'
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1703
+  fp_id: FP-17
+  scenario_id: SC-FP-17-01
+  point_id: TP-FP-17-01-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为超级管理员且企业内存在多个部门与员工时，验证规则设置范围与统计查看范围是否以全员为界
+  test_point: 超级管理员的规则设置范围覆盖公司全员且查看统计范围同为全员，不因部门归属被截断。
+  title: 在移动端为其他部门设置规则后检查该部门员工的生效结果
+  design_method: 安全性法
+  tags:
+  - 权限
+  - 安全
+  severity: S2
+  severity_reason: 移动端把超管范围悄悄收窄到本人所属部门时，管理者以为已全公司生效，实际有一批员工未被覆盖，且后台看不出差异。
+  preconditions: 测试账号为超级管理员并在手机上登录企业微信；目标部门为超级管理员本人未加入的分公司销售部。
+  steps:
+  - 超级管理员在移动端进入打卡应用，为分公司销售部设置上班时间
+  - 让销售部员工按新时间迟到打卡
+  - 在【查看】中核对该员工当日判定
+  expected:
+  - 移动端完成的设置保存成功
+  - 销售部该员工的迟到判定按移动端设置的上班时间计算
+  - 该设置的适用范围未被收窄为超级管理员本人所属部门
+  status: active
+  source_context:
+    quote: '| 超级管理员 | 可在管理后台和移动端给公司全员设置打卡规则 | 全员打卡统计 |'
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1704
+  fp_id: FP-17
+  scenario_id: SC-FP-17-01
+  point_id: TP-FP-17-01-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为超级管理员且企业内存在多个部门与员工时，验证规则设置范围与统计查看范围是否以全员为界
+  test_point: 超级管理员与分级管理员的权限边界按「全员」与「管辖范围」两条线划界，不存在两类管理员都覆盖不到的员工。
+  title: 按超管覆盖、分级管理员覆盖两类线抽查员工的规则归属
+  design_method: 等价类划分
+  tags:
+  - 权限
+  - 数据一致性
+  severity: S3
+  severity_reason: 出现无人覆盖的员工时其规则无人维护，只能沿用历史配置，问题要到考勤出错时才被发现。
+  preconditions: 企业内有研发部与销售部两个部门；1 个超级管理员账号；1 个分级管理员账号且管辖范围只指派到研发部；销售部无人被指派为分级管理员。
+  steps:
+  - 列出企业内全部员工，按「是否落在超管全员范围」「是否落在某分级管理员管辖范围」划分
+  - 分别查看研发部员工与销售部员工的规则设置来源
+  - 核对是否存在既不在超管范围、也不在任何分级管理员管辖内的员工
+  expected:
+  - 研发部员工的规则归属同时落在分级管理员管辖范围与超管全员范围
+  - 销售部员工的规则归属落在超管全员范围
+  - 全部员工都能追溯到至少一条覆盖线，不存在无人覆盖的员工
+  status: active
+  source_context:
+    quote: 企业微信把管理员分成超级管理员与分级管理员两类，权限按「全员」与「管辖范围」划界；打卡记录则提供管理后台的筛选与 Excel 导出、以及面向开发者的 API 导出两条通道。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: Overview
+- id: TC-ATT-1705
+  fp_id: FP-17
+  scenario_id: SC-FP-17-01
+  point_id: TP-FP-17-01-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为超级管理员且企业内存在多个部门与员工时，验证规则设置范围与统计查看范围是否以全员为界
+  test_point: 超级管理员与分级管理员的权限边界按「全员」与「管辖范围」两条线划界，不存在两类管理员都覆盖不到的员工。
+  title: 用管理员类型与目标部门是否在管辖范围的组合核对设置与查看结果
+  design_method: 因果图法
+  tags:
+  - 权限
+  severity: S2
+  severity_reason: 组合结果偏离划界线时，某一类管理员会获得超出其范围的能力或丢失其应有能力，两种偏差都直接体现在权限分配上。
+  preconditions: 企业内有研发部与销售部；super 管理员账号与分级管理员账号各 1 个，分级管理员管辖范围只指派到研发部。
+  steps:
+  - 用超级管理员账号分别对研发部与销售部设置规则并查看统计
+  - 用分级管理员账号分别对研发部与销售部设置规则
+  - 用分级管理员账号分别对研发部与销售部查看统计
+  expected:
+  - 超级管理员对研发部与销售部都能设置规则并查看统计
+  - 分级管理员对研发部能设置规则并查看统计
+  - 分级管理员对销售部既不能设置规则也不能查看统计
+  status: active
+  source_context:
+    quote: 企业微信把管理员分成超级管理员与分级管理员两类，权限按「全员」与「管辖范围」划界；打卡记录则提供管理后台的筛选与 Excel 导出、以及面向开发者的 API 导出两条通道。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: Overview
+- id: TC-ATT-1706
+  fp_id: FP-17
+  scenario_id: SC-FP-17-01
+  point_id: TP-FP-17-01-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为超级管理员且企业内存在多个部门与员工时，验证规则设置范围与统计查看范围是否以全员为界
+  test_point: 超级管理员与分级管理员的权限边界按「全员」与「管辖范围」两条线划界，不存在两类管理员都覆盖不到的员工。
+  title: 新员工加入部门并首次打卡后核对其规则与统计归属
+  design_method: 场景法
+  tags:
+  - 数据一致性
+  - 权限
+  severity: S3
+  severity_reason: 新员工数据不落入任何管理线时，其首次考勤无人核对，问题会积累到月底结算才暴露。
+  preconditions: 企业已有超级管理员与 1 个管辖研发部的分级管理员；新员工 A 待入职并加入研发部；研发部已有 2 名在职员工。
+  steps:
+  - 让新员工 A 加入研发部并完成当日首次打卡
+  - 用分级管理员账号查看研发部的规则范围与统计
+  - 用超级管理员账号查看全员统计
+  expected:
+  - A 的打卡数据出现在分级管理员的管辖范围统计中
+  - A 的打卡数据同时出现在超级管理员的全员统计中
+  - A 不属于两类管理员都覆盖不到的员工
+  status: active
+  source_context:
+    quote: 企业微信把管理员分成超级管理员与分级管理员两类，权限按「全员」与「管辖范围」划界；打卡记录则提供管理后台的筛选与 Excel 导出、以及面向开发者的 API 导出两条通道。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: Overview
+- id: TC-ATT-1707
+  fp_id: FP-17
+  scenario_id: SC-FP-17-02
+  point_id: TP-FP-17-02-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为分级管理员且已分配管辖范围时，验证规则设置与统计查看是否只落在管辖范围内
+  test_point: 分级管理员设置规则的作用范围只落在其管辖范围内，范围外部门的规则不受其操作影响。
+  title: 分级管理员为自己管辖的部门设置规则后检查该部门员工判定
+  design_method: 场景法
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 分级管理员在自己范围内无法设置规则时，分级管理形同虚设，所有调整都退回给超管，管理链条断掉。
+  preconditions: 分级管理员账号的管辖范围只指派到研发部；研发部有员工 A 且当前适用默认规则；销售部在其管辖范围外。
+  steps:
+  - 分级管理员在【管理后台】为研发部设置新的上班时间
+  - 研发部员工 A 按新时间迟到打卡
+  - 在【查看】中核对 A 的判定与规则归属
+  expected:
+  - 规则保存成功并归属研发部
+  - A 的迟到判定按分级管理员新设的上班时间计算
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1708
+  fp_id: FP-17
+  scenario_id: SC-FP-17-02
+  point_id: TP-FP-17-02-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为分级管理员且已分配管辖范围时，验证规则设置与统计查看是否只落在管辖范围内
+  test_point: 分级管理员设置规则的作用范围只落在其管辖范围内，范围外部门的规则不受其操作影响。
+  title: 以管辖内的父部门与其下级子部门作为两类对象核对可设置范围
+  design_method: 等价类划分
+  tags:
+  - 权限
+  - 待确认
+  severity: S2
+  severity_reason: 子部门是否随父部门纳入管辖未定义时，配置结果两边都可能出错：要么分组长无法管理自己团队，要么越界管到了别的组。
+  preconditions: 组织架构为研发部 > 前端组 > 前端一组；分级管理员账号的管辖范围只指派到研发部这一级，未单独指派前端组。
+  steps:
+  - 用分级管理员账号查看可设置规则的部门列表
+  - 尝试为下级的前端组设置规则
+  - 再尝试为前端组的下级前端一组设置规则
+  expected:
+  - 待确认：分级管理员的管辖范围指派到父部门（研发部）时，其下级子部门（前端组、前端一组）是否一并纳入管辖并可被设置规则？
+  status: pending_confirmation
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1709
+  fp_id: FP-17
+  scenario_id: SC-FP-17-02
+  point_id: TP-FP-17-02-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为分级管理员且已分配管辖范围时，验证规则设置与统计查看是否只落在管辖范围内
+  test_point: 分级管理员设置规则的作用范围只落在其管辖范围内，范围外部门的规则不受其操作影响。
+  title: 分级管理员设置管辖内规则后核对生效对象是否越界到范围外部门
+  design_method: 安全性法
+  tags:
+  - 权限
+  - 安全
+  severity: S2
+  severity_reason: 新规则意外覆盖到范围外部门时，别的部门会被按他人的规则判定，考勤结论错乱且责任归属不清。
+  preconditions: 分级管理员管辖研发部；研发部员工 A 与销售部员工 C 均在测试名单内；两部门当前适用同一条默认规则。
+  steps:
+  - 分级管理员为研发部设置一条上班时间明显不同于默认值的规则
+  - 让研发部员工 A 与销售部员工 C 分别按默认上班时间打卡
+  - 对比两人当日判定所用的规则
+  expected:
+  - A 的判定使用分级管理员新设的规则
+  - C 的判定仍使用原默认规则，未被新规则覆盖
+  - 新规则的生效对象范围中不含销售部
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1710
+  fp_id: FP-17
+  scenario_id: SC-FP-17-02
+  point_id: TP-FP-17-02-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为分级管理员且已分配管辖范围时，验证规则设置与统计查看是否只落在管辖范围内
+  test_point: 分级管理员的查看统计范围等于其管辖范围，统计结果不含范围外员工的数据。
+  title: 分级管理员在按日统计中核对自己管辖范围的出勤数字
+  design_method: 场景法
+  tags:
+  - 数据准确性
+  - 权限
+  severity: S2
+  severity_reason: 统计人数或异常条数与管辖明细对不上时，分级管理员据此上报的数字直接错误，被超管复核时无法解释差异来源。
+  preconditions: 分级管理员管辖研发部，研发部在职员工 3 人；销售部员工 2 人不在其范围；当日研发部有 1 人迟到，其余 2 人正常。
+  steps:
+  - 分级管理员进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 切换到「按日统计」查看当日数据
+  - 与研发部 3 名员工的打卡明细逐条对比
+  expected:
+  - 统计中的人数为研发部的 3 人
+  - 统计中的迟到人数为 1 人，与明细一致
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1711
+  fp_id: FP-17
+  scenario_id: SC-FP-17-02
+  point_id: TP-FP-17-02-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为分级管理员且已分配管辖范围时，验证规则设置与统计查看是否只落在管辖范围内
+  test_point: 分级管理员的查看统计范围等于其管辖范围，统计结果不含范围外员工的数据。
+  title: 把管辖内员工与范围外员工的当日记录放在同一统计口径下比对结果集合
+  design_method: 等价类划分
+  tags:
+  - 权限
+  - 数据准确性
+  severity: S1
+  severity_reason: 范围外员工的考勤数据被分级管理员看到属于越权读取与数据泄露，直接影响对外合规，且无法事后收回已暴露的信息。
+  preconditions: 分级管理员管辖研发部（3 人）；销售部 2 名员工当日均有打卡记录且在其管辖范围外；测试同时准备超级管理员账号作为对照。
+  steps:
+  - 分级管理员不加任何筛选，打开「按日统计」查看当日全部记录
+  - 在结果中按姓名逐一检索销售部两名员工
+  - 用超级管理员账号查看同一日的全员统计作为对照
+  expected:
+  - 分级管理员的统计结果只含研发部员工
+  - 销售部两名员工不出现在分级管理员的统计结果中
+  - 超级管理员的全员统计中包含销售部这两名员工
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1712
+  fp_id: FP-17
+  scenario_id: SC-FP-17-02
+  point_id: TP-FP-17-02-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 账号为分级管理员且已分配管辖范围时，验证规则设置与统计查看是否只落在管辖范围内
+  test_point: 分级管理员的查看统计范围等于其管辖范围，统计结果不含范围外员工的数据。
+  title: 穷举分级管理员可用的单条件与组合筛选，核对结果恒为管辖内子集
+  design_method: 穷举法
+  tags:
+  - 数据准确性
+  - 权限
+  severity: S2
+  severity_reason: 某个筛选入口未叠加范围约束时，换一种筛选方式即可看到范围外数据，越权会从最不常走的那条入口漏出去。
+  preconditions: 分级管理员管辖研发部；研发部当日有打卡记录与 1 条异常记录；销售部同日也有打卡与异常记录，且在其范围外；筛选条件限于时间、部门、人员、状态四类。
+  steps:
+  - 依次用「部门=研发部」「人员=研发部某员工」「状态=异常」三个单条件筛选并记录结果人数
+  - 再用「部门=研发部」+「状态=异常」两个条件组合筛选
+  - 逐次核对每次结果中的人员归属部门
+  expected:
+  - 「部门=研发部」的结果只含研发部员工
+  - 「人员=研发部某员工」的结果只含该员工本人
+  - 「状态=异常」的结果只含研发部员工的异常记录
+  - 「部门+状态」组合结果等于两个单条件结果的交集，均不含销售部员工
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1713
+  fp_id: FP-17
+  scenario_id: SC-FP-17-03
+  point_id: TP-FP-17-03-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 分级管理员的管辖范围外还存在其他部门与员工时，验证范围划界是否把这些对象排除在操作对象之外
+  test_point: 分级管理员对管辖范围外部门提交的规则修改被拒绝，且不产生任何规则变更。
+  title: 分级管理员在范围外部门的规则编辑页上修改并提交保存
+  design_method: 逆向场景法
+  tags:
+  - 权限
+  - 异常
+  severity: S1
+  severity_reason: 分级管理员改动范围外规则属于越权穿透，该部门会按错误规则产出考勤结论，且变更来源在部门侧难以察觉。
+  preconditions: 分级管理员管辖研发部；销售部在其管辖范围外且已有可用规则；测试准备中已拿到销售部规则编辑页的直达链接。
+  steps:
+  - 用分级管理员账号通过直达链接打开销售部规则的编辑页
+  - 修改上班时间后点击保存
+  - 用超级管理员账号复核销售部规则内容
+  expected:
+  - 保存被拒绝，页面提示该账号无操作权限
+  - 销售部规则内容与修改前完全一致，未产生任何变更
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1714
+  fp_id: FP-17
+  scenario_id: SC-FP-17-03
+  point_id: TP-FP-17-03-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 分级管理员的管辖范围外还存在其他部门与员工时，验证范围划界是否把这些对象排除在操作对象之外
+  test_point: 分级管理员对管辖范围外部门提交的规则修改被拒绝，且不产生任何规则变更。
+  title: 绕过前端直接构造保存请求修改范围外部门的规则
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 服务端缺少范围校验时，任何掌握请求格式的账号都能改任意部门规则，前端隐藏入口完全挡不住越权。
+  preconditions: 分级管理员账号的登录凭证有效；测试准备中已抓到保存规则的请求参数与销售部的部门标识；销售部在其管辖范围外。
+  steps:
+  - 用分级管理员账号的凭证构造一条保存销售部规则的请求并提交
+  - 记录接口返回的结果
+  - 用超级管理员账号复核销售部规则内容与最后修改时间
+  expected:
+  - 请求被拒绝，不返回保存成功
+  - 销售部规则内容与最后修改时间保持原值
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1715
+  fp_id: FP-17
+  scenario_id: SC-FP-17-03
+  point_id: TP-FP-17-03-01
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 分级管理员的管辖范围外还存在其他部门与员工时，验证范围划界是否把这些对象排除在操作对象之外
+  test_point: 分级管理员对管辖范围外部门提交的规则修改被拒绝，且不产生任何规则变更。
+  title: 新增分级管理员未分配管辖范围时尝试修改任意部门规则
+  design_method: 异常法
+  tags:
+  - 权限
+  - 待确认
+  severity: S2
+  severity_reason: 未分配范围的账号若默认拥有全公司规则修改能力，等于新建管理员即拿到超管权限，越权入口藏在配置遗漏里。
+  preconditions: 新建 1 个分级管理员账号且尚未指派任何管辖范围；企业内已有研发部与销售部两条规则。
+  steps:
+  - 用该分级管理员账号登录管理后台
+  - 查看可操作的部门列表与规则编辑入口
+  - 尝试修改研发部规则并保存
+  expected:
+  - 待确认：新增的分级管理员未分配任何管辖范围时，是否完全不具备规则修改权限（入口不可见或保存被拒绝）？
+  status: pending_confirmation
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1716
+  fp_id: FP-17
+  scenario_id: SC-FP-17-03
+  point_id: TP-FP-17-03-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 分级管理员的管辖范围外还存在其他部门与员工时，验证范围划界是否把这些对象排除在操作对象之外
+  test_point: 分级管理员的可见列表与筛选项中不出现管辖范围外的部门与员工。
+  title: 分级管理员在部门选择器中展开部门树并检索范围外部门
+  design_method: 逆向场景法
+  tags:
+  - 权限
+  severity: S2
+  severity_reason: 范围外部门出现在选择器里时，管理员会误以为自己有权操作，误操作后被拒绝才暴露，操作成本与信任都被消耗。
+  preconditions: 分级管理员管辖研发部；销售部与财务部均在其管辖范围外；测试同时准备这两个部门的名称用于检索。
+  steps:
+  - 打开规则设置的部门选择器并展开部门树
+  - 在搜索框中输入「销售部」
+  - 再输入「财务部」，观察搜索结果与勾选状态
+  expected:
+  - 部门树中不出现销售部与财务部
+  - 搜索「销售部」「财务部」均无结果，或结果不可被勾选
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1717
+  fp_id: FP-17
+  scenario_id: SC-FP-17-03
+  point_id: TP-FP-17-03-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 分级管理员的管辖范围外还存在其他部门与员工时，验证范围划界是否把这些对象排除在操作对象之外
+  test_point: 分级管理员的可见列表与筛选项中不出现管辖范围外的部门与员工。
+  title: 在部门筛选项、人员筛选项、统计结果三类位置核对范围外对象
+  design_method: 等价类划分
+  tags:
+  - 权限
+  severity: S2
+  severity_reason: 三处位置只要有一处露出范围外对象，越权就从最不显眼的那一处漏出去，且管理人员难以察觉自己看到了不该看的数据。
+  preconditions: 分级管理员管辖研发部；销售部员工 C、D 在其管辖范围外且当日均有打卡记录。
+  steps:
+  - 打开【查看】统计页，展开部门筛选项与人员筛选项
+  - 在两类筛选项中分别查找销售部与员工 C、D
+  - 不加筛选查看统计结果的员工清单
+  expected:
+  - 部门筛选项中不含销售部
+  - 人员筛选项中不含员工 C、D
+  - 统计结果的员工清单中不含员工 C、D
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1718
+  fp_id: FP-17
+  scenario_id: SC-FP-17-03
+  point_id: TP-FP-17-03-02
+  functional_point: 两类管理员的设置范围与统计范围
+  scenario: 分级管理员的管辖范围外还存在其他部门与员工时，验证范围划界是否把这些对象排除在操作对象之外
+  test_point: 分级管理员的可见列表与筛选项中不出现管辖范围外的部门与员工。
+  title: 把统计页的部门参数替换为范围外部门标识后重新加载
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 参数可被替换即等于范围校验只在界面上，分级管理员改一个参数就能读到其他部门全员考勤，属越权读取与数据泄露。
+  preconditions: 分级管理员管辖研发部；销售部在其管辖范围外且当日有打卡记录；测试可在地址栏中读取并改写筛选参数。
+  steps:
+  - 分级管理员在统计页选中研发部，记录地址栏中的部门参数值
+  - 把该参数值替换为销售部的部门标识后重新加载页面
+  - 观察页面返回的统计内容与提示
+  expected:
+  - 替换参数后统计结果为空，不显示销售部任何员工的数据
+  - 页面提示无权限或回到默认范围，不泄露销售部员工信息
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+open_items:
+- id: OI-37
+  question: 员工当日没有迟到/早退异常时，是否允许提交补卡申请？若允许且审批通过，系统是否完全不产生状态变更与校准记录？
+  related_case_ids:
+  - TC-ATT-1007
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-38
+  question: 补卡开关关闭后，此前已提交且未审完的补卡申请是否仍可被审批通过？若可以，通过后是否仍会校正打卡状态？
+  related_case_ids:
+  - TC-ATT-1010
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-39
+  question: 补卡申请的审批人是否可能为申请人本人？若可能，本人审批自己的补卡申请是否被允许并触发打卡状态校正？
+  related_case_ids:
+  - TC-ATT-1012
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-40
+  question: 分级管理员的管辖范围指派到父部门时，其下级子部门是否一并纳入管辖并可被设置规则？
+  related_case_ids:
+  - TC-ATT-1708
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-41
+  question: 新增的分级管理员未分配任何管辖范围时，是否完全不具备规则修改权限（入口不可见或保存被拒绝）？
+  related_case_ids:
+  - TC-ATT-1715
+  source_ref: wiki/attendance-management/permissions-and-export.md

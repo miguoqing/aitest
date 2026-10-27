@@ -1,0 +1,53 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: functional-points
+
+functional_points:
+  - id: FP-01
+    name: 规则类型与统计口径
+    module: 规则配置
+    summary: 规则类型分固定时间、按班次、自由上下班三种，直接决定考勤的统计口径。固定时间按统一时间判定，按班次以排班为基准，自由上下班只统计旷工、工作时长仅作记录。边界在于类型一经选定就决定是否产出迟到/早退判定，与人员、地点、容差等配置互不替代。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 三种规则类型
+
+  - id: FP-02
+    name: 打卡人员范围与白名单豁免
+    module: 人员范围
+    summary: 打卡人员是「适用于该条打卡规则的部门和成员」的集合，既可划到部门也可划到具体成员，决定谁受这条规则约束。白名单是例外通道，名单内的领导或特殊员工不参与打卡。边界在于白名单是规则级豁免，不改变该员工在其他规则下的打卡要求，也不是全局权限开关。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 打卡人员
+
+  - id: FP-03
+    name: 打卡方式与凭证来源
+    module: 打卡方式
+    summary: 打卡方式决定凭证来源与记录路径：手机打卡由手机端直接产生记录，智能考勤机联网时实时同步，U盘导入先离线采集再批量导回核算。边界在于三条路径的凭证形态互不相同，U盘导入是唯一先离线后批量导入的路径，不能与另外两种混为一谈。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 三种打卡方式
+
+  - id: FP-04
+    name: 打卡地点与设备范围校验
+    module: 地点与设备
+    summary: 地点校验依据随打卡方式而变：手机打卡取定位或办公 Wi-Fi 二者之一，智能考勤机只能在指定设备上打卡。手机打卡有效范围以办公地点为中心取 100 至 300 米，考勤机受每台人数上限约束，超限设备不可被选中。边界在于范围按地点维度各自生效，设备约束在规则引用之后仍需成立。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 打卡地点与打卡范围
+
+  - id: FP-05
+    name: 上下班时间与迟到早退容差
+    module: 时间与容差
+    summary: 添加上下班时间后可在高级设置中设定允许迟到、早退的分钟数，该分钟数是规则级容差阈值。容差阈值决定迟到/早退判定的触发点，超出阈值的打卡才计入异常。边界在于容差只对自己所属规则生效，不同规则各自维护自己的分钟数。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 上下班时间与容差
+
+  - id: FP-06
+    name: 外出打卡与照片来源限制
+    module: 外出打卡
+    summary: 外出打卡与上下班打卡并列，面向出差外勤等无法在办公区域打卡的成员，以位置定位加拍照作为打卡依据。管理员可限制照片来源，设置后只能拍照提交、不能从相册选取。边界在于该限制只约束照片来源，不改变外出打卡本身的定位与拍照要求。
+    source_ref:
+      path: wiki/attendance-management/attendance-rule-configuration.md
+      section: 外出打卡

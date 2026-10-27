@@ -1,0 +1,940 @@
+# 批次 3：FP-03 打卡方式与凭证来源 / FP-05 上下班时间与迟到早退容差 / FP-06 外出打卡与照片来源限制
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  version: v1.0
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  shard: case-3
+  fp_range:
+  - FP-03
+  - FP-05
+  - FP-06
+  knowledge_sources:
+  - path: wiki/attendance-management/attendance-rule-configuration.md
+    title: 打卡规则配置
+  stats:
+    functional_points: 21
+    scenarios: 57
+    test_points: 90
+    cases: 33
+open_items:
+- id: OI-19
+  question: 在非指定考勤机上打卡时，系统是直接拒绝并提示不在指定设备，还是仍生成一条被标记为无效/异常的打卡记录？
+  related_case_ids:
+  - TC-ATT-0308
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-20
+  question: 一条打卡规则是否可以同时绑定多台智能考勤机？绑定多台时规则内人员在这几台上的打卡是否都成立？
+  related_case_ids:
+  - TC-ATT-0310
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-21
+  question: 允许迟到分钟数的合法取值范围是什么（下限是否可为 0 分钟、上限是多少分钟）？设置为 0 时是否任何晚到都判迟到？
+  related_case_ids:
+  - TC-ATT-0504
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-22
+  question: 外出打卡只上传位置定位而没有照片时，是阻断本次打卡并提示需要拍照，还是仍成立但记录中标记照片缺失？
+  related_case_ids:
+  - TC-ATT-0602
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-23
+  question: 外出打卡的照片是否有格式、大小或清晰度要求？不满足要求时是阻断打卡还是仍成立？
+  related_case_ids:
+  - TC-ATT-0607
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+cases:
+- id: TC-ATT-0301
+  fp_id: FP-03
+  scenario_id: SC-FP-03-01
+  point_id: TP-FP-03-01-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 员工仅定位在有效范围内、或仅连上办公 Wi-Fi 时，验手机端是否直接产生打卡记录。
+  test_point: 员工手机定位落在有效范围内但未连办公 Wi-Fi 时，手机端仍直接产生一条打卡记录。
+  title: 用定位命中与办公 Wi-Fi 未命中的条件组合提交一次手机打卡
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 集成
+  severity: S2
+  severity_reason: 「或」关系被实现成「与」时，只靠定位的员工无法打卡，会整月产生缺卡记录，需要人工逐条纠正
+  preconditions: 固定时间规则已绑定测试员工；办公地点有效范围已配置；该员工手机未连接办公 Wi-Fi
+  steps:
+  - 员工站在办公地点有效范围内，确认手机 Wi-Fi 处于关闭状态
+  - 打开企业微信打卡应用并点击打卡
+  - 在【管理后台】>【企业应用】>【打卡】>【查看】中打开该员工当日打卡记录
+  expected:
+  - 定位命中、办公 Wi-Fi 未命中这一条件组合下页面提示打卡成功
+  - 该员工当日新增 1 条来源为手机打卡的打卡记录
+  status: active
+  source_context:
+    quote: 手机打卡——系统确认打卡人位置，或判断打卡人是否连上办公地点的 WIFI，满足其中任意一项即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0302
+  fp_id: FP-03
+  scenario_id: SC-FP-03-01
+  point_id: TP-FP-03-01-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 员工仅定位在有效范围内、或仅连上办公 Wi-Fi 时，验手机端是否直接产生打卡记录。
+  test_point: 员工手机定位落在有效范围内但未连办公 Wi-Fi 时，手机端仍直接产生一条打卡记录。
+  title: 在办公范围内两个不同位置各提交一次手机打卡
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 有效位置的代表值若被漏判，员工在部分办公区域无法打卡，缺卡记录会直接进入考勤结论
+  preconditions: 固定时间规则已绑定测试员工；办公地点有效范围已配置；该员工手机未连接办公 Wi-Fi
+  steps:
+  - 员工在距办公地点约 150 米处打开企业微信并点击打卡
+  - 员工在距办公地点约 250 米处再次点击打卡
+  - 在管理后台打开该员工当日打卡记录，逐条核对两次打卡
+  expected:
+  - 距办公地点约 150 米处的打卡成功，当日记录中出现该次打卡
+  - 距办公地点约 250 米处的打卡成功，当日记录中出现该次打卡
+  status: active
+  source_context:
+    quote: 手机打卡——系统确认打卡人位置，或判断打卡人是否连上办公地点的 WIFI，满足其中任意一项即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0303
+  fp_id: FP-03
+  scenario_id: SC-FP-03-01
+  point_id: TP-FP-03-01-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 员工仅定位在有效范围内、或仅连上办公 Wi-Fi 时，验手机端是否直接产生打卡记录。
+  test_point: 员工手机定位落在有效范围内但未连办公 Wi-Fi 时，手机端仍直接产生一条打卡记录。
+  title: 从新建规则到后台查记录的手机打卡主链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 冒烟
+  severity: S1
+  severity_reason: 打卡记录未落库会让员工当日直接判为缺卡，考勤结论错误且事后只能用补卡申诉逐条修正
+  preconditions: 测试部门与测试员工已存在；管理员账号已具备打卡应用管理权限
+  steps:
+  - 在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【添加规则】中新建固定时间规则并添加测试员工
+  - 员工在办公地点范围内用手机企业微信完成一次打卡
+  - 管理员进入【打卡】>【查看】打开当日打卡记录列表并定位该员工
+  expected:
+  - 打卡记录列表中出现该员工当日的手机打卡记录，含打卡时间与打卡地点
+  - 该员工当日考勤结论不为缺卡
+  status: active
+  source_context:
+    quote: 手机打卡——系统确认打卡人位置，或判断打卡人是否连上办公地点的 WIFI，满足其中任意一项即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0304
+  fp_id: FP-03
+  scenario_id: SC-FP-03-01
+  point_id: TP-FP-03-01-02
+  functional_point: 打卡方式与凭证来源
+  scenario: 员工仅定位在有效范围内、或仅连上办公 Wi-Fi 时，验手机端是否直接产生打卡记录。
+  test_point: 员工未进入定位有效范围但连上办公 Wi-Fi 时，手机端仍直接产生一条打卡记录。
+  title: 关闭手机定位后仅凭办公 Wi-Fi 提交一次手机打卡
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 集成
+  severity: S2
+  severity_reason: 定位不可用时办公 Wi-Fi 是唯一放行条件，该条件失效会让室内员工集体无法打卡
+  preconditions: 固定时间规则已绑定测试员工；员工手机已连接办公 Wi-Fi；手机定位服务处于关闭状态
+  steps:
+  - 确认手机定位服务处于关闭状态
+  - 打开企业微信打卡应用并点击打卡
+  - 在管理后台打开该员工当日打卡记录
+  expected:
+  - 定位不可用、办公 Wi-Fi 命中的条件组合下页面提示打卡成功
+  - 该员工当日新增 1 条来源为手机打卡的打卡记录
+  status: active
+  source_context:
+    quote: 手机打卡的两条依据（定位、办公 WIFI）为「或」关系，任一满足即应放行；智能考勤机方式下其他设备打卡应被拒绝。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0305
+  fp_id: FP-03
+  scenario_id: SC-FP-03-01
+  point_id: TP-FP-03-01-02
+  functional_point: 打卡方式与凭证来源
+  scenario: 员工仅定位在有效范围内、或仅连上办公 Wi-Fi 时，验手机端是否直接产生打卡记录。
+  test_point: 员工未进入定位有效范围但连上办公 Wi-Fi 时，手机端仍直接产生一条打卡记录。
+  title: 定位漂移到办公范围外时用办公 Wi-Fi 完成一次打卡并核对记录
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: Wi-Fi 放行链路失效时，位置漂移的员工会被判缺卡，考勤结论只能靠人工申诉纠正
+  preconditions: 固定时间规则已绑定测试员工；员工手机已连接办公 Wi-Fi；手机定位显示在办公地点 1 公里外
+  steps:
+  - 员工在定位漂移到办公地点 1 公里外的状态下连接办公 Wi-Fi
+  - 用手机企业微信点击打卡
+  - 在管理后台打开该员工当日打卡记录并核对打卡地点
+  expected:
+  - 打卡成功并生成当日手机打卡记录
+  - 该记录的打卡地点显示为办公地点
+  status: active
+  source_context:
+    quote: 手机打卡的两条依据（定位、办公 WIFI）为「或」关系，任一满足即应放行；智能考勤机方式下其他设备打卡应被拒绝。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0306
+  fp_id: FP-03
+  scenario_id: SC-FP-03-02
+  point_id: TP-FP-03-02-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 规则按设备名称选定智能考勤机后，验规则内人员在指定设备与非指定设备上打卡的记录归属差异。
+  test_point: 采用智能考勤机方式的规则，打卡人只能在规则选定的考勤机上打卡，在其他考勤机上的打卡不产生有效记录。
+  title: 在未被规则选中的考勤机上打卡后核对记录归属
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 非指定设备若能落成有效记录，设备维度的考勤归属就失去意义，跨点代打卡无法被发现
+  preconditions: 规则采用智能考勤机方式并已选中考勤机 A；测试员工在规则人员范围内；公司另有考勤机 B
+  steps:
+  - 员工在考勤机 B 上验证并按下打卡
+  - 管理员在【打卡】>【查看】中按该员工筛选当日记录
+  - 员工再在考勤机 A 上打卡并复查记录
+  expected:
+  - 考勤机 B 上的打卡不成立为该员工当日有效打卡记录
+  - 考勤机 A 上的打卡成立并写入当日打卡记录
+  status: active
+  source_context:
+    quote: 智能考勤机——打卡人只能在指定考勤机上打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0307
+  fp_id: FP-03
+  scenario_id: SC-FP-03-02
+  point_id: TP-FP-03-02-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 规则按设备名称选定智能考勤机后，验规则内人员在指定设备与非指定设备上打卡的记录归属差异。
+  test_point: 采用智能考勤机方式的规则，打卡人只能在规则选定的考勤机上打卡，在其他考勤机上的打卡不产生有效记录。
+  title: 在指定考勤机上打卡后从手机与电脑两端查看同步记录
+  design_method: 场景法
+  tags:
+  - 正向
+  - 集成
+  severity: S3
+  severity_reason: 同步延迟会让员工误以为没打上卡而重复打卡，但指定设备这条主路径仍可用，影响限于核对体验
+  preconditions: 规则采用智能考勤机方式并已选中联网的考勤机 A；测试员工在规则人员范围内
+  steps:
+  - 员工在考勤机 A 上完成一次打卡
+  - 打开手机企业微信的打卡记录页查看当日记录
+  - 登录管理后台按该员工查看当日打卡记录
+  expected:
+  - 手机端与管理后台均显示该条考勤机打卡记录
+  - 两端记录的打卡时间与设备名称一致
+  status: active
+  source_context:
+    quote: 智能考勤机——打卡人只能在指定考勤机上打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0308
+  fp_id: FP-03
+  scenario_id: SC-FP-03-02
+  point_id: TP-FP-03-02-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 规则按设备名称选定智能考勤机后，验规则内人员在指定设备与非指定设备上打卡的记录归属差异。
+  test_point: 采用智能考勤机方式的规则，打卡人只能在规则选定的考勤机上打卡，在其他考勤机上的打卡不产生有效记录。
+  title: 连续在非指定考勤机上打卡并检查是否留下可被误用的记录
+  design_method: 错误推测法
+  tags:
+  - 异常
+  - 待确认
+  severity: S3
+  severity_reason: 若留下无标记的无效记录，月度统计与人工核对会把非指定设备上的打卡当成有效出勤
+  preconditions: 规则采用智能考勤机方式并已选中考勤机 A；公司另有考勤机 B；测试员工在规则人员范围内
+  steps:
+  - 员工连续 3 次在考勤机 B 上打卡
+  - 管理员按该员工筛选当日打卡记录
+  - 查看记录中是否存在来源为非指定设备的条目及其标记状态
+  expected:
+  - 待确认：在非指定考勤机上打卡时，系统是直接拒绝并提示不在指定设备，还是仍生成一条被标记为无效/异常的打卡记录？
+  status: pending_confirmation
+  source_context:
+    quote: 智能考勤机——打卡人只能在指定考勤机上打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0309
+  fp_id: FP-03
+  scenario_id: SC-FP-03-02
+  point_id: TP-FP-03-02-02
+  functional_point: 打卡方式与凭证来源
+  scenario: 规则按设备名称选定智能考勤机后，验规则内人员在指定设备与非指定设备上打卡的记录归属差异。
+  test_point: 规则按设备名称选定考勤机后，规则内打卡人员的打卡只在被选中的该台设备上成立，在其他设备上不成立。
+  title: 按设备名称选中考勤机后核对规则详情中的绑定设备
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 绑定设备保存错位会让整条规则的人员在错误设备上打卡，成批考勤记录作废
+  preconditions: 企业下已存在两台可用智能考勤机 A 与 B；管理员已登录管理后台
+  steps:
+  - 在【添加规则】中把打卡方式选为智能考勤机
+  - 在设备列表中按名称选中考勤机 A 并保存规则
+  - 重新打开该规则详情查看打卡设备
+  expected:
+  - 规则详情中的打卡设备为考勤机 A
+  - 规则详情中不出现考勤机 B
+  status: active
+  source_context:
+    quote: 智能考勤机方式下需按设备名称选择具体考勤机，规则内的打卡人员只能在该考勤机上打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0310
+  fp_id: FP-03
+  scenario_id: SC-FP-03-02
+  point_id: TP-FP-03-02-02
+  functional_point: 打卡方式与凭证来源
+  scenario: 规则按设备名称选定智能考勤机后，验规则内人员在指定设备与非指定设备上打卡的记录归属差异。
+  test_point: 规则按设备名称选定考勤机后，规则内打卡人员的打卡只在被选中的该台设备上成立，在其他设备上不成立。
+  title: 在同一规则上尝试再绑定第二台考勤机并检查保存结果
+  design_method: 等价类划分
+  tags:
+  - 边界
+  - 待确认
+  severity: S3
+  severity_reason: 多办公点企业若只能绑一台设备，其他办公点人员只能走补卡申诉，形成每月固定缺口
+  preconditions: 规则已绑定考勤机 A；企业下另有一台可用考勤机 B
+  steps:
+  - 打开该规则详情进入打卡设备设置
+  - 在已选考勤机 A 的基础上再选中考勤机 B
+  - 保存规则并重新打开详情查看设备列表
+  expected:
+  - 待确认：一条打卡规则是否可以同时绑定多台智能考勤机？绑定多台时规则内人员在这几台上的打卡是否都成立？
+  status: pending_confirmation
+  source_context:
+    quote: 智能考勤机方式下需按设备名称选择具体考勤机，规则内的打卡人员只能在该考勤机上打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0311
+  fp_id: FP-03
+  scenario_id: SC-FP-03-03
+  point_id: TP-FP-03-03-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 仍使用传统U盘考勤机的企业先导出通讯录、再定期把打卡记录导回时，验系统按所设规则核算这批记录的情况。
+  test_point: U 盘考勤机导出的打卡记录定期导回企业微信后，系统按该规则已设定的口径核算这批记录。
+  title: 走完通讯录导出到记录导回的 U 盘导入全链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 集成
+  severity: S2
+  severity_reason: 导回后未按规则核算，整批 U 盘打卡记录不产生考勤结论，当月考勤全部缺失
+  preconditions: 已建立使用 U 盘导入方式的规则，绑定测试员工与固定上下班时间；准备一台 U 盘考勤机
+  steps:
+  - 在通讯录中把测试员工信息导出到 U 盘考勤机
+  - 员工在 U 盘考勤机上采集上下班两次打卡记录
+  - 把考勤机中的打卡记录导出并导回企业微信
+  - 在管理后台打开该员工当日考勤明细
+  expected:
+  - 该员工当日出现来源为 U 盘导入的打卡记录
+  - 该记录按规则所设上下班时间给出考勤结论
+  status: active
+  source_context:
+    quote: U盘导入是唯一「先离线采集、后批量导入」的路径：先在通讯录中导出到考勤机，之后定期把打卡记录导回企业微信，再由系统按规则核算。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种打卡方式
+- id: TC-ATT-0312
+  fp_id: FP-03
+  scenario_id: SC-FP-03-03
+  point_id: TP-FP-03-03-01
+  functional_point: 打卡方式与凭证来源
+  scenario: 仍使用传统U盘考勤机的企业先导出通讯录、再定期把打卡记录导回时，验系统按所设规则核算这批记录的情况。
+  test_point: U 盘考勤机导出的打卡记录定期导回企业微信后，系统按该规则已设定的口径核算这批记录。
+  title: 在 U 盘导入批次中混入非本规则人员记录后核对核算范围
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  - 集成
+  severity: S2
+  severity_reason: 核算范围串到规则外人员，会让其他考勤口径的人员被重复计算，工资口径随之下错
+  preconditions: U 盘导入规则的人员范围仅含测试员工甲；U 盘考勤机上同时采集了甲与不在范围内的乙的打卡记录
+  steps:
+  - 把考勤机中的记录整体导回企业微信
+  - 打开甲当日考勤明细查看核算结果
+  - 在打卡记录中按乙筛选查看其记录
+  expected:
+  - 甲的导入记录进入该规则的核算结果
+  - 乙的导入记录不出现在该规则的核算结果中
+  status: active
+  source_context:
+    quote: U盘导入是唯一「先离线采集、后批量导入」的路径：先在通讯录中导出到考勤机，之后定期把打卡记录导回企业微信，再由系统按规则核算。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种打卡方式
+- id: TC-ATT-0313
+  fp_id: FP-03
+  scenario_id: SC-FP-03-03
+  point_id: TP-FP-03-03-02
+  functional_point: 打卡方式与凭证来源
+  scenario: 仍使用传统U盘考勤机的企业先导出通讯录、再定期把打卡记录导回时，验系统按所设规则核算这批记录的情况。
+  test_point: 手机打卡与智能考勤机打卡不经过离线导出再导回的环节，只有 U 盘导入走先采集后批量导入的路径。
+  title: 用三种打卡方式各打一次卡后对比是否经过离线导回
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  - 集成
+  severity: S2
+  severity_reason: 把实时路径误做成批量导入路径，会让员工打卡当天查不到记录，考勤结论延迟到导回之后
+  preconditions: 三条规则分别采用手机打卡、智能考勤机、U 盘导入，且都把测试员工纳入人员范围
+  steps:
+  - 员工用手机在办公地点打卡
+  - 员工在指定智能考勤机上打卡
+  - 把 U 盘考勤机采集到的该员工记录导回企业微信
+  - 对比三者在导回动作前是否已能查到记录
+  expected:
+  - 手机打卡与智能考勤机打卡的记录在导回动作前即可查到
+  - U 盘导入的记录在导回动作前查不到，导回后才可查到
+  status: active
+  source_context:
+    quote: U盘导入是唯一「先离线采集、后批量导入」的路径：先在通讯录中导出到考勤机，之后定期把打卡记录导回企业微信，再由系统按规则核算。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种打卡方式
+- id: TC-ATT-0314
+  fp_id: FP-03
+  scenario_id: SC-FP-03-03
+  point_id: TP-FP-03-03-02
+  functional_point: 打卡方式与凭证来源
+  scenario: 仍使用传统U盘考勤机的企业先导出通讯录、再定期把打卡记录导回时，验系统按所设规则核算这批记录的情况。
+  test_point: 手机打卡与智能考勤机打卡不经过离线导出再导回的环节，只有 U 盘导入走先采集后批量导入的路径。
+  title: 对仅用手机打卡的员工检查其记录是否会被 U 盘导入批次污染
+  design_method: 逆向场景法
+  tags:
+  - 回归
+  - 数据一致性
+  severity: S2
+  severity_reason: 导入批次误覆盖实时来源记录，会造成同一员工当日重复打卡或来源错标，核算结果不可信
+  preconditions: 测试员工当日仅用手机打卡一次，从未使用 U 盘考勤机
+  steps:
+  - 记录该员工当日打卡记录的条数与来源
+  - 导入一批不含该员工工号的 U 盘记录
+  - 复查该员工当日打卡记录的条数与来源
+  expected:
+  - 导入前该员工当日仅有 1 条手机打卡来源的记录
+  - 导入后该员工当日记录条数与来源均不变
+  status: active
+  source_context:
+    quote: U盘导入是唯一「先离线采集、后批量导入」的路径：先在通讯录中导出到考勤机，之后定期把打卡记录导回企业微信，再由系统按规则核算。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种打卡方式
+- id: TC-ATT-0501
+  fp_id: FP-05
+  scenario_id: SC-FP-05-01
+  point_id: TP-FP-05-01-01
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许迟到 N 分钟后，员工在应上班时间之后第 N 分钟与第 N+1 分钟打卡时，验迟到判定的触发点。
+  test_point: 规则允许迟到 N 分钟时，员工晚 N 分钟打卡不判迟到，晚 N+1 分钟打卡判为迟到。
+  title: 在允许迟到 5 分钟的临界点两侧各打一次上班卡
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S1
+  severity_reason: 临界点判错一分钟会让整批员工的迟到结论整体偏移，迟到结论直接进入考勤结果与扣款
+  preconditions: 固定时间规则应上班时间为 09:00，允许迟到 5 分钟；测试员工在规则人员范围内
+  steps:
+  - 员工在 09:05 打上班卡
+  - 打开当日考勤明细查看迟到判定
+  - 员工于次日同一规则下在 09:06 打上班卡并再次查看考勤明细
+  expected:
+  - 09:05（晚 5 分钟）打卡的当日结论不判迟到
+  - 09:06（晚 6 分钟）打卡的当日结论判为迟到
+  status: active
+  source_context:
+    quote: 这是规则级的容差阈值，决定了迟到/早退判定的触发点。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0502
+  fp_id: FP-05
+  scenario_id: SC-FP-05-01
+  point_id: TP-FP-05-01-01
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许迟到 N 分钟后，员工在应上班时间之后第 N 分钟与第 N+1 分钟打卡时，验迟到判定的触发点。
+  test_point: 规则允许迟到 N 分钟时，员工晚 N 分钟打卡不判迟到，晚 N+1 分钟打卡判为迟到。
+  title: 用早到、容差内晚到、远超容差三类时间点检查迟到结论
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  - 回归
+  severity: S1
+  severity_reason: 等价类归类错位会让整类时间点的打卡结论反转，考勤异常名单随之整体失效
+  preconditions: 固定时间规则应上班时间为 09:00，允许迟到 10 分钟；测试员工在规则人员范围内
+  steps:
+  - 员工第一天 08:45 打上班卡
+  - 员工第二天 09:07 打上班卡
+  - 员工第三天 09:40 打上班卡
+  - 逐日打开考勤明细查看迟到判定
+  expected:
+  - 08:45 打卡的当日结论不出现迟到判定
+  - 09:07 打卡的当日结论不出现迟到判定
+  - 09:40 打卡的当日结论出现迟到判定
+  status: active
+  source_context:
+    quote: 这是规则级的容差阈值，决定了迟到/早退判定的触发点。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0503
+  fp_id: FP-05
+  scenario_id: SC-FP-05-01
+  point_id: TP-FP-05-01-01
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许迟到 N 分钟后，员工在应上班时间之后第 N 分钟与第 N+1 分钟打卡时，验迟到判定的触发点。
+  test_point: 规则允许迟到 N 分钟时，员工晚 N 分钟打卡不判迟到，晚 N+1 分钟打卡判为迟到。
+  title: 从高级设置改迟到容差到查看考勤明细的判定链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 冒烟
+  severity: S2
+  severity_reason: 容差改完不生效，管理员按新容差核对时会拿到与配置不符的结论，需逐条人工解释
+  preconditions: 已存在固定时间规则，应上班时间为 09:00；测试员工在该规则人员范围内
+  steps:
+  - 在规则的高级设置中把允许迟到分钟数改为 15 并保存
+  - 员工在 09:10 打上班卡
+  - 管理员打开该员工当日考勤明细
+  expected:
+  - 该员工当日考勤明细中不出现迟到判定
+  - 规则详情中允许迟到分钟数显示为 15
+  status: active
+  source_context:
+    quote: 这是规则级的容差阈值，决定了迟到/早退判定的触发点。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0504
+  fp_id: FP-05
+  scenario_id: SC-FP-05-01
+  point_id: TP-FP-05-01-02
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许迟到 N 分钟后，员工在应上班时间之后第 N 分钟与第 N+1 分钟打卡时，验迟到判定的触发点。
+  test_point: 迟到容差是规则级配置，调整某条规则允许迟到的分钟数后只改变该规则下人员的迟到判定，不改动其他规则。
+  title: 把允许迟到分钟数设为 0 后检查设置是否被接受并生效
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 待确认
+  severity: S3
+  severity_reason: 取值范围未定义时配置页可能接受非法值或静默截断，迟到判定与管理员的理解不一致
+  preconditions: 固定时间规则 A 应上班时间为 09:00；同企业另有规则 B 允许迟到 30 分钟
+  steps:
+  - 在规则 A 的高级设置中把允许迟到分钟数改为 0 并保存
+  - 员工在 09:01 在规则 A 下打上班卡
+  - 打开该员工当日考勤明细查看迟到判定
+  expected:
+  - 待确认：允许迟到分钟数的合法取值范围是什么（下限是否可为 0 分钟、上限是多少分钟）？设置为 0 时是否任何晚到都判迟到？
+  status: pending_confirmation
+  source_context:
+    quote: 添加企业的上下班时间之后，可在高级设置中设定允许迟到、早退的分钟数。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0505
+  fp_id: FP-05
+  scenario_id: SC-FP-05-01
+  point_id: TP-FP-05-01-02
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许迟到 N 分钟后，员工在应上班时间之后第 N 分钟与第 N+1 分钟打卡时，验迟到判定的触发点。
+  test_point: 迟到容差是规则级配置，调整某条规则允许迟到的分钟数后只改变该规则下人员的迟到判定，不改动其他规则。
+  title: 在两条规则上分别设容差后对比同一时间打卡的迟到结论
+  design_method: 场景法
+  tags:
+  - 数据准确性
+  - 回归
+  severity: S1
+  severity_reason: 容差不按规则隔离会让一条规则的调整污染其他部门结论，考勤数据成批错误且难以追溯
+  preconditions: 规则 A 允许迟到 10 分钟并绑定员工甲；规则 B 允许迟到 30 分钟并绑定员工乙；两条规则应上班时间同为 09:00
+  steps:
+  - 员工甲与员工乙同在 09:15 打上班卡
+  - 分别打开两人当日考勤明细查看迟到判定
+  - 把规则 A 的允许迟到改为 20 分钟后复查甲的结论
+  expected:
+  - 09:15 打卡时甲判为迟到、乙不判迟到
+  - 规则 A 改为 20 分钟后甲的当日结论不判迟到，乙的结论不变
+  status: active
+  source_context:
+    quote: 添加企业的上下班时间之后，可在高级设置中设定允许迟到、早退的分钟数。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0506
+  fp_id: FP-05
+  scenario_id: SC-FP-05-02
+  point_id: TP-FP-05-02-01
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许早退 N 分钟后，员工在应下班时间之前第 N 分钟与第 N+1 分钟打卡时，验早退判定的触发点。
+  test_point: 允许早退 N 分钟时，员工提前 N 分钟打卡不判早退，提前 N+1 分钟打卡判为早退。
+  title: 在允许早退 15 分钟的临界点两侧各打一次下班卡
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S1
+  severity_reason: 早退临界点偏移会让整批下班打卡被误判或漏判，早退结论直接进入考勤结果与扣款
+  preconditions: 固定时间规则应下班时间为 18:00，允许早退 15 分钟；测试员工在规则人员范围内
+  steps:
+  - 员工在 17:45 打下班卡
+  - 打开当日考勤明细查看早退判定
+  - 员工于次日同一规则下在 17:44 打下班卡并再次查看考勤明细
+  expected:
+  - 17:45（提前 15 分钟）打卡的当日结论不判早退
+  - 17:44（提前 16 分钟）打卡的当日结论判为早退
+  status: active
+  source_context:
+    quote: 添加企业的上下班时间之后，可在高级设置中设定允许迟到、早退的分钟数。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0507
+  fp_id: FP-05
+  scenario_id: SC-FP-05-02
+  point_id: TP-FP-05-02-01
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许早退 N 分钟后，员工在应下班时间之前第 N 分钟与第 N+1 分钟打卡时，验早退判定的触发点。
+  test_point: 允许早退 N 分钟时，员工提前 N 分钟打卡不判早退，提前 N+1 分钟打卡判为早退。
+  title: 用准点、容差内提前、远超容差提前三类时间点检查早退结论
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  severity: S2
+  severity_reason: 早退等价类归类错位会让部分早退被放过，只能在人工核对明细时才发现
+  preconditions: 固定时间规则应下班时间为 18:00，允许早退 10 分钟；测试员工在规则人员范围内
+  steps:
+  - 员工第一天 18:00 打下班卡
+  - 员工第二天 17:55 打下班卡
+  - 员工第三天 17:20 打下班卡
+  - 逐日打开考勤明细查看早退判定
+  expected:
+  - 18:00 打卡的当日结论不出现早退判定
+  - 17:55 打卡的当日结论不出现早退判定
+  - 17:20 打卡的当日结论出现早退判定
+  status: active
+  source_context:
+    quote: 添加企业的上下班时间之后，可在高级设置中设定允许迟到、早退的分钟数。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0508
+  fp_id: FP-05
+  scenario_id: SC-FP-05-02
+  point_id: TP-FP-05-02-01
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许早退 N 分钟后，员工在应下班时间之前第 N 分钟与第 N+1 分钟打卡时，验早退判定的触发点。
+  test_point: 允许早退 N 分钟时，员工提前 N 分钟打卡不判早退，提前 N+1 分钟打卡判为早退。
+  title: 从高级设置改早退容差到查看考勤明细的判定链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 冒烟
+  severity: S2
+  severity_reason: 早退容差改动不生效，管理员按新容差核对时会拿到与配置不符的结论
+  preconditions: 已存在固定时间规则，应下班时间为 18:00；测试员工在该规则人员范围内
+  steps:
+  - 在规则的高级设置中把允许早退分钟数改为 20 并保存
+  - 员工在 17:50 打下班卡
+  - 管理员打开该员工当日考勤明细
+  expected:
+  - 该员工当日考勤明细中不出现早退判定
+  - 规则详情中允许早退分钟数显示为 20
+  status: active
+  source_context:
+    quote: 添加企业的上下班时间之后，可在高级设置中设定允许迟到、早退的分钟数。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0509
+  fp_id: FP-05
+  scenario_id: SC-FP-05-02
+  point_id: TP-FP-05-02-02
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许早退 N 分钟后，员工在应下班时间之前第 N 分钟与第 N+1 分钟打卡时，验早退判定的触发点。
+  test_point: 员工提前离岗的分钟数落在允许早退分钟数之内时，不产生早退异常记录。
+  title: 在容差内最靠边的一分钟打下班卡并检查是否产生早退异常
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 异常
+  severity: S2
+  severity_reason: 容差内最靠边的几分钟若被判成早退，异常名单出现误报，员工需逐条申诉撤销
+  preconditions: 固定时间规则应下班时间为 18:00，允许早退 20 分钟；该员工当日早退异常名单尚无记录
+  steps:
+  - 员工在 17:41 打下班卡
+  - 打开该员工当日考勤明细查看早退判定
+  - 查看当日早退异常名单
+  expected:
+  - 17:41（提前 19 分钟）打卡的当日结论不出现早退判定
+  - 该员工不出现在当日早退异常名单中
+  status: active
+  source_context:
+    quote: 这是规则级的容差阈值，决定了迟到/早退判定的触发点。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0510
+  fp_id: FP-05
+  scenario_id: SC-FP-05-02
+  point_id: TP-FP-05-02-02
+  functional_point: 上下班时间与迟到早退容差
+  scenario: 规则设定允许早退 N 分钟后，员工在应下班时间之前第 N 分钟与第 N+1 分钟打卡时，验早退判定的触发点。
+  test_point: 员工提前离岗的分钟数落在允许早退分钟数之内时，不产生早退异常记录。
+  title: 从会触发早退的数据倒查容差内离岗是否漏入异常名单
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据一致性
+  severity: S2
+  severity_reason: 容差内离岗若被写入异常名单，会凭空产生早退记录，考勤结论与员工实际出勤不符
+  preconditions: 固定时间规则应下班时间为 18:00，允许早退 20 分钟；当日早退异常名单已有 3 条其他员工记录
+  steps:
+  - 员工在 17:45 打下班卡，记录早退异常名单条数
+  - 员工于次日 17:30 打下班卡，再次记录名单条数
+  - 对比两次名单条数以及该员工是否出现在名单中
+  expected:
+  - 17:45（提前 15 分钟）打卡后名单条数仍为 3，该员工不在名单中
+  - 17:30（提前 30 分钟）打卡后名单新增 1 条，该员工在名单中
+  status: active
+  source_context:
+    quote: 这是规则级的容差阈值，决定了迟到/早退判定的触发点。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 上下班时间与容差
+- id: TC-ATT-0601
+  fp_id: FP-06
+  scenario_id: SC-FP-06-01
+  point_id: TP-FP-06-01-01
+  functional_point: 外出打卡与照片来源限制
+  scenario: 出差外勤成员无法在办公区域打卡时，在手机客户端上传位置定位并拍照，验该次外出打卡是否成立。
+  test_point: 外出人员上传位置定位并拍照后，该次外出打卡成立并作为其当日打卡依据。
+  title: 从启用外出打卡到查看外出打卡记录的主链路
+  design_method: 场景法
+  tags:
+  - 正向
+  - 冒烟
+  severity: S1
+  severity_reason: 外出打卡记录不成立，出差外勤人员当日直接判缺卡，考勤结论错误且只能用补卡申诉修正
+  preconditions: 已在规则中启用外出打卡并纳入出差外勤成员；成员手机已授予定位与相机权限
+  steps:
+  - 成员在手机客户端选择外出打卡
+  - 上传当前位置定位并现场拍照后提交
+  - 管理员在【打卡】>【查看】中打开该成员当日打卡记录
+  expected:
+  - 该成员当日生成 1 条外出打卡记录
+  - 该记录包含位置定位与照片，并作为其当日考勤依据
+  status: active
+  source_context:
+    quote: 配置外出打卡规则后，外出人员在企业微信手机客户端上传位置定位和拍照作为打卡依据。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: TC-ATT-0602
+  fp_id: FP-06
+  scenario_id: SC-FP-06-01
+  point_id: TP-FP-06-01-01
+  functional_point: 外出打卡与照片来源限制
+  scenario: 出差外勤成员无法在办公区域打卡时，在手机客户端上传位置定位并拍照，验该次外出打卡是否成立。
+  test_point: 外出人员上传位置定位并拍照后，该次外出打卡成立并作为其当日打卡依据。
+  title: 只上传位置定位而不拍照时提交一次外出打卡
+  design_method: 等价类划分
+  tags:
+  - 异常
+  - 待确认
+  severity: S3
+  severity_reason: 缺照片仍成立会绕开防作弊底线；直接阻断又会让信号不佳的成员无法完成打卡
+  preconditions: 已在规则中启用外出打卡并纳入该成员；成员手机已授予定位权限
+  steps:
+  - 成员在手机客户端选择外出打卡
+  - 仅上传当前位置定位，不添加照片
+  - 点击提交并查看打卡结果
+  expected:
+  - 待确认：外出打卡只上传位置定位而没有照片时，是阻断本次打卡并提示需要拍照，还是仍成立但记录中标记照片缺失？
+  status: pending_confirmation
+  source_context:
+    quote: 配置外出打卡规则后，外出人员在企业微信手机客户端上传位置定位和拍照作为打卡依据。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: TC-ATT-0603
+  fp_id: FP-06
+  scenario_id: SC-FP-06-01
+  point_id: TP-FP-06-01-02
+  functional_point: 外出打卡与照片来源限制
+  scenario: 出差外勤成员无法在办公区域打卡时，在手机客户端上传位置定位并拍照，验该次外出打卡是否成立。
+  test_point: 外出打卡与上下班打卡并列存在，出差外勤等无法在办公区域打卡的成员按外出打卡规则单独配置。
+  title: 用出差外勤成员与办公成员两类身份分别打卡并对比记录类型
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  - 集成
+  severity: S2
+  severity_reason: 两类打卡记录分型错位会把外出记录算成上下班打卡，定位与照片依据随之丢失
+  preconditions: 规则已启用外出打卡且含出差成员甲；同企业另有上下班打卡规则且含办公成员乙
+  steps:
+  - 甲在手机客户端提交一次外出打卡（定位加拍照）
+  - 乙在办公地点用手机完成一次上下班打卡
+  - 管理员在打卡记录中按人员筛选查看两人当日记录
+  expected:
+  - 甲的记录类型为外出打卡，含位置定位与照片
+  - 乙的记录类型为上下班打卡，不含外出打卡的定位与照片依据
+  status: active
+  source_context:
+    quote: 外出打卡是与上下班打卡并列的另一种打卡方式，面向出差外勤等无法在办公区域打卡的成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: TC-ATT-0604
+  fp_id: FP-06
+  scenario_id: SC-FP-06-01
+  point_id: TP-FP-06-01-02
+  functional_point: 外出打卡与照片来源限制
+  scenario: 出差外勤成员无法在办公区域打卡时，在手机客户端上传位置定位并拍照，验该次外出打卡是否成立。
+  test_point: 外出打卡与上下班打卡并列存在，出差外勤等无法在办公区域打卡的成员按外出打卡规则单独配置。
+  title: 同部门内两类打卡同时发生时按部门筛选查看当日记录
+  design_method: 场景法
+  tags:
+  - 正向
+  - 集成
+  severity: S2
+  severity_reason: 两类记录若互相覆盖，部门维度的当日打卡记录会少掉一半人，导出数据随之缺项
+  preconditions: 同一部门内既有已纳入外出打卡的出差成员，也有按上下班打卡规则打卡的办公成员
+  steps:
+  - 出差成员提交一次外出打卡
+  - 办公成员在办公地点完成一次上下班打卡
+  - 管理员按该部门筛选当日打卡记录
+  expected:
+  - 筛选结果同时包含外出打卡与上下班打卡两类记录
+  - 两名成员的记录均出现在筛选结果中，互不覆盖
+  status: active
+  source_context:
+    quote: 外出打卡是与上下班打卡并列的另一种打卡方式，面向出差外勤等无法在办公区域打卡的成员。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: TC-ATT-0605
+  fp_id: FP-06
+  scenario_id: SC-FP-06-02
+  point_id: TP-FP-06-02-01
+  functional_point: 外出打卡与照片来源限制
+  scenario: 规则启用照片来源限制后，外出人员分别从相册选取图片与现场拍照提交，验相册路径的可提交性。
+  test_point: 启用照片来源限制后，外出人员从相册选取图片提交的路径被阻断，该图片不能作为打卡依据。
+  title: 启用只能拍照后改用相册图片提交外出打卡
+  design_method: 逆向场景法
+  tags:
+  - 安全
+  - 异常
+  severity: S1
+  severity_reason: 相册路径若能提交，员工可用旧图或他人照片伪造外勤凭证，防作弊失效且记录不可信
+  preconditions: 已在规则中启用照片来源限制（只能拍照）；该成员已纳入外出打卡
+  steps:
+  - 成员在手机客户端发起外出打卡并上传位置定位
+  - 点击添加照片并从本地相册选取一张图片
+  - 提交后查看打卡结果
+  expected:
+  - 相册图片提交被阻断，本次外出打卡不成立
+  - 该成员当日不生成这条外出打卡记录
+  status: active
+  source_context:
+    quote: 为防作弊，管理员可以限制照片来源：设置后，添加的照片只能通过拍照提交，不能从相册选取。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: TC-ATT-0606
+  fp_id: FP-06
+  scenario_id: SC-FP-06-02
+  point_id: TP-FP-06-02-01
+  functional_point: 外出打卡与照片来源限制
+  scenario: 规则启用照片来源限制后，外出人员分别从相册选取图片与现场拍照提交，验相册路径的可提交性。
+  test_point: 启用照片来源限制后，外出人员从相册选取图片提交的路径被阻断，该图片不能作为打卡依据。
+  title: 启用只能拍照后检查客户端照片入口的可选来源
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S2
+  severity_reason: 相册入口仍暴露会让限制只停留在提交校验上，用户可反复尝试绕过，防作弊强度不足
+  preconditions: 已在规则中启用照片来源限制（只能拍照）；该成员已纳入外出打卡
+  steps:
+  - 以该成员身份打开手机客户端外出打卡页面
+  - 点击添加照片入口
+  - 查看可选的图片来源
+  expected:
+  - 照片来源只有拍照一项
+  - 页面不提供从相册选取的入口
+  status: active
+  source_context:
+    quote: 为防作弊，管理员可以限制照片来源：设置后，添加的照片只能通过拍照提交，不能从相册选取。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: TC-ATT-0607
+  fp_id: FP-06
+  scenario_id: SC-FP-06-02
+  point_id: TP-FP-06-02-01
+  functional_point: 外出打卡与照片来源限制
+  scenario: 规则启用照片来源限制后，外出人员分别从相册选取图片与现场拍照提交，验相册路径的可提交性。
+  test_point: 启用照片来源限制后，外出人员从相册选取图片提交的路径被阻断，该图片不能作为打卡依据。
+  title: 用不满足常规规格的照片提交后查看外出打卡的处理
+  design_method: 异常法
+  tags:
+  - 异常
+  - 待确认
+  severity: S4
+  severity_reason: 照片只作留痕时规格缺失不改变考勤结论，但会让后台核查失去可用依据
+  preconditions: 已在规则中启用照片来源限制（只能拍照）；该成员已纳入外出打卡
+  steps:
+  - 成员发起外出打卡并上传位置定位
+  - 用相机拍摄一张极端尺寸的照片作为凭证
+  - 提交后查看打卡结果与记录中的照片
+  expected:
+  - 待确认：外出打卡的照片是否有格式、大小或清晰度要求？不满足要求时是阻断打卡还是仍成立？
+  status: pending_confirmation
+  source_context:
+    quote: 为防作弊，管理员可以限制照片来源：设置后，添加的照片只能通过拍照提交，不能从相册选取。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 外出打卡
+- id: TC-ATT-0608
+  fp_id: FP-06
+  scenario_id: SC-FP-06-02
+  point_id: TP-FP-06-02-02
+  functional_point: 外出打卡与照片来源限制
+  scenario: 规则启用照片来源限制后，外出人员分别从相册选取图片与现场拍照提交，验相册路径的可提交性。
+  test_point: 启用照片来源限制后，相机现场拍照提交的照片仍可正常作为外出打卡依据。
+  title: 启用只能拍照后现场拍照完成一次外出打卡
+  design_method: 场景法
+  tags:
+  - 正向
+  - 安全
+  severity: S2
+  severity_reason: 限制开启后连现场拍照也被拦截，会切断防作弊场景下的正常打卡路径，外勤人员无法完成打卡
+  preconditions: 已在规则中启用照片来源限制（只能拍照）；该成员已纳入外出打卡并授予相机权限
+  steps:
+  - 成员在手机客户端发起外出打卡
+  - 上传位置定位后现场拍照添加照片
+  - 提交后由管理员查看该次记录
+  expected:
+  - 该次外出打卡成立并生成记录
+  - 记录中的照片来自现场拍摄，位置定位与照片均可见
+  status: active
+  source_context:
+    quote: 外出打卡启用「只能拍照」后，相册图片上传路径必须被阻断。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0609
+  fp_id: FP-06
+  scenario_id: SC-FP-06-02
+  point_id: TP-FP-06-02-02
+  functional_point: 外出打卡与照片来源限制
+  scenario: 规则启用照片来源限制后，外出人员分别从相册选取图片与现场拍照提交，验相册路径的可提交性。
+  test_point: 启用照片来源限制后，相机现场拍照提交的照片仍可正常作为外出打卡依据。
+  title: 一次外出打卡中混入相册图片后检查提交是否被阻断
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 回归
+  severity: S2
+  severity_reason: 混图提交若被放过，限制就只停在单图校验上，员工可用一张现场照带一张旧图绕过防作弊
+  preconditions: 已在规则中启用照片来源限制（只能拍照）；该成员已纳入外出打卡，手机相机与相册均可用
+  steps:
+  - 成员发起外出打卡并上传位置定位
+  - 先现场拍照添加一张，再从相册选取一张加入同一次打卡
+  - 提交后查看打卡结果
+  - 改为全部用现场拍照重新提交一次并复查结果
+  expected:
+  - 含相册图片的那次提交被阻断，外出打卡不成立
+  - 全部为现场拍照的提交成功，外出打卡成立并作为当日打卡依据
+  status: active
+  source_context:
+    quote: 外出打卡启用「只能拍照」后，相册图片上传路径必须被阻断。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点

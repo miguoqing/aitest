@@ -1,0 +1,947 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  version: v1.0
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  shard: case-6
+  fp_range:
+  - FP-18
+  - FP-19
+  - FP-20
+  knowledge_sources:
+  - path: wiki/attendance-management/permissions-and-export.md
+    title: 分级管理权限与打卡数据导出
+  stats:
+    cases: 33
+    open_items: 5
+open_items:
+- id: OI-46
+  question: 被添加为分级管理员后，管理员权限是立即生效，还是需退出重新登录（或等待同步）后才生效？
+  related_case_ids:
+  - TC-ATT-1803
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-47
+  question: 分级管理员进入【权限管理】时，【添加系统管理员】入口是完全不可见，还是可见但点击后被拒绝并提示无权限？
+  related_case_ids:
+  - TC-ATT-1807
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-48
+  question: 规则在员工当日打卡之后被修改时，当日已产生的打卡记录是按新时间重新判定，还是保持原判定不变？
+  related_case_ids:
+  - TC-ATT-1902
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-49
+  question: 两端同时修改同一规则时以哪一端为准：后提交覆盖前一次、后台优先，还是提示冲突并拒绝后一次？
+  related_case_ids:
+  - TC-ATT-1910
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-50
+  question: 移动端断网时保存失败的规则修改是否会被本地缓存，并在恢复网络后自动重放提交？
+  related_case_ids:
+  - TC-ATT-1911
+  source_ref: wiki/attendance-management/permissions-and-export.md
+cases:
+- id: TC-ATT-1801
+  fp_id: FP-18
+  scenario_id: SC-FP-18-01
+  point_id: TP-FP-18-01-01
+  functional_point: 管理员配置与权限分配
+  scenario: 超级管理员已完成分级管理员添加并填写管理员信息、管辖范围已划定，验证被分配者获得范围内管理能力的条件
+  test_point: 超级管理员经权限管理入口添加系统管理员并填写管理员信息后，被添加者获得其管辖范围内的管理能力。
+  title: 按文档入口完整添加一名分级管理员并核对其能力
+  design_method: 场景法
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 添加管理员的配置链路一旦不通，管理员无法被授权，后续规则设置与统计核对都没有人能承担
+  preconditions: 存在超级管理员账号；企业通讯录中有「测试部」及成员张三；张三当前不是任何类型管理员；添加时把张三的管辖范围设为测试部
+  steps:
+  - 用超级管理员账号登录【管理后台】
+  - 依次进入【我的企业】>【权限管理】>【添加系统管理员】
+  - 在【设置管理员信息】中填写张三的管理员信息并保存
+  - 用张三账号登录【管理后台】，打开打卡规则列表
+  expected:
+  - 步骤 2 的路径逐级可达，【设置管理员信息】页可填写并保存成功
+  - 保存后张三出现在权限管理页的管理员列表中
+  - 张三登录后可打开测试部规则的修改入口
+  status: active
+  source_context:
+    quote: 管理员配置入口：【管理后台】>【我的企业】>【权限管理】>【添加系统管理员】>【设置管理员信息】。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1802
+  fp_id: FP-18
+  scenario_id: SC-FP-18-01
+  point_id: TP-FP-18-01-01
+  functional_point: 管理员配置与权限分配
+  scenario: 超级管理员已完成分级管理员添加并填写管理员信息、管辖范围已划定，验证被分配者获得范围内管理能力的条件
+  test_point: 超级管理员经权限管理入口添加系统管理员并填写管理员信息后，被添加者获得其管辖范围内的管理能力。
+  title: 添加管理员后核对被授权账号与管理员列表
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 权限被授予错误对象等于为他人开出管理员身份，可直接修改全员打卡规则并影响全部考勤结论
+  preconditions: 超级管理员账号 A 可用；通讯录中有成员张三、李四；两人当前均不是管理员
+  steps:
+  - 用 A 登录【管理后台】并进入【我的企业】>【权限管理】>【添加系统管理员】
+  - 在【设置管理员信息】中填写张三的管理员信息并保存
+  - 用李四账号登录【管理后台】，打开打卡规则列表
+  - 用 A 账号重新打开权限管理页的管理员列表
+  expected:
+  - 管理员列表中只有张三，李四不在管理员列表中
+  - 李四登录后打卡规则列表中没有可用的规则修改入口
+  - A 的管理员身份与可操作项在添加前后一致
+  status: active
+  source_context:
+    quote: 管理员配置入口：【管理后台】>【我的企业】>【权限管理】>【添加系统管理员】>【设置管理员信息】。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1803
+  fp_id: FP-18
+  scenario_id: SC-FP-18-01
+  point_id: TP-FP-18-01-01
+  functional_point: 管理员配置与权限分配
+  scenario: 超级管理员已完成分级管理员添加并填写管理员信息、管辖范围已划定，验证被分配者获得范围内管理能力的条件
+  test_point: 超级管理员经权限管理入口添加系统管理员并填写管理员信息后，被添加者获得其管辖范围内的管理能力。
+  title: 添加成功后不重登直接以新管理员身份改规则
+  design_method: 逆向场景法
+  tags:
+  - 待确认
+  - 权限
+  severity: S3
+  severity_reason: 若需重登才生效，只增加管理员首次配置的时间成本，不改变权限边界
+  preconditions: 超级管理员刚完成对张三的分级管理员添加，管辖范围为测试部；张三仍处于添加前的登录会话中
+  steps:
+  - 保持张三添加前的登录会话，打开【管理后台】的打卡规则列表
+  - 对测试部的一条规则执行修改并保存
+  - 用张三账号打开测试部员工的打卡统计
+  expected:
+  - 待确认：被添加为分级管理员后，权限是立即生效，还是需退出重新登录（或等待同步）后才生效？
+  status: pending_confirmation
+  source_context:
+    quote: 管理员配置入口：【管理后台】>【我的企业】>【权限管理】>【添加系统管理员】>【设置管理员信息】。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1804
+  fp_id: FP-18
+  scenario_id: SC-FP-18-01
+  point_id: TP-FP-18-01-02
+  functional_point: 管理员配置与权限分配
+  scenario: 超级管理员已完成分级管理员添加并填写管理员信息、管辖范围已划定，验证被分配者获得范围内管理能力的条件
+  test_point: 权限分配的发起方限定为超级管理员，且可分配对象覆盖全部管理员。
+  title: 分别把两名成员分配为超级管理员与分级管理员
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 两类管理员身份只要有一类无法被分配，权限治理就会出现无法配置的角色，职责无法落地
+  preconditions: 超级管理员账号可用；通讯录中有成员甲、乙，当前均不是管理员
+  steps:
+  - 进入【我的企业】>【权限管理】>【添加系统管理员】，把甲设为超级管理员并保存
+  - 在同一入口把乙设为分级管理员、管辖范围划为测试部并保存
+  - 打开管理员列表核对甲、乙的管理员类型
+  expected:
+  - 甲在管理员列表中显示为超级管理员，乙显示为分级管理员
+  - 两类身份均保存成功，列表中的管理员信息与本次填写内容一致
+  status: active
+  source_context:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1805
+  fp_id: FP-18
+  scenario_id: SC-FP-18-01
+  point_id: TP-FP-18-01-02
+  functional_point: 管理员配置与权限分配
+  scenario: 超级管理员已完成分级管理员添加并填写管理员信息、管辖范围已划定，验证被分配者获得范围内管理能力的条件
+  test_point: 权限分配的发起方限定为超级管理员，且可分配对象覆盖全部管理员。
+  title: 只改甲一名管理员的管辖范围后核对同部门的乙
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S2
+  severity_reason: 权限分配若按部门批量外溢，一名管理员的调整会顺带扩大他人的规则范围，越权无从追溯
+  preconditions: 同一部门「测试部」内有两名分级管理员甲、乙，管辖范围均为测试部；公司另有产品部
+  steps:
+  - 超级管理员进入【权限管理】，只把甲的管辖范围改为测试部与产品部并保存
+  - 打开乙的管理员信息核对管辖范围
+  - 用乙账号登录查看其可设置的规则范围
+  expected:
+  - 乙的管辖范围仍为测试部，未随甲的分配一并变为测试部与产品部
+  - 乙登录后可设置的规则范围与修改前一致
+  status: active
+  source_context:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1806
+  fp_id: FP-18
+  scenario_id: SC-FP-18-01
+  point_id: TP-FP-18-01-02
+  functional_point: 管理员配置与权限分配
+  scenario: 超级管理员已完成分级管理员添加并填写管理员信息、管辖范围已划定，验证被分配者获得范围内管理能力的条件
+  test_point: 权限分配的发起方限定为超级管理员，且可分配对象覆盖全部管理员。
+  title: 对管理员列表中的全部三名管理员逐个执行一次权限分配
+  design_method: 场景法
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 只要有一类管理员对象无法被分配，权限职责就无法按人收回或扩展，管理员权限长期漂移
+  preconditions: 管理员列表中共有 3 名管理员（1 名超级管理员、2 名分级管理员），管辖范围均已划定
+  steps:
+  - 超级管理员进入【我的企业】>【权限管理】，记录 3 名管理员的管辖范围
+  - 依次打开每名管理员的权限设置，各调整一次管辖范围并保存
+  - 保存后重新打开管理员列表，核对 3 名的管辖范围
+  expected:
+  - 3 名管理员逐次保存均成功，无一对象因类型不同被拒绝进入权限设置
+  - 列表回显的 3 个管辖范围与各自最后一次保存的内容一致
+  status: active
+  source_context:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1807
+  fp_id: FP-18
+  scenario_id: SC-FP-18-02
+  point_id: TP-FP-18-02-01
+  functional_point: 管理员配置与权限分配
+  scenario: 操作账号为分级管理员或普通成员时，验证权限分配职责是否被限制在超级管理员一侧
+  test_point: 非超级管理员账号无法对管理员权限进行分配，权限管理入口对其不可达。
+  title: 以分级管理员身份打开权限管理页查看管理员分配入口
+  design_method: 逆向场景法
+  tags:
+  - 待确认
+  - 权限
+  severity: S2
+  severity_reason: 若入口对分级管理员开放且可提交，管理员身份可被自建，等于把全员规则的控制权交出
+  preconditions: 操作账号为一名已划定管辖范围的分级管理员；同企业内存在超级管理员
+  steps:
+  - 用该分级管理员账号登录【管理后台】
+  - 进入【我的企业】，打开【权限管理】页
+  - 查看页面中是否存在【添加系统管理员】入口及其可用状态
+  expected:
+  - 待确认：分级管理员进入【权限管理】时，【添加系统管理员】入口是完全不可见，还是可见但点击后被拒绝并提示无权限？
+  status: pending_confirmation
+  source_context:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1808
+  fp_id: FP-18
+  scenario_id: SC-FP-18-02
+  point_id: TP-FP-18-02-01
+  functional_point: 管理员配置与权限分配
+  scenario: 操作账号为分级管理员或普通成员时，验证权限分配职责是否被限制在超级管理员一侧
+  test_point: 非超级管理员账号无法对管理员权限进行分配，权限管理入口对其不可达。
+  title: 以分级管理员身份直接调用添加系统管理员的请求
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 服务端不校验发起方身份时，任一管理员可自行提权或为他人授权，直接突破「各司其职」的权限边界
+  preconditions: 已取得添加系统管理员的请求参数样例；操作会话为一名分级管理员；目标成员赵六当前不是管理员
+  steps:
+  - 用分级管理员账号登录并取得其会话凭证
+  - 以该凭证向添加系统管理员接口提交把赵六设为管理员的请求
+  - 用超级管理员账号打开【权限管理】页的管理员列表核对
+  expected:
+  - 该请求返回拒绝，不返回成功结果
+  - 管理员列表中不出现赵六，赵六登录后没有任何管理员操作入口
+  status: active
+  source_context:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1809
+  fp_id: FP-18
+  scenario_id: SC-FP-18-02
+  point_id: TP-FP-18-02-01
+  functional_point: 管理员配置与权限分配
+  scenario: 操作账号为分级管理员或普通成员时，验证权限分配职责是否被限制在超级管理员一侧
+  test_point: 非超级管理员账号无法对管理员权限进行分配，权限管理入口对其不可达。
+  title: 权限分配的保存请求被中断后重试
+  design_method: 异常法
+  tags:
+  - 异常
+  - 权限
+  - 数据一致性
+  severity: S2
+  severity_reason: 权限保存半写入会让管理员实际权限与界面回显不一致，越权与漏权都难以定位
+  preconditions: 超级管理员账号可用；管理员列表中有一名分级管理员王五，其管辖范围为测试部且已记录；可模拟网络中断
+  steps:
+  - 用超级管理员账号进入王五的权限设置页并改动管辖范围
+  - 在点击保存的同一时刻断开网络，使保存请求失败
+  - 恢复网络后重新打开管理员列表与王五的权限设置页
+  expected:
+  - 王五的管辖范围与改动前完全一致，不出现只保存了一部分的中间状态
+  - 重新保存一次后管辖范围才变为改动后的内容
+  status: active
+  source_context:
+    quote: 超级管理员还承担权限分配职责：可对所有管理员的权限进行分配，保证各司其职。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 两类管理员
+- id: TC-ATT-1901
+  fp_id: FP-19
+  scenario_id: SC-FP-19-01
+  point_id: TP-FP-19-01-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 超级管理员在管理后台侧完成规则设置、移动端未改动时，验证全员在打卡与统计上按该规则产出
+  test_point: 超级管理员在管理后台侧设置规则后，全员当日打卡与统计按新规则产出，不残留旧规则结果。
+  title: 管理后台设置上下班时间后核对员工当日考勤判定
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 后台设置的规则若未进入判定，管理员所见的规则与全员当日考勤结论不一致，迟到早退全部失真
+  preconditions: 超级管理员账号可用；测试部成员张三；该规则的允许迟到、早退分钟数均配置为 0；当日为工作日；移动端未改动任何规则
+  steps:
+  - 用超级管理员账号登录【管理后台】，把测试部所用规则的工作时间设为 09:00-18:00 并保存
+  - 不修改移动端的任何配置
+  - 张三在 09:30 与 18:10 各完成一次手机打卡
+  - 在【打卡记录】中打开张三当日明细
+  expected:
+  - 张三当日明细按 09:00-18:00 判定：09:30 的上班打卡计入迟到，18:10 的下班打卡不判早退
+  - 明细中不出现该规则修改前工作时间产生的迟到、早退结论
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1902
+  fp_id: FP-19
+  scenario_id: SC-FP-19-01
+  point_id: TP-FP-19-01-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 超级管理员在管理后台侧完成规则设置、移动端未改动时，验证全员在打卡与统计上按该规则产出
+  test_point: 超级管理员在管理后台侧设置规则后，全员当日打卡与统计按新规则产出，不残留旧规则结果。
+  title: 员工已完成当日打卡后再修改当日规则
+  design_method: 错误推测法
+  tags:
+  - 待确认
+  - 数据一致性
+  severity: S3
+  severity_reason: 改规则前后的当日结论口径不确定时，管理员无法解释同一员工同一天为何出现两套结论
+  preconditions: 张三已在 08:50、17:20 完成当日打卡；当日规则工作时间为 09:00-18:00 且允许迟到、早退分钟数为 0
+  steps:
+  - 用超级管理员账号在【管理后台】把该规则工作时间改为 09:20-17:00 并保存
+  - 不做任何重算操作，直接打开张三当日明细
+  - 隔 1 小时后再次打开张三当日明细
+  expected:
+  - 待确认：规则在员工当日打卡之后被修改时，当日已产生的打卡记录是按新时间重新判定，还是保持原判定不变？
+  status: pending_confirmation
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1903
+  fp_id: FP-19
+  scenario_id: SC-FP-19-01
+  point_id: TP-FP-19-01-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 超级管理员在管理后台侧完成规则设置、移动端未改动时，验证全员在打卡与统计上按该规则产出
+  test_point: 超级管理员在管理后台侧设置规则后，全员当日打卡与统计按新规则产出，不残留旧规则结果。
+  title: 后台分别改时间参数与改规则类型后核对移动端读取
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 参数类与类型类设置只要有一类没有同步到移动端，员工看到的规则与实际判定口径就会分叉
+  preconditions: 超级管理员账号可用；默认规则已绑定测试部；张三在测试部；移动端可打开该规则详情
+  steps:
+  - 在【管理后台】把规则工作时间由 09:00-18:00 改为 09:30-18:30 并保存
+  - 在移动端打开该规则详情
+  - 在【管理后台】把该规则类型由固定时间改为按班次并保存
+  - 在移动端重新打开该规则详情
+  expected:
+  - 第一次读取：移动端显示的上下班时间为 09:30-18:30
+  - 第二次读取：移动端显示的规则类型为按班次，与后台一致
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1904
+  fp_id: FP-19
+  scenario_id: SC-FP-19-02
+  point_id: TP-FP-19-02-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 超级管理员在移动端侧完成同一项规则设置、管理后台未改动时，验证两端指向同一份规则内容
+  test_point: 同一规则在移动端设置后产出的打卡判定与管理后台设置的结果一致。
+  title: 移动端分别改时间参数与改规则类型后核对后台判定
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 移动端设置的两类内容只要有一类没能进入判定，员工在手机上改完规则后考勤结论仍按旧口径产出
+  preconditions: 超级管理员账号在移动端可设置规则；测试部成员张三；该规则允许迟到、早退分钟数均为 0；当日为工作日
+  steps:
+  - 在移动端把测试部规则工作时间设为 09:00-18:00 并保存
+  - 张三在 09:10 完成一次上班打卡，随后在【打卡记录】中打开其当日明细
+  - 在移动端把该规则类型由固定时间改为自由上下班并保存
+  - 重新打开张三当日明细核对上班判定
+  expected:
+  - 改时间参数后：张三 09:10 的上班打卡在明细中判为迟到
+  - 改规则类型后：张三当日明细不再产出迟到判定，只统计旷工
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1905
+  fp_id: FP-19
+  scenario_id: SC-FP-19-02
+  point_id: TP-FP-19-02-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 超级管理员在移动端侧完成同一项规则设置、管理后台未改动时，验证两端指向同一份规则内容
+  test_point: 同一规则在移动端设置后产出的打卡判定与管理后台设置的结果一致。
+  title: 移动端设置规则后由员工打卡并在后台核对当日结论
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 移动端设置若不参与判定，管理员在手机上改完规则看不到任何效果，两端对同一员工给出不同结论
+  preconditions: 超级管理员账号可用且移动端有规则设置入口；张三在测试部；该规则允许迟到分钟数为 0；当日为工作日
+  steps:
+  - 超级管理员在移动端把测试部规则工作时间设为 09:00-18:00 并保存
+  - 张三在 09:05 与 18:05 各完成一次手机打卡
+  - 进入【管理后台】>【打卡记录】打开张三当日明细
+  expected:
+  - 张三 09:05 的上班打卡判为迟到，18:05 的下班打卡不判早退
+  - 后台明细的判定依据是移动端所设的 09:00-18:00，不是移动端设置前的时间
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1906
+  fp_id: FP-19
+  scenario_id: SC-FP-19-02
+  point_id: TP-FP-19-02-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 超级管理员在移动端侧完成同一项规则设置、管理后台未改动时，验证两端指向同一份规则内容
+  test_point: 同一规则在移动端设置后产出的打卡判定与管理后台设置的结果一致。
+  title: 三类规则类型逐一在移动端设置并核对后台参数完整
+  design_method: 穷举法
+  tags:
+  - 回归
+  - 数据一致性
+  severity: S2
+  severity_reason: 三类规则中任一类在移动端设置后参数落错，该类规则覆盖的员工当日考勤结论整体失真
+  preconditions: 超级管理员账号在移动端可设置规则；三类规则参数已备（固定时间 09:00-18:00、按班次的两段班次、自由上下班）；测试部未绑定其他规则
+  steps:
+  - 在移动端设置固定时间规则、绑定测试部并保存
+  - 在移动端设置按班次规则、绑定测试部并保存
+  - 在移动端设置自由上下班规则、绑定测试部并保存
+  - 在【管理后台】逐条打开这三条规则核对类型与参数
+  expected:
+  - 固定时间：后台类型为固定时间，上下班时间为 09:00-18:00
+  - 按班次：后台类型为按班次，两段班次时段与移动端所设一致
+  - 自由上下班：后台类型为自由上下班，未被替换为固定时间
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1907
+  fp_id: FP-19
+  scenario_id: SC-FP-19-03
+  point_id: TP-FP-19-03-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 同一规则在管理后台与移动端分别查看或分别修改后，验证两端呈现的规则内容与打卡判定是否仍为同一份
+  test_point: 同一规则在管理后台与移动端两侧读取到的内容一致，不出现一端新值一端旧值。
+  title: 后台保存规则后立即在移动端打开同一条规则详情
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 两端读到不同值意味着同一条规则存在两份内容，管理员与员工对同一条规则的理解直接冲突
+  preconditions: 超级管理员账号可用；测试部规则当前工作时间为 09:00-18:00
+  steps:
+  - 在【管理后台】把测试部规则工作时间改为 10:00-19:00 并保存
+  - 不退出登录，立即在移动端打开该规则详情
+  - 从移动端规则列表返回该规则详情并刷新一次
+  expected:
+  - 移动端规则详情显示的上下班时间为 10:00-19:00，不显示 09:00-18:00
+  - 移动端规则列表摘要与该详情同为 10:00-19:00
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1908
+  fp_id: FP-19
+  scenario_id: SC-FP-19-03
+  point_id: TP-FP-19-03-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 同一规则在管理后台与移动端分别查看或分别修改后，验证两端呈现的规则内容与打卡判定是否仍为同一份
+  test_point: 同一规则在管理后台与移动端两侧读取到的内容一致，不出现一端新值一端旧值。
+  title: 逐项核对规则各配置项在两端显示一致
+  design_method: 穷举法
+  tags:
+  - 回归
+  - 数据一致性
+  severity: S2
+  severity_reason: 任一配置项两端不一致，员工就会按看到的规则打卡却被按另一份规则判定，结论无法解释
+  preconditions: 测试部规则已配置工作时间 09:00-18:00、允许迟到分钟数 10、允许早退分钟数 5、打卡地点为总部办公点；超级管理员账号可用
+  steps:
+  - 在【管理后台】打开该规则详情，逐项记录配置值
+  - 在移动端打开同一规则详情，逐项记录配置值
+  - 逐项比对两端的取值
+  expected:
+  - 工作时间：两端均为 09:00-18:00
+  - 允许迟到分钟数：两端均为 10；允许早退分钟数：两端均为 5
+  - 打卡地点：两端均为总部办公点
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1909
+  fp_id: FP-19
+  scenario_id: SC-FP-19-03
+  point_id: TP-FP-19-03-01
+  functional_point: 超级管理员规则的双端生效
+  scenario: 同一规则在管理后台与移动端分别查看或分别修改后，验证两端呈现的规则内容与打卡判定是否仍为同一份
+  test_point: 同一规则在管理后台与移动端两侧读取到的内容一致，不出现一端新值一端旧值。
+  title: 在保存后立即与间隔一段时间两个时点分别读取同一规则
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S3
+  severity_reason: 延迟窗口内的旧值只在短暂期间影响配置核对，重新打开页面即可绕过
+  preconditions: 超级管理员账号可用；测试部规则当前为 09:00-18:00；两次读取之间的时间间隔可控
+  steps:
+  - 在【管理后台】把测试部规则工作时间改为 10:00-19:00 并保存
+  - 保存后 1 分钟内在移动端读取该规则详情
+  - 间隔 30 分钟后再次在移动端读取该规则详情
+  expected:
+  - 保存后 1 分钟内读取到的上下班时间为 10:00-19:00
+  - 间隔 30 分钟后读取到的上下班时间仍为 10:00-19:00，未回退为 09:00-18:00
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1910
+  fp_id: FP-19
+  scenario_id: SC-FP-19-03
+  point_id: TP-FP-19-03-02
+  functional_point: 超级管理员规则的双端生效
+  scenario: 同一规则在管理后台与移动端分别查看或分别修改后，验证两端呈现的规则内容与打卡判定是否仍为同一份
+  test_point: 在一端修改规则后另一端的打卡判定随之收敛到新规则，不出现两端判定结果长期分叉。
+  title: 两端同时对同一规则的不同字段提交修改
+  design_method: 并发法
+  tags:
+  - 待确认
+  - 并发
+  - 数据一致性
+  severity: S2
+  severity_reason: 冲突策略不明确时两次提交可能互相覆盖，管理员以为改了两项而实际只剩一项
+  preconditions: 超级管理员账号在管理后台与移动端同时处于登录态；测试部规则当前工作时间 09:00-18:00、允许迟到分钟数 0
+  steps:
+  - 在【管理后台】把工作时间改为 10:00-19:00 并提交
+  - 在移动端几乎同一时刻把允许迟到分钟数改为 15 并提交
+  - 两端提交都返回后，分别打开后台与移动端的规则详情
+  expected:
+  - 待确认：两端同时修改同一规则时以哪一端为准（后提交覆盖前一次、后台优先，还是提示冲突并拒绝后一次），最终两端读取到的是同一份内容？
+  status: pending_confirmation
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1911
+  fp_id: FP-19
+  scenario_id: SC-FP-19-03
+  point_id: TP-FP-19-03-02
+  functional_point: 超级管理员规则的双端生效
+  scenario: 同一规则在管理后台与移动端分别查看或分别修改后，验证两端呈现的规则内容与打卡判定是否仍为同一份
+  test_point: 在一端修改规则后另一端的打卡判定随之收敛到新规则，不出现两端判定结果长期分叉。
+  title: 移动端断网修改规则并在恢复网络后核对
+  design_method: 异常法
+  tags:
+  - 待确认
+  - 异常
+  - 数据一致性
+  severity: S2
+  severity_reason: 若失败提交被静默重放，管理员在后台的后续修改会被旧值覆盖，两端结论分叉且难以追查
+  preconditions: 超级管理员已在移动端打开规则编辑页；测试部规则当前为 09:00-18:00；可切断移动端网络
+  steps:
+  - 在移动端把工作时间改为 10:00-19:00，在断网状态下点击保存
+  - 恢复网络后重新打开移动端规则详情
+  - 在【管理后台】打开同一规则详情
+  expected:
+  - 待确认：断网时保存失败的修改是否会被本地缓存，并在恢复网络后自动重放提交（从而覆盖后台此后所做的修改）？
+  status: pending_confirmation
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1912
+  fp_id: FP-19
+  scenario_id: SC-FP-19-03
+  point_id: TP-FP-19-03-02
+  functional_point: 超级管理员规则的双端生效
+  scenario: 同一规则在管理后台与移动端分别查看或分别修改后，验证两端呈现的规则内容与打卡判定是否仍为同一份
+  test_point: 在一端修改规则后另一端的打卡判定随之收敛到新规则，不出现两端判定结果长期分叉。
+  title: 后台改规则后核对移动端展示与员工当日判定是否收敛
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S1
+  severity_reason: 两端判定长期分叉会让同一员工同一天在两端得到不同考勤结论，考勤结果无法作为结算依据
+  preconditions: 超级管理员账号可用；张三在测试部；该规则允许迟到分钟数为 0；张三当日尚未打卡
+  steps:
+  - 在【管理后台】把测试部规则工作时间由 08:00-17:00 改为 09:00-18:00 并保存
+  - 在移动端刷新该规则详情并记录显示的时间
+  - 张三在 09:10 完成上班打卡
+  - 在后台打开张三当日明细，与移动端显示的规则比对
+  expected:
+  - 移动端显示的上下班时间为 09:00-18:00
+  - 张三 09:10 的打卡按 09:00 判为迟到，与移动端显示的规则一致，不出现按 08:00 判定的结果
+  status: active
+  source_context:
+    quote: 超级管理员的规则设置需在管理后台与移动端两侧均可生效。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2001
+  fp_id: FP-20
+  scenario_id: SC-FP-20-01
+  point_id: TP-FP-20-01-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员的管辖范围已分配、范围外另有其他部门与员工时，验证范围内规则与统计的可见性与可操作性
+  test_point: 分级管理员在管辖范围内的规则可修改、统计可查看，不被范围限制误伤。
+  title: 分级管理员对范围内两个部门分别改规则与看统计
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 范围内的正常操作被范围校验误伤，分级管理员根本无法完成本职的规则维护与核对
+  preconditions: 分级管理员王五的管辖范围为测试部与质量部；公司另有产品部；王五已登录【管理后台】
+  steps:
+  - 打开测试部规则，修改工作时间并保存
+  - 打开质量部规则，修改工作时间并保存
+  - 在【打卡记录】分别查看测试部与质量部当日统计
+  expected:
+  - 两条规则均修改成功，保存后详情显示修改后的时间
+  - 两个部门的当日统计均可打开并显示本部门成员的打卡数据
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2002
+  fp_id: FP-20
+  scenario_id: SC-FP-20-01
+  point_id: TP-FP-20-01-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员的管辖范围已分配、范围外另有其他部门与员工时，验证范围内规则与统计的可见性与可操作性
+  test_point: 分级管理员在管辖范围内的规则可修改、统计可查看，不被范围限制误伤。
+  title: 以分级管理员身份走完范围内改规则看统计的主线
+  design_method: 场景法
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 范围内主线不可用等于分级管理员角色空转，打卡规则的日常维护无人承担
+  preconditions: 王五为分级管理员，管辖范围仅测试部；测试部有成员张三且当日已打卡
+  steps:
+  - 用王五账号登录【管理后台】
+  - 进入打卡规则列表，打开测试部规则修改上下班时间并保存
+  - 进入【打卡记录】按部门筛选测试部，查看张三当日记录
+  expected:
+  - 规则修改保存成功，规则详情显示修改后的上下班时间
+  - 【打卡记录】中可筛选到测试部并看到张三的当日打卡数据
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2003
+  fp_id: FP-20
+  scenario_id: SC-FP-20-01
+  point_id: TP-FP-20-01-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员的管辖范围已分配、范围外另有其他部门与员工时，验证范围内规则与统计的可见性与可操作性
+  test_point: 分级管理员在管辖范围内的规则可修改、统计可查看，不被范围限制误伤。
+  title: 核对分级管理员所见统计只含管辖范围内员工
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  - 数据准确性
+  severity: S2
+  severity_reason: 范围外员工数据混入统计，分级管理员可看到无权限人员的打卡信息，属数据范围越界
+  preconditions: 王五管辖范围仅测试部（成员张三、李四）；产品部有成员赵六且当日已打卡；王五已登录
+  steps:
+  - 用王五账号打开【打卡记录】，不设置任何部门筛选
+  - 查看顶部统计人数与列表中的员工条目
+  - 逐条核对列表中出现的员工与所属部门
+  expected:
+  - 列表中只出现张三、李四，不出现产品部成员赵六
+  - 统计人数与测试部当日在册人数一致，不含产品部人员
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2004
+  fp_id: FP-20
+  scenario_id: SC-FP-20-02
+  point_id: TP-FP-20-02-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员的管辖范围外存在其他部门与员工时，验证这些对象在其视图与列表中的暴露情况
+  test_point: 管辖范围外的部门与员工不出现在分级管理员的列表、下拉选项与筛选结果中。
+  title: 在部门下拉与人员筛选中查找范围外对象
+  design_method: 等价类划分
+  tags:
+  - 异常
+  - 权限
+  severity: S2
+  severity_reason: 范围外对象出现在可选项里，分级管理员可据此发起越权操作，权限边界先在界面上失守
+  preconditions: 王五管辖范围仅测试部；范围外有产品部及成员赵六；王五已登录【管理后台】
+  steps:
+  - 打开【打卡记录】的部门筛选下拉，逐项查看可选部门
+  - 打开打卡人员的筛选列表，逐项查看可选人员
+  - 打开规则适用范围选择器，查看可选部门
+  expected:
+  - 部门筛选下拉中不含产品部
+  - 人员筛选列表中不含赵六
+  - 规则适用范围选择器中不含产品部
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2005
+  fp_id: FP-20
+  scenario_id: SC-FP-20-02
+  point_id: TP-FP-20-02-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员的管辖范围外存在其他部门与员工时，验证这些对象在其视图与列表中的暴露情况
+  test_point: 管辖范围外的部门与员工不出现在分级管理员的列表、下拉选项与筛选结果中。
+  title: 用范围外员工的完整姓名与部门名反查列表
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 权限
+  severity: S2
+  severity_reason: 只要存在按名称直达范围外对象的路径，隐藏下拉就只是表象，越权入口仍然可用
+  preconditions: 王五管辖范围仅测试部；范围外有产品部及成员赵六；王五已登录【管理后台】
+  steps:
+  - 在【打卡记录】人员筛选中输入赵六的完整姓名
+  - 在部门筛选中输入产品部的完整名称
+  - 清空条件后按时间范围加载列表，逐页核对是否出现范围外对象
+  expected:
+  - 输入赵六完整姓名后无可选项，筛选结果为空
+  - 输入产品部完整名称后无可选项，筛选结果为空
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2006
+  fp_id: FP-20
+  scenario_id: SC-FP-20-02
+  point_id: TP-FP-20-02-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员的管辖范围外存在其他部门与员工时，验证这些对象在其视图与列表中的暴露情况
+  test_point: 管辖范围外的部门与员工不出现在分级管理员的列表、下拉选项与筛选结果中。
+  title: 检查统计请求的响应体是否只含范围内员工
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 服务端不过滤而只靠前端隐藏时，任何人改包即可拿到全公司打卡数据，属数据泄露
+  preconditions: 王五管辖范围仅测试部；产品部成员赵六当日有打卡记录；可抓取王五会话下的接口响应
+  steps:
+  - 用王五账号打开【打卡记录】并触发统计加载
+  - 抓取该次统计请求的响应体
+  - 在响应体中检索赵六与产品部
+  expected:
+  - 响应体中不含赵六的工号、姓名与打卡记录
+  - 响应体中不含产品部的部门标识与统计数值
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2007
+  fp_id: FP-20
+  scenario_id: SC-FP-20-03
+  point_id: TP-FP-20-03-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员身份下的数据请求不经界面入口、指向范围外的规则与统计数据时，验证服务端的拦截
+  test_point: 以分级管理员身份直接请求范围外员工数据时，服务端返回拒绝而不是数据内容。
+  title: 以分级管理员身份直接请求范围外员工的打卡数据
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 越权读取不被拦截等于范围隔离失效，可批量导出他人打卡记录
+  preconditions: 王五管辖范围仅测试部；已取得按员工查询打卡数据的接口与参数格式；赵六为产品部成员
+  steps:
+  - 用王五账号登录并取得其会话凭证
+  - 用该凭证按赵六的员工标识请求其打卡数据
+  - 查看响应状态与响应体内容
+  expected:
+  - 请求返回拒绝状态，响应体不含赵六的任何打卡明细
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2008
+  fp_id: FP-20
+  scenario_id: SC-FP-20-03
+  point_id: TP-FP-20-03-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员身份下的数据请求不经界面入口、指向范围外的规则与统计数据时，验证服务端的拦截
+  test_point: 以分级管理员身份直接请求范围外员工数据时，服务端返回拒绝而不是数据内容。
+  title: 把范围内员工的标识替换为范围外员工后重放查询
+  design_method: 逆向场景法
+  tags:
+  - 安全
+  - 权限
+  severity: S1
+  severity_reason: 参数可被替换即说明越权判定依赖前端传参，可枚举全体员工标识批量读取数据
+  preconditions: 王五管辖范围仅测试部；已截获王五查询张三打卡数据的成功请求；赵六为产品部成员
+  steps:
+  - 用王五账号重放查询张三打卡数据的请求，确认其返回成功
+  - 只把请求中的员工标识替换为赵六的标识并重放
+  - 核对响应体中出现的员工
+  expected:
+  - 替换后的请求返回拒绝，不返回打卡明细
+  - 响应体中不出现赵六的姓名与工号
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2009
+  fp_id: FP-20
+  scenario_id: SC-FP-20-03
+  point_id: TP-FP-20-03-01
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员身份下的数据请求不经界面入口、指向范围外的规则与统计数据时，验证服务端的拦截
+  test_point: 以分级管理员身份直接请求范围外员工数据时，服务端返回拒绝而不是数据内容。
+  title: 以空标识与不存在的标识发起打卡数据查询
+  design_method: 异常法
+  tags:
+  - 异常
+  - 安全
+  severity: S2
+  severity_reason: 非法输入下若回落到全量或泄漏他人信息，会变成无需构造参数的批量读取入口
+  preconditions: 王五管辖范围仅测试部；已取得查询打卡数据的接口
+  steps:
+  - 用王五会话提交员工标识为空串的查询
+  - 用王五会话提交员工标识为 99999999 的查询
+  - 查看两次响应的状态与响应体
+  expected:
+  - 两次请求均返回错误，不返回任何员工打卡数据
+  - 响应体的错误信息不含范围外员工的姓名、工号或部门名
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2010
+  fp_id: FP-20
+  scenario_id: SC-FP-20-03
+  point_id: TP-FP-20-03-02
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员身份下的数据请求不经界面入口、指向范围外的规则与统计数据时，验证服务端的拦截
+  test_point: 越权请求被拒绝后范围外的规则与统计数据均未发生写入或变更。
+  title: 越权修改范围外规则被拒后核对规则内容
+  design_method: 逆向场景法
+  tags:
+  - 安全
+  - 权限
+  severity: S2
+  severity_reason: 拒绝后仍写入会直接篡改范围外部门的考勤判定依据，影响该部门全员结论
+  preconditions: 王五管辖范围仅测试部；产品部规则当前工作时间 09:00-18:00；王五已登录
+  steps:
+  - 记录产品部规则当前的上下班时间与允许迟到分钟数
+  - 用王五账号构造对产品部规则的修改请求并提交
+  - 用超级管理员账号打开产品部规则详情，逐项比对修改前的记录
+  expected:
+  - 修改请求返回拒绝
+  - 产品部规则工作时间仍为 09:00-18:00，允许迟到分钟数与修改前一致
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2011
+  fp_id: FP-20
+  scenario_id: SC-FP-20-03
+  point_id: TP-FP-20-03-02
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员身份下的数据请求不经界面入口、指向范围外的规则与统计数据时，验证服务端的拦截
+  test_point: 越权请求被拒绝后范围外的规则与统计数据均未发生写入或变更。
+  title: 越权请求被拒后核对范围外部门的统计与记录数
+  design_method: 安全性法
+  tags:
+  - 安全
+  - 数据一致性
+  severity: S2
+  severity_reason: 越权写入未被拒绝会直接改写他人考勤记录，事后无法区分哪条是真实打卡
+  preconditions: 王五管辖范围仅测试部；产品部当日在册 3 人、当日打卡记录 6 条；可抓取请求与响应
+  steps:
+  - 记录产品部当日统计人数与打卡记录条数
+  - 用王五账号提交指向产品部的统计查询，以及针对产品部员工打卡记录的一次写操作请求
+  - 用超级管理员账号重新统计产品部当日数据
+  expected:
+  - 两次请求均被拒绝
+  - 产品部当日统计人数仍为 3、打卡记录条数仍为 6，未因越权请求新增或变更
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2012
+  fp_id: FP-20
+  scenario_id: SC-FP-20-03
+  point_id: TP-FP-20-03-02
+  functional_point: 分级管理员的范围外不可见与不可操作
+  scenario: 分级管理员身份下的数据请求不经界面入口、指向范围外的规则与统计数据时，验证服务端的拦截
+  test_point: 越权请求被拒绝后范围外的规则与统计数据均未发生写入或变更。
+  title: 越权修改请求中途中断后核对范围外规则字段
+  design_method: 异常法
+  tags:
+  - 异常
+  - 安全
+  - 数据一致性
+  severity: S2
+  severity_reason: 半写入会让范围外规则处于既非旧值也非完整新值的状态，判定口径与配置页对不上
+  preconditions: 王五管辖范围仅测试部；产品部规则有工作时间、允许迟到分钟数、打卡地点 3 个可改字段；可中断请求
+  steps:
+  - 记录产品部规则 3 个字段的当前值
+  - 用王五账号提交同时修改这 3 个字段的请求，并使请求在返回前中断
+  - 用超级管理员账号打开产品部规则详情，逐字段比对
+  expected:
+  - 3 个字段全部保持修改前的值，不出现只改了部分字段的中间状态
+  - 再次用王五账号提交同样的请求仍被拒绝
+  status: active
+  source_context:
+    quote: 分级管理员只能操作管辖范围内的规则与统计，范围外的部门/员工必须不可见或不可操作。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点

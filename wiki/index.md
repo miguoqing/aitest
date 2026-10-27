@@ -1,13 +1,11 @@
 # Knowledge Base Index
 
-## student-records
+## attendance-management
 
-学生档案管理系统需求规格说明书编译稿：系统范围、界面规范、业务流程、数据模型与功能需求。
+企业微信打卡模块的产品说明编译稿：规则配置、特殊规则与审批校准、管理权限与数据导出。
 
 | Article | Summary | Updated |
 |---------|---------|---------|
-| [学生档案管理系统 — 系统概述](student-records/system-overview.md) | 文档定位、目标用户、功能范围、术语与非功能需求 | 2026-10-17 |
-| [界面设计规范](student-records/ui-specification.md) | 通用布局/交互/校验/分页规则与四个核心页面的字段、按钮清单 | 2026-10-17 |
-| [业务单据与流程设计](student-records/business-workflows.md) | 单据留痕规则、学生信息流程、档案新增/归档/导出闭环与状态机 | 2026-10-17 |
-| [数据结构与数据格式规范](student-records/data-model.md) | 三层数据流、三张核心表字段设计、统一数据格式与附件规范 | 2026-10-17 |
-| [功能详细需求](student-records/functional-requirements.md) | 两大模块功能清单与可测试的核心不变量 | 2026-10-17 |
+| [打卡规则配置](attendance-management/attendance-rule-configuration.md) | 三种规则类型、打卡人员、三种打卡方式、地点与范围、外出打卡 | 2026-10-19 |
+| [特殊打卡规则与审批校准](attendance-management/special-rules-and-approval.md) | 拍照/补卡/特殊日期/提醒/可见范围，五种审批模板与智能校准示例 | 2026-10-19 |
+| [分级管理权限与打卡数据导出](attendance-management/permissions-and-export.md) | 超级/分级管理员边界、按日按月导出、筛选与 API 导出 | 2026-10-19 |

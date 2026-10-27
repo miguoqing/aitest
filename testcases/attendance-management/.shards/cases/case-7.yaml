@@ -1,0 +1,881 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  shard: case-7
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  fp_range:
+  - FP-21
+  - FP-22
+  knowledge_sources:
+  - path: wiki/attendance-management/permissions-and-export.md
+    title: 分级管理权限与打卡数据导出
+  stats:
+    cases: 30
+    open_items: 7
+open_items:
+- id: OI-55
+  question: 「打卡状态」筛选项的完整可选枚举值有哪些，是否包含外出打卡、补卡、请假等非「正常/迟到/早退/缺卡」的记录类型？
+  related_case_ids:
+  - TC-ATT-2102
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-56
+  question: 时间筛选的起止日期是否为闭区间（起止当日 00:00–23:59 的打卡记录是否都计入），起止设为同一天时是否只返回当日记录？
+  related_case_ids:
+  - TC-ATT-2110
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-57
+  question: 进入打卡记录页且不设置任何筛选条件时，默认展示的时间范围是全量历史还是当月；手动清空全部条件后的结果是否与首次进入时的默认列表一致？
+  related_case_ids:
+  - TC-ATT-2115
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-58
+  question: 导出文件是否固定为 .xlsx 格式，文件名是否包含 Tab 名与筛选时间范围，首个工作表的列结构包含哪些列？
+  related_case_ids:
+  - TC-ATT-2206
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-59
+  question: 「按月统计」导出的汇总列具体包含哪些统计项（应出勤天数、实际出勤、迟到次数、早退次数、旷工天数、工作时长中的哪几项）？
+  related_case_ids:
+  - TC-ATT-2209
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-60
+  question: 修改筛选条件但未点击查询就点导出时，导出文件按已生效的旧条件生成，还是按工具栏控件上的新条件生成？
+  related_case_ids:
+  - TC-ATT-2212
+  source_ref: wiki/attendance-management/permissions-and-export.md
+- id: OI-61
+  question: 在「按日统计」Tab 设置筛选条件后切到「按月统计」Tab，筛选条件是保留还是重置；若保留，按月导出是否按保留下来的同一组条件生成？
+  related_case_ids:
+  - TC-ATT-2215
+  source_ref: wiki/attendance-management/permissions-and-export.md
+cases:
+- id: TC-ATT-2101
+  fp_id: FP-21
+  scenario_id: SC-FP-21-01
+  point_id: TP-FP-21-01-01
+  functional_point: 打卡记录的筛选
+  scenario: 打卡记录同时存在多个部门、多名人员与多种打卡状态时，验证按时间、部门、打卡人员、打卡状态中任一单条件筛选后的结果集合
+  test_point: 按时间、部门、打卡人员、打卡状态中任一单条件筛选后，结果集只包含满足该条件的记录。
+  title: 把部门条件分别取研发部与销售部各查一次，核对结果集的部门列
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 部门条件失效会把其他部门的记录混进当前视图，管理员据此核对出勤或导出报表时会取到错误的部门口径
+  preconditions: 打卡记录中已有研发部张三、李四与销售部王五三人在 2026-10-12 至 2026-10-16 的打卡数据；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 在顶部工具栏把部门条件设为「研发部」后查询，记录结果集的部门列取值与记录条数
+  - 把部门条件改为「销售部」后重新查询，记录结果集的部门列取值与记录条数
+  - 逐页浏览两次结果集，按人员列核对是否混入另一部门的人员
+  expected:
+  - 部门条件取「研发部」时结果集每条记录的部门列都是研发部，不出现王五的记录
+  - 部门条件取「销售部」时结果集每条记录的部门列都是销售部，不出现张三与李四的记录
+  status: active
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2102
+  fp_id: FP-21
+  scenario_id: SC-FP-21-01
+  point_id: TP-FP-21-01-01
+  functional_point: 打卡记录的筛选
+  scenario: 打卡记录同时存在多个部门、多名人员与多种打卡状态时，验证按时间、部门、打卡人员、打卡状态中任一单条件筛选后的结果集合
+  test_point: 按时间、部门、打卡人员、打卡状态中任一单条件筛选后，结果集只包含满足该条件的记录。
+  title: 逐个取值打卡状态条件后各查一次，核对每次结果集的状态列
+  design_method: 穷举法
+  tags:
+  - 待确认
+  - 数据准确性
+  severity: S2
+  severity_reason: 状态取值范围未闭合时无法证明每个状态值都能独立筛出记录，漏掉的状态值会让该状态的记录整类不可查
+  preconditions: 打卡数据中已存在覆盖各个打卡状态取值的记录；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 展开打卡状态筛选下拉，逐条抄录下拉中出现的全部状态取值
+  - 依次只选其中一个状态值查询，记录每次的结果条数与状态列取值
+  expected:
+  - 待确认：「打卡状态」筛选项的完整可选枚举值有哪些，是否包含外出打卡、补卡、请假等非「正常/迟到/早退/缺卡」的记录类型？
+  status: pending_confirmation
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2103
+  fp_id: FP-21
+  scenario_id: SC-FP-21-01
+  point_id: TP-FP-21-01-01
+  functional_point: 打卡记录的筛选
+  scenario: 打卡记录同时存在多个部门、多名人员与多种打卡状态时，验证按时间、部门、打卡人员、打卡状态中任一单条件筛选后的结果集合
+  test_point: 按时间、部门、打卡人员、打卡状态中任一单条件筛选后，结果集只包含满足该条件的记录。
+  title: 以时间条件为主线走完整查询链路，先取宽区间再收窄核对日期列
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 时间条件未生效时列表会混入区间外的记录，管理员按日期核对出勤时整段范围的判断都失去依据
+  preconditions: 打卡记录覆盖 2026-10-01 至 2026-10-16，其中 2026-10-09 之后没有产生新记录；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】，确认未设置任何条件时的列表状态
+  - 在顶部工具栏把时间条件设为 2026-10-01 至 2026-10-16 后查询，逐页浏览结果集并核对日期列
+  - 把时间条件收窄为 2026-10-01 至 2026-10-08 后再次查询，逐页核对日期列
+  expected:
+  - 时间条件为 2026-10-01 至 2026-10-16 时结果集中出现 10-09 至 10-16 的记录
+  - 时间条件收窄为 2026-10-01 至 2026-10-08 后结果集中不再出现 10-09 及以后的记录
+  status: active
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2104
+  fp_id: FP-21
+  scenario_id: SC-FP-21-02
+  point_id: TP-FP-21-02-01
+  functional_point: 打卡记录的筛选
+  scenario: 时间、部门、打卡人员、打卡状态四个条件同时生效时，验证结果集是否为各条件结果的交集
+  test_point: 时间、部门、打卡人员、打卡状态四个条件同时生效时，结果集是四个条件各自结果集的交集。
+  title: 四个条件同时施加后比对结果条数与各单条件结果集的交集条数
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S1
+  severity_reason: 交集口径算错会让筛选结果与导出报表同时失真，管理员据此刻意出的考勤报表数字错误且对外发出后难以回收
+  preconditions: 已预先统计四条件单独作用时的结果：时间 2026-10-12 至 2026-10-16 命中 15 条、部门研发部 9 条、人员张三 5 条、状态迟到 3 条；四条件同时满足的记录 1 条
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 依次单独施加时间、部门、人员、状态四个条件，分别记录每次的结果条数
+  - 四个条件全部保留后执行一次组合查询，记录结果条数与记录内容
+  - 打开结果集中每条记录，核对日期、部门、人员、状态四列
+  expected:
+  - 四条件组合查询的结果条数为 1，等于各单条件结果集的交集条数，不等于任一单条件的条数
+  - 该记录的日期落在 2026-10-12 至 2026-10-16、部门为研发部、人员为张三、状态为迟到
+  status: active
+  source_context:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2105
+  fp_id: FP-21
+  scenario_id: SC-FP-21-02
+  point_id: TP-FP-21-02-01
+  functional_point: 打卡记录的筛选
+  scenario: 时间、部门、打卡人员、打卡状态四个条件同时生效时，验证结果集是否为各条件结果的交集
+  test_point: 时间、部门、打卡人员、打卡状态四个条件同时生效时，结果集是四个条件各自结果集的交集。
+  title: 按命中条件个数预置记录后逐条查找，确认只保留四个条件全中的那一条
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 记录级过滤放漏会把不满足条件的打卡算进结果，按此核对出的出勤明细与事实不符
+  preconditions: 已预置四条记录：四条件全命中 1 条、只未命中状态 1 条、只未命中人员 1 条、四条件全不命中 1 条；条件取 2026-10-12 至 2026-10-16、研发部、张三、迟到
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 把时间、部门、人员、状态四个条件按上述取值全部设置后查询
+  - 在结果集中按日期、部门、人员、状态逐条查找预置的四条记录是否存在
+  expected:
+  - 只有四条件全命中的那条记录出现在结果集
+  - 只未命中状态、只未命中人员、四条件全不命中的三条记录都不出现在结果集
+  status: active
+  source_context:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2106
+  fp_id: FP-21
+  scenario_id: SC-FP-21-02
+  point_id: TP-FP-21-02-01
+  functional_point: 打卡记录的筛选
+  scenario: 时间、部门、打卡人员、打卡状态四个条件同时生效时，验证结果集是否为各条件结果的交集
+  test_point: 时间、部门、打卡人员、打卡状态四个条件同时生效时，结果集是四个条件各自结果集的交集。
+  title: 从无条件查询起逐层叠加条件，记录每一步的结果条数变化
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 叠加条件时结果反而变大说明条件被并集处理，管理员按逐层收窄的方式找名单会拿到比预期更宽的范围
+  preconditions: 打卡记录中有 2026-10-12 至 2026-10-16 的多部门多人记录；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】，记录未加条件时的结果条数
+  - 只加时间条件 2026-10-12 至 2026-10-16 查询并记录结果条数
+  - 在此基础上叠加部门条件「研发部」查询并记录结果条数
+  - 再叠加人员条件「张三」与状态条件「迟到」查询并记录结果条数
+  expected:
+  - 四次查询的结果条数逐次不增，即无条件不少于时间条件，时间条件不少于时间加部门，时间加部门不少于四条件全选
+  - 末次查询结果中每条记录都同时满足时间、部门、人员、状态四个条件
+  status: active
+  source_context:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2107
+  fp_id: FP-21
+  scenario_id: SC-FP-21-02
+  point_id: TP-FP-21-02-02
+  functional_point: 打卡记录的筛选
+  scenario: 时间、部门、打卡人员、打卡状态四个条件同时生效时，验证结果集是否为各条件结果的交集
+  test_point: 组合筛选中任一维度不满足的记录都不出现在结果集里，交集不退化回并集。
+  title: 用互不相交的部门条件与状态条件组合查询，确认结果为空集
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S1
+  severity_reason: 互斥条件返回并集时两组互不相关的记录同时混入，筛选与导出结果整体错位，基于此产出的报表数字全错
+  preconditions: 研发部 2026-10-12 至 2026-10-16 的打卡状态均为正常、无迟到记录；销售部王五同期有 1 条迟到记录
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 设置时间条件 2026-10-12 至 2026-10-16 与部门条件「研发部」后查询，记录结果条数
+  - 在部门条件保持研发部的前提下叠加状态条件「迟到」后查询，记录结果条数与结果集内容
+  expected:
+  - 部门为研发部且状态为迟到的组合查询结果条数为 0，结果集为空
+  - 该空结果中既不出现研发部的正常记录，也不出现销售部王五的迟到记录
+  status: active
+  source_context:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2108
+  fp_id: FP-21
+  scenario_id: SC-FP-21-02
+  point_id: TP-FP-21-02-02
+  functional_point: 打卡记录的筛选
+  scenario: 时间、部门、打卡人员、打卡状态四个条件同时生效时，验证结果集是否为各条件结果的交集
+  test_point: 组合筛选中任一维度不满足的记录都不出现在结果集里，交集不退化回并集。
+  title: 从只按状态筛选的结果上追加部门条件，检查上一轮记录是否残留
+  design_method: 逆向场景法
+  tags:
+  - 回归
+  - 数据准确性
+  severity: S1
+  severity_reason: 在已出结果上追加条件时若沿用上一轮结果，新条件形同虚设，迟报名单会混入其他部门的人并被直接用于统计
+  preconditions: 销售部王五在 2026-10-12 至 2026-10-16 有 1 条迟到记录；研发部同期有 2 条迟到记录
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 只设置状态条件「迟到」后查询，确认结果集中出现销售部王五的迟到记录并记录条数
+  - 在状态条件保留的前提下追加部门条件「研发部」后查询
+  - 检查结果集中是否还残留销售部王五的记录，并核对结果条数
+  expected:
+  - 追加部门条件后结果集中不再出现销售部王五的迟到记录
+  - 结果条数为 2，等于研发部与迟到两条件同时满足的记录数，少于只按迟到筛选时的条数
+  status: active
+  source_context:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2109
+  fp_id: FP-21
+  scenario_id: SC-FP-21-02
+  point_id: TP-FP-21-02-02
+  functional_point: 打卡记录的筛选
+  scenario: 时间、部门、打卡人员、打卡状态四个条件同时生效时，验证结果集是否为各条件结果的交集
+  test_point: 组合筛选中任一维度不满足的记录都不出现在结果集里，交集不退化回并集。
+  title: 以研发部加迟到为条件查询，核对状态维度不满足的记录是否被剔除
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 状态维度不参与过滤会让正常记录混进迟到名单，迟到次数统计被放大并影响扣款口径
+  preconditions: 研发部张三 2026-10-12 至 2026-10-16 有 1 条迟到与 4 条正常记录；销售部王五同期有 1 条迟到记录
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 设置部门条件「研发部」与状态条件「迟到」后查询
+  - 逐条核对结果集的状态列与人员列
+  expected:
+  - 结果集只保留研发部的迟到记录 1 条，不出现研发部的 4 条正常记录
+  - 结果集不出现销售部王五的迟到记录
+  status: active
+  source_context:
+    quote: 筛选条件（时间、部门、打卡人员、打卡状态）组合使用时结果应取交集。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2110
+  fp_id: FP-21
+  scenario_id: SC-FP-21-03
+  point_id: TP-FP-21-03-01
+  functional_point: 打卡记录的筛选
+  scenario: 筛选条件组合在数据集中不存在任何匹配记录、或某维度取空值时，验证结果集与界面呈现
+  test_point: 筛选条件在数据集中无任何匹配时，结果集为空而不是回退到全量记录。
+  title: 把时间区间两端压到同一天与相邻两天，核对边界当日的记录是否计入
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S2
+  severity_reason: 区间端点算错会整日漏掉边界当天的记录，按此导出的月度条数偏少且与员工实际打卡对不上
+  preconditions: 2026-10-12 与 2026-10-13 各有 3 条打卡记录，2026-10-11 与 2026-10-14 无记录
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 把时间条件的起止两端都设为 2026-10-12 后查询，记录结果条数与日期列
+  - 把起止两端分别设为 2026-10-12 与 2026-10-13 后再次查询，记录结果条数
+  expected:
+  - 待确认：时间筛选的起止日期是否为闭区间（起止当日 00:00–23:59 的打卡记录是否都计入），起止设为同一天时是否只返回当日记录？
+  status: pending_confirmation
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2111
+  fp_id: FP-21
+  scenario_id: SC-FP-21-03
+  point_id: TP-FP-21-03-01
+  functional_point: 打卡记录的筛选
+  scenario: 筛选条件组合在数据集中不存在任何匹配记录、或某维度取空值时，验证结果集与界面呈现
+  test_point: 筛选条件在数据集中无任何匹配时，结果集为空而不是回退到全量记录。
+  title: 用历史无数据的月份作为时间条件查询，检查列表是否回落为全量
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 无匹配时回退全量会把整月记录当成该区间的结果，管理员核对区间出勤时取到完全不相干的数据
+  preconditions: 打卡记录只覆盖 2026-10-01 至今；2026-09 月无任何打卡数据；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 把时间条件设为 2026-09-01 至 2026-09-30 后查询
+  - 记录列表记录条数与翻页控件状态，并核对列表日期列是否出现 10 月的记录
+  expected:
+  - 时间条件取无数据的历史区间时结果条数为 0，列表不出现任何打卡行
+  - 结果集不回退为全量记录，列表日期列不出现 2026-10 月的任何记录
+  status: active
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2112
+  fp_id: FP-21
+  scenario_id: SC-FP-21-03
+  point_id: TP-FP-21-03-01
+  functional_point: 打卡记录的筛选
+  scenario: 筛选条件组合在数据集中不存在任何匹配记录、或某维度取空值时，验证结果集与界面呈现
+  test_point: 筛选条件在数据集中无任何匹配时，结果集为空而不是回退到全量记录。
+  title: 分别用空部门、无数据区间、无匹配人员加状态三种取值查询，核对结果条数
+  design_method: 等价类划分
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S3
+  severity_reason: 空结果回退全量只误导这一次查询的范围判断，管理员换一组条件后仍能取到正确记录
+  preconditions: 已存在无成员且无打卡记录的部门「测试部门」；2026-10-01 至 2026-10-04 无打卡数据；王五无缺卡记录
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 只设部门条件「测试部门」后查询，记录结果条数
+  - 改为只设时间条件 2026-10-01 至 2026-10-04 后查询，记录结果条数
+  - 改为只设人员条件「王五」并叠加状态条件「缺卡」后查询，记录结果条数
+  expected:
+  - 部门条件取无成员的测试部门时结果条数为 0，不回退为全量记录
+  - 时间条件取无数据区间 2026-10-01 至 2026-10-04 时结果条数为 0
+  - 人员王五与状态缺卡组合无匹配时结果条数为 0
+  status: active
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2113
+  fp_id: FP-21
+  scenario_id: SC-FP-21-03
+  point_id: TP-FP-21-03-02
+  functional_point: 打卡记录的筛选
+  scenario: 筛选条件组合在数据集中不存在任何匹配记录、或某维度取空值时，验证结果集与界面呈现
+  test_point: 某个筛选维度取空值或未选时，筛选结果与不施加该条件时的结果一致。
+  title: 保留时间条件并把部门条件清空，比较清空前后的结果条数
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S3
+  severity_reason: 空部门条件若被当成无匹配部门处理会返回空列表，管理员会误以为该时段没有任何打卡记录
+  preconditions: 打卡记录中有 2026-10-12 至 2026-10-16 研发部与销售部的多条记录；已记录只施加时间条件时的结果条数
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 设置时间 2026-10-12 至 2026-10-16 与部门「研发部」后查询，记录结果条数
+  - 只把部门条件清空为不选任何部门、时间条件保留后再次查询，记录结果条数
+  expected:
+  - 清空部门条件后的结果条数为 15，等于只施加时间条件时的条数，不少于保留研发部时的 9 条
+  - 清空部门条件后的结果集同时包含研发部与销售部人员，不因部门条件为空而返回空列表
+  status: active
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2114
+  fp_id: FP-21
+  scenario_id: SC-FP-21-03
+  point_id: TP-FP-21-03-02
+  functional_point: 打卡记录的筛选
+  scenario: 筛选条件组合在数据集中不存在任何匹配记录、或某维度取空值时，验证结果集与界面呈现
+  test_point: 某个筛选维度取空值或未选时，筛选结果与不施加该条件时的结果一致。
+  title: 依次清空四个维度中的一个并查询，比对每次结果条数
+  design_method: 等价类划分
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S3
+  severity_reason: 任一维度被清空却继续参与过滤会让该维度变成全不匹配，结果直接为空并掩护真实存在的记录
+  preconditions: 打卡记录中有 2026-10-12 至 2026-10-16 的多部门多人多状态数据；已记录四条件全选时的结果条数
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 把时间、部门、人员、状态四个条件全部设置后查询，记录结果条数
+  - 一次只清空其中一个条件、其余三个保留后查询，依次完成四轮并记录每轮结果条数
+  expected:
+  - 每次清空一个条件后，该维度不再起过滤作用，结果条数不少于清空前
+  - 清空时间条件后的结果集等于只施加部门、人员、状态三个条件的结果集
+  - 清空部门、清空人员、清空状态三轮中另外三个保留条件仍生效，结果集不出现被清空维度之外的其他维度放宽
+  status: active
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2115
+  fp_id: FP-21
+  scenario_id: SC-FP-21-03
+  point_id: TP-FP-21-03-02
+  functional_point: 打卡记录的筛选
+  scenario: 筛选条件组合在数据集中不存在任何匹配记录、或某维度取空值时，验证结果集与界面呈现
+  test_point: 某个筛选维度取空值或未选时，筛选结果与不施加该条件时的结果一致。
+  title: 重新进入打卡记录页观察默认条件，再与手动清空全部条件的结果对照
+  design_method: 场景法
+  tags:
+  - 待确认
+  - 数据准确性
+  severity: S3
+  severity_reason: 默认范围与清空后范围不一致时两次核对的条数对不上，管理员无法判断「不设条件」是否等于全量
+  preconditions: 打卡记录覆盖 2026-08 至 2026-10 三个月；当前登录账号为超级管理员
+  steps:
+  - 退出管理后台后重新登录，进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 观察首次进入时顶部工具栏四个条件的默认取值与列表记录条数
+  - 手动清空全部条件后查询，比对两次的列表记录条数与日期范围
+  expected:
+  - 待确认：进入打卡记录页且不设置任何筛选条件时，默认展示的时间范围是全量历史还是当月；手动清空全部条件后的结果是否与首次进入时的默认列表一致？
+  status: pending_confirmation
+  source_context:
+    quote: 筛选：顶部工具栏可按时间、部门、打卡人员、打卡状态筛选打卡记录。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2201
+  fp_id: FP-22
+  scenario_id: SC-FP-22-01
+  point_id: TP-FP-22-01-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按日统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的记录范围与统计口径
+  test_point: 按日统计 Tab 导出的 Excel 记录与该 Tab 当前筛选条件下的列表逐条一致。
+  title: 按日统计 Tab 筛出研发部一周记录后导出，逐条比对文件与列表
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 导出
+  - 数据准确性
+  severity: S1
+  severity_reason: 导出与列表不一致会让下游工资与考勤报表按错误明细结算，文件发出后无法逐份追回
+  preconditions: 按日统计 Tab 在时间 2026-10-12 至 2026-10-16、部门研发部条件下列表显示 9 条记录；销售部王五同期有记录
+  steps:
+  - 在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】切到「按日统计」Tab，设置时间 2026-10-12 至 2026-10-16 与部门研发部后查询
+  - 记录列表记录条数，点击该 Tab 右上角导出并下载 Excel 文件
+  - 打开文件，按日期、人员、上班打卡时间、下班打卡时间、状态与列表逐条比对
+  expected:
+  - 文件中打卡数据行数为 9 行，与列表记录条数一致
+  - 每条记录的日期、打卡时间与状态与列表对应行一致，无缺行也无多余行
+  - 文件中不出现销售部王五的任何记录
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2202
+  fp_id: FP-22
+  scenario_id: SC-FP-22-01
+  point_id: TP-FP-22-01-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按日统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的记录范围与统计口径
+  test_point: 按日统计 Tab 导出的 Excel 记录与该 Tab 当前筛选条件下的列表逐条一致。
+  title: 逐一用四个单条件各导一次，比较每份文件行数与对应列表条数
+  design_method: 穷举法
+  tags:
+  - 正向
+  - 导出
+  severity: S2
+  severity_reason: 某一维度未带入导出时该维度筛选后的文件范围失真，管理员按部门或人员取数会拿到超出范围的明细
+  preconditions: 打卡记录中有 2026-10-12 至 2026-10-16 的多部门多人多状态数据；按日统计 Tab 四个维度均可选值
+  steps:
+  - 在「按日统计」Tab 依次只施加时间、只施加部门、只施加人员、只施加状态四个单条件，每次查询后记录列表条数
+  - 对上述四次查询各执行一次导出，分别保存文件
+  - 打开四个文件，分别统计打卡数据行数并与对应列表条数比对
+  expected:
+  - 时间单条件导出的行数与仅时间条件的列表条数一致
+  - 部门单条件导出的行数与仅部门条件的列表条数一致，且人员列只含该部门成员
+  - 人员单条件、状态单条件导出的行数分别与对应列表条数一致
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2203
+  fp_id: FP-22
+  scenario_id: SC-FP-22-01
+  point_id: TP-FP-22-01-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按日统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的记录范围与统计口径
+  test_point: 按日统计 Tab 导出的 Excel 记录与该 Tab 当前筛选条件下的列表逐条一致。
+  title: 在列表里定位张三名下某日记录，再到导出文件里找到同一条
+  design_method: 场景法
+  tags:
+  - 正向
+  - 导出
+  severity: S3
+  severity_reason: 端到端定位失败时管理员仍可在文件里全量检索到记录，只是核对耗时增加，业务结果不变
+  preconditions: 张三 2026-10-13 有上班 08:55、下班 18:32 两条按日统计记录；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】并切到「按日统计」Tab
+  - 设置时间 2026-10-13 与人员张三后查询，在列表中定位张三当日的两条记录
+  - 点击该 Tab 右上角导出并打开文件，在文件中按人员与日期查找张三 2026-10-13 的行
+  - 比对文件中该行的上下班打卡时间与列表中的两条记录
+  expected:
+  - 文件中能定位到张三 2026-10-13 的记录，且记录条数与列表一致
+  - 文件中该记录的上班时间 08:55 与下班时间 18:32 与列表一致
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2204
+  fp_id: FP-22
+  scenario_id: SC-FP-22-01
+  point_id: TP-FP-22-01-02
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按日统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的记录范围与统计口径
+  test_point: 按日统计与按月统计两个 Tab 的右上角均存在导出入口，两处都能产出 Excel 文件。
+  title: 切到按日统计 Tab 与按月统计 Tab，各自在右上角找到导出并点击一次
+  design_method: 场景法
+  tags:
+  - 正向
+  - 导出
+  severity: S2
+  severity_reason: 任一 Tab 缺少或藏起导出入口时该 Tab 的数据只能手工抄录，按日或按月取数这一整条操作无法完成
+  preconditions: 「上下班打卡」>【查看】页存在「按日统计」与「按月统计」两个 Tab；打卡记录覆盖 2026-10 月；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】，切到「按日统计」Tab 并查看页面右上角区域
+  - 点击该 Tab 右上角的导出，记录下载到的文件名
+  - 切到「按月统计」Tab 并查看页面右上角区域，点击该 Tab 右上角的导出，记录下载到的文件名
+  expected:
+  - 「按日统计」Tab 与「按月统计」Tab 的右上角各有一个可点击的导出入口，切 Tab 后入口跟随当前 Tab
+  - 两次点击都下载到扩展名为 .xlsx 的文件，两个文件都能被 Excel 正常打开
+  status: active
+  source_context:
+    quote: 导出：在「按日统计」和「按月统计」Tab 右上角导出 Excel 打卡数据。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2205
+  fp_id: FP-22
+  scenario_id: SC-FP-22-01
+  point_id: TP-FP-22-01-02
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按日统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的记录范围与统计口径
+  test_point: 按日统计与按月统计两个 Tab 的右上角均存在导出入口，两处都能产出 Excel 文件。
+  title: 穷举两个 Tab 的导出入口各点一次，核对下载目录新增的文件与数据行
+  design_method: 穷举法
+  tags:
+  - 正向
+  - 导出
+  severity: S3
+  severity_reason: 某个入口点击后无文件产出时该 Tab 导不出数据，但仍可切到另一 Tab 或手工抄录，属可用替代路径
+  preconditions: 两个 Tab 均可正常查询；按日统计 Tab 在 2026-10-12 至 2026-10-16、研发部条件下有 9 条记录，按月统计 Tab 在同条件下有 2 行汇总
+  steps:
+  - 清空浏览器下载目录，在「按日统计」Tab 用上述条件查询后点击导出
+  - 记录下载目录新增文件的文件名，打开文件统计打卡数据行数
+  - 清空下载目录，切到「按月统计」Tab 用同一条件查询后点击导出
+  - 记录下载目录新增文件的文件名，打开文件统计汇总行数
+  expected:
+  - 「按日统计」Tab 导出后下载目录新增 1 个 Excel 文件，文件中含 9 行打卡数据
+  - 「按月统计」Tab 导出后下载目录新增 1 个 Excel 文件，文件中含 2 行汇总数据
+  - 两次点击都产出了独立文件，不存在只刷新页面而没有下载产物的情况
+  status: active
+  source_context:
+    quote: 导出：在「按日统计」和「按月统计」Tab 右上角导出 Excel 打卡数据。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2206
+  fp_id: FP-22
+  scenario_id: SC-FP-22-01
+  point_id: TP-FP-22-01-02
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按日统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的记录范围与统计口径
+  test_point: 按日统计与按月统计两个 Tab 的右上角均存在导出入口，两处都能产出 Excel 文件。
+  title: 导出一次后查看下载文件的扩展名、文件名构成与首行表头
+  design_method: 等价类划分
+  tags:
+  - 待确认
+  - 导出
+  severity: S4
+  severity_reason: 文件格式与命名只影响管理员查找与二次处理是否顺手，不影响导出数据本身的取值范围
+  preconditions: 「按日统计」Tab 在 2026-10-12 至 2026-10-16、研发部条件下有 9 条记录；当前登录账号为超级管理员
+  steps:
+  - 在「按日统计」Tab 设置上述筛选条件后点击右上角导出
+  - 记录下载文件的扩展名与完整文件名
+  - 分别用 Excel 与纯文本编辑器打开该文件，记录首个工作表的表头列名
+  expected:
+  - 待确认：导出文件是否固定为 .xlsx 格式，文件名是否包含 Tab 名与筛选时间范围，首个工作表的列结构包含哪些列？
+  status: pending_confirmation
+  source_context:
+    quote: 导出：在「按日统计」和「按月统计」Tab 右上角导出 Excel 打卡数据。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 查看与导出打卡记录
+- id: TC-ATT-2207
+  fp_id: FP-22
+  scenario_id: SC-FP-22-02
+  point_id: TP-FP-22-02-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按月统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的月度汇总口径与记录范围
+  test_point: 按月统计 Tab 导出的 Excel 与该 Tab 的月度汇总口径一致，不是按日明细的简单堆叠。
+  title: 按月统计 Tab 导出研发部整月数据，核对每名员工在文件中的行数
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 导出
+  - 数据准确性
+  severity: S1
+  severity_reason: 月度口径退化成按日明细会让月度工资与考勤结算按错误的行数口径取数，直接影响发薪数字
+  preconditions: 「按月统计」Tab 在 2026-10 月、部门研发部条件下显示张三与李四各 1 行共 2 行；同一条件下按日统计为 9 行
+  steps:
+  - 在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】切到「按月统计」Tab，设置 2026-10 月与部门研发部后查询，记录列表行数
+  - 点击该 Tab 右上角导出并打开文件，统计每名员工在文件中出现的行数
+  - 把同一组条件切到「按日统计」Tab 导出，记录该文件的打卡数据行数
+  expected:
+  - 按月导出文件中张三与李四各出现 1 行，数据行数为 2 行，与该 Tab 列表行数一致
+  - 按月导出文件的数据行数为 2，不等于按日导出文件的 9 行，不是按日明细的堆叠
+  - 按月导出文件中每行的汇总取值与该 Tab 列表同一员工的对应行一致
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2208
+  fp_id: FP-22
+  scenario_id: SC-FP-22-02
+  point_id: TP-FP-22-02-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按月统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的月度汇总口径与记录范围
+  test_point: 按月统计 Tab 导出的 Excel 与该 Tab 的月度汇总口径一致，不是按日明细的简单堆叠。
+  title: 在按月 Tab 记下张三的月汇总值，导出后到文件里核对同一员工
+  design_method: 场景法
+  tags:
+  - 正向
+  - 导出
+  - 数据一致性
+  severity: S2
+  severity_reason: 同一员工在列表与导出中的汇总值不一致时无法判断以哪个为准，月度核对流程卡死
+  preconditions: 张三在 2026-10 月的按月统计列表中已有 1 行汇总；当前登录账号为超级管理员
+  steps:
+  - 进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】并切到「按月统计」Tab
+  - 设置 2026-10 月与人员张三后查询，记录列表中该行各项汇总取值
+  - 点击右上角导出并打开文件，找到张三所在行
+  - 把文件中该行的各项汇总取值与步骤 2 记录的值逐项比对
+  expected:
+  - 文件中张三所在行的各项汇总取值与列表中同一员工的对应取值逐项一致
+  - 文件中张三只出现 1 行，不出现张三的按日明细行
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2209
+  fp_id: FP-22
+  scenario_id: SC-FP-22-02
+  point_id: TP-FP-22-02-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 「按月统计」Tab 处于某一组筛选条件下时，验证导出 Excel 的月度汇总口径与记录范围
+  test_point: 按月统计 Tab 导出的 Excel 与该 Tab 的月度汇总口径一致，不是按日明细的简单堆叠。
+  title: 逐一抄录按月列表与按月导出文件的列名，比对两者列是否同源
+  design_method: 穷举法
+  tags:
+  - 待确认
+  - 导出
+  severity: S3
+  severity_reason: 汇总列清单未定义时只能核对行数与个别列，无法判定某个统计项缺失或被取成其他口径
+  preconditions: 「按月统计」Tab 在 2026-10 月已有张三与李四的汇总行；当前登录账号为超级管理员
+  steps:
+  - 切到「按月统计」Tab，设置 2026-10 月后查询
+  - 逐列抄录列表中汇总行的列名与每一列的取值
+  - 导出该 Tab 的 Excel 文件，逐列抄录文件中出现的列名，并与列表列名比对
+  expected:
+  - 待确认：「按月统计」导出的汇总列具体包含哪些统计项（应出勤天数、实际出勤、迟到次数、早退次数、旷工天数、工作时长中的哪几项）？
+  status: pending_confirmation
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2210
+  fp_id: FP-22
+  scenario_id: SC-FP-22-03
+  point_id: TP-FP-22-03-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 同一组筛选条件下的导出与变更条件后的导出两个时点，验证导出内容与各自筛选条件的对应关系
+  test_point: 变更筛选条件后再次导出，导出内容随条件变化，不复用上一次导出的文件口径。
+  title: 先按条件组甲导出再改成条件组乙导出，比对两份文件的日期与部门列
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据一致性
+  - 导出
+  severity: S1
+  severity_reason: 第二次导出沿用上一次口径会把甲的条件混进乙的文件，交付出去的报表数字错误且无法追溯来源
+  preconditions: 按日统计 Tab 条件组甲为 2026-10-12 至 2026-10-16 加研发部（9 条），条件组乙为 2026-10-12 至 2026-10-13 加销售部（2 条）
+  steps:
+  - 在「按日统计」Tab 施加条件组甲后导出，保存文件甲并记录列表条数
+  - 把条件改为条件组乙后查询，导出保存文件乙并记录列表条数
+  - 打开文件甲与文件乙，分别核对数据行数、日期范围与部门列取值
+  expected:
+  - 文件甲的数据行数为 9，日期落在 2026-10-12 至 2026-10-16，部门列只含研发部
+  - 文件乙的数据行数为 2，日期落在 2026-10-12 至 2026-10-13，部门列只含销售部
+  - 两份文件内容不同，不存在文件乙沿用文件甲范围的情况
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2211
+  fp_id: FP-22
+  scenario_id: SC-FP-22-03
+  point_id: TP-FP-22-03-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 同一组筛选条件下的导出与变更条件后的导出两个时点，验证导出内容与各自筛选条件的对应关系
+  test_point: 变更筛选条件后再次导出，导出内容随条件变化，不复用上一次导出的文件口径。
+  title: 同一组条件在当日新增打卡前后各导一次，比对张三的记录条数
+  design_method: 场景法
+  tags:
+  - 回归
+  - 数据一致性
+  - 导出
+  severity: S2
+  severity_reason: 导出复用旧快照会把已产生的打卡漏在文件外，当日出勤核对结论与列表对不上，需要人工返工
+  preconditions: 张三 2026-10-14 已有一条上班打卡记录且尚未产生下班打卡；当前登录账号为超级管理员
+  steps:
+  - 在「按日统计」Tab 设置时间 2026-10-14 与人员张三后导出，保存第一份文件
+  - 张三在手机端完成下班打卡，回到列表刷新并确认当日新增了第二条记录
+  - 不修改任何筛选条件，再次点击导出并保存第二份文件
+  - 打开两份文件，比对张三 2026-10-14 的记录条数与打卡时间
+  expected:
+  - 第一份文件中张三 2026-10-14 只有 1 条打卡记录
+  - 第二份文件中张三 2026-10-14 有 2 条打卡记录，包含新增的下班打卡时间
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2212
+  fp_id: FP-22
+  scenario_id: SC-FP-22-03
+  point_id: TP-FP-22-03-01
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 同一组筛选条件下的导出与变更条件后的导出两个时点，验证导出内容与各自筛选条件的对应关系
+  test_point: 变更筛选条件后再次导出，导出内容随条件变化，不复用上一次导出的文件口径。
+  title: 改完筛选条件不点查询直接导出，检查文件对应哪一组条件
+  design_method: 错误推测法
+  tags:
+  - 待确认
+  - 数据一致性
+  severity: S2
+  severity_reason: 导出与列表口径不一致时管理员无法判断文件代表哪组条件，据此核对出的结果不可信且易被当成缺陷反复排查
+  preconditions: 「按日统计」Tab 当前列表处于条件组甲 2026-10-12 至 2026-10-16 加研发部共 9 条，且已导出过甲的文件
+  steps:
+  - 在「按日统计」Tab 把时间条件改为 2026-10-12 至 2026-10-13、部门改为销售部，但不点查询
+  - 直接点击该 Tab 右上角导出
+  - 打开导出文件，核对数据行数与部门列对应的是哪一组条件
+  expected:
+  - 待确认：修改筛选条件但未点击查询就点导出时，导出文件按已生效的旧条件生成，还是按工具栏控件上的新条件生成？
+  status: pending_confirmation
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2213
+  fp_id: FP-22
+  scenario_id: SC-FP-22-03
+  point_id: TP-FP-22-03-02
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 同一组筛选条件下的导出与变更条件后的导出两个时点，验证导出内容与各自筛选条件的对应关系
+  test_point: 任一 Tab 与任一组筛选条件搭配时，导出数据只与「该 Tab + 该组条件」这一组合一致。
+  title: 把两个 Tab 与两组条件交叉组合各导一次，逐份核对行数与部门
+  design_method: 穷举法
+  tags:
+  - 正向
+  - 导出
+  - 数据一致性
+  severity: S1
+  severity_reason: Tab 与条件串号会让月度报表混入按日明细或其他部门数据，文件发出后无法追溯哪份对应哪组条件
+  preconditions: 条件组甲为 2026-10-12 至 2026-10-16 加研发部，条件组乙为 2026-10 整月加销售部；两个 Tab 在两组条件下的列表条数已分别记录
+  steps:
+  - 在「按日统计」Tab 用条件组甲导出并保存文件，再不改条件切到「按月统计」Tab 导出并保存
+  - 把两个 Tab 都切到条件组乙，分别导出并保存两个文件
+  - 打开四个文件，逐份核对数据行数、日期范围、部门列与所属 Tab 的列表是否对应
+  expected:
+  - 按日统计加条件组甲的文件行数与该 Tab 在该条件下的列表条数一致，部门列只含研发部
+  - 按月统计加条件组甲的文件按员工每月 1 行，行数与按日统计的同条件文件不同
+  - 条件组乙的两个文件同样各自与对应 Tab 的列表一致，四份文件互不串用
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2214
+  fp_id: FP-22
+  scenario_id: SC-FP-22-03
+  point_id: TP-FP-22-03-02
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 同一组筛选条件下的导出与变更条件后的导出两个时点，验证导出内容与各自筛选条件的对应关系
+  test_point: 任一 Tab 与任一组筛选条件搭配时，导出数据只与「该 Tab + 该组条件」这一组合一致。
+  title: 先用无匹配条件组在两个 Tab 各导一次，再用有数据条件组导出对照
+  design_method: 等价类划分
+  tags:
+  - 边界
+  - 导出
+  - 数据一致性
+  severity: S3
+  severity_reason: 空数据导出若回退全量，管理员会把整月记录当成该区间的结果，但通过列表复核仍能发现并换条件重导
+  preconditions: 无匹配条件组为 2026-09-01 至 2026-09-03，有数据条件组为 2026-10-12 至 2026-10-16 加研发部；2026-09 月无打卡数据
+  steps:
+  - 在「按日统计」Tab 用无匹配条件组查询并导出，打开文件查看数据行
+  - 在「按月统计」Tab 用无匹配条件组查询并导出，打开文件查看数据行
+  - 两个 Tab 都改回有数据条件组查询并导出，核对文件的数据行与部门列
+  expected:
+  - 无匹配条件组在两个 Tab 下导出的文件都不含打卡数据行
+  - 有数据条件组在两个 Tab 下导出的文件数据行数与各自列表一致，部门列只含研发部
+  - 无匹配条件下的导出不回退为全量数据，也不复用上一次有数据时导出的文件
+  status: active
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点
+- id: TC-ATT-2215
+  fp_id: FP-22
+  scenario_id: SC-FP-22-03
+  point_id: TP-FP-22-03-02
+  functional_point: 按日与按月统计的 Excel 导出
+  scenario: 同一组筛选条件下的导出与变更条件后的导出两个时点，验证导出内容与各自筛选条件的对应关系
+  test_point: 任一 Tab 与任一组筛选条件搭配时，导出数据只与「该 Tab + 该组条件」这一组合一致。
+  title: 在按日 Tab 设好条件后切到按月 Tab，观察条件是否被沿用
+  design_method: 场景法
+  tags:
+  - 待确认
+  - 数据一致性
+  severity: S3
+  severity_reason: 条件在 Tab 间是否沿用未定义时，无法判定导出文件该按哪一组条件比对，核对结论可能被误判成缺陷
+  preconditions: 「按日统计」Tab 已设置时间 2026-10-12 至 2026-10-16 与部门研发部；「按月统计」Tab 尚未设置任何条件
+  steps:
+  - 在「按日统计」Tab 设置上述条件后查询
+  - 直接切到「按月统计」Tab，观察顶部工具栏各条件的取值与列表记录
+  - 在「按月统计」Tab 点击导出，打开文件核对数据范围对应的时间与部门
+  expected:
+  - 待确认：在「按日统计」Tab 设置筛选条件后切到「按月统计」Tab，筛选条件是保留还是重置；若保留，按月导出是否按保留下来的同一组条件生成？
+  status: pending_confirmation
+  source_context:
+    quote: 按日统计与按月统计两份导出数据，须分别与对应 Tab 及筛选条件一致。
+    path: wiki/attendance-management/permissions-and-export.md
+    section: 可测试的关键判定点

@@ -1,0 +1,965 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  shard: case-4
+  functional_points:
+  - FP-04
+  - FP-09
+  - FP-15
+  knowledge_sources:
+  - path: wiki/attendance-management/attendance-rule-configuration.md
+    title: 打卡规则配置
+  - path: wiki/attendance-management/special-rules-and-approval.md
+    title: 特殊打卡规则与审批校准
+cases:
+- id: TC-ATT-0401
+  fp_id: FP-04
+  scenario_id: SC-FP-04-01
+  point_id: TP-FP-04-01-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 办公地点周边 100 米与 300 米两处定位打卡，以及不同打卡地点各自的边界
+  test_point: 定位距办公地点 100 米与 300 米处的手机打卡都落在有效范围内并被放行，超出 300 米处的打卡不被放行。
+  title: 在距办公地点 100 米、300 米与 301 米处分别提交手机打卡
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S1
+  severity_reason: 300 米之外仍被放行时员工可在办公区域外完成打卡，考勤地点数据失真且事后无法从记录中识别。
+  preconditions: 规则为固定时间上下班并已添加以办公地点为中心的打卡位置；准备三名可模拟定位的测试员工 A、B、C。
+  steps:
+  - 把员工 A 的手机定位模拟到距办公地点 100 米处，提交上班打卡
+  - 把员工 B 的手机定位模拟到距办公地点 300 米处，提交上班打卡
+  - 把员工 C 的手机定位模拟到距办公地点 301 米处，提交上班打卡
+  - 在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】中打开三人的当日打卡记录
+  expected:
+  - A 在 100 米处的打卡被受理，打卡记录中新增该次记录
+  - B 在 300 米处的打卡被受理，打卡记录中新增该次记录
+  - C 在 301 米处的打卡被拒绝，C 的打卡记录不新增该次记录
+  status: active
+  source_context:
+    quote: 添加打卡位置时，以地图上的企业办公地点为中心，100至300米范围内均可成为打卡有效范围；员工携带装有企业微信的手机进入该区域即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0402
+  fp_id: FP-04
+  scenario_id: SC-FP-04-01
+  point_id: TP-FP-04-01-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 办公地点周边 100 米与 300 米两处定位打卡，以及不同打卡地点各自的边界
+  test_point: 定位距办公地点 100 米与 300 米处的手机打卡都落在有效范围内并被放行，超出 300 米处的打卡不被放行。
+  title: 用不足 100 米、100 至 300 米、超过 300 米三档定位距离划分等价类
+  design_method: 等价类划分
+  tags:
+  - 边界
+  - 待确认
+  severity: S2
+  severity_reason: 不足 100 米这一档没有判定口径时，员工站在办公地点门口却打卡失败、或被判定为范围外，受理结论都无法解释。
+  preconditions: 规则为固定时间上下班并已添加办公地点打卡位置；准备三名测试员工，可分别模拟 50 米、200 米、800 米定位。
+  steps:
+  - 把员工 A 的手机定位模拟到距办公地点 50 米处，提交上班打卡
+  - 把员工 B 的手机定位模拟到距办公地点 200 米处，提交上班打卡
+  - 把员工 C 的手机定位模拟到距办公地点 800 米处，提交上班打卡
+  - 在打卡记录中查看三人的受理结果
+  expected:
+  - 待确认：定位距办公地点不足 100 米（例如 50 米）时，是否也属于打卡有效范围并被放行？
+  status: pending_confirmation
+  source_context:
+    quote: 添加打卡位置时，以地图上的企业办公地点为中心，100至300米范围内均可成为打卡有效范围；员工携带装有企业微信的手机进入该区域即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0403
+  fp_id: FP-04
+  scenario_id: SC-FP-04-01
+  point_id: TP-FP-04-01-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 办公地点周边 100 米与 300 米两处定位打卡，以及不同打卡地点各自的边界
+  test_point: 定位距办公地点 100 米与 300 米处的手机打卡都落在有效范围内并被放行，超出 300 米处的打卡不被放行。
+  title: 员工走进办公区域后完成一次手机上下班打卡
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 主链路走不通时员工在办公区域内无法完成打卡，当日考勤直接缺失。
+  preconditions: 规则为固定时间上下班并已添加办公地点打卡位置；员工手机定位服务正常且已授权。
+  steps:
+  - 员工携带装有企业微信的手机走到办公地点，确认定位落在打卡范围内
+  - 在手机端打开打卡应用，点击上班打卡
+  - 当日下班时间到达后，再次点击下班打卡
+  - 在【管理后台】打卡记录中打开该员工当日考勤明细
+  expected:
+  - 上班与下班两次打卡均生成记录
+  - 两条记录的打卡时间与实际提交时间一致
+  - 两条记录的打卡地点均为该办公地点
+  status: active
+  source_context:
+    quote: 添加打卡位置时，以地图上的企业办公地点为中心，100至300米范围内均可成为打卡有效范围；员工携带装有企业微信的手机进入该区域即可打卡。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0404
+  fp_id: FP-04
+  scenario_id: SC-FP-04-01
+  point_id: TP-FP-04-01-02
+  functional_point: 打卡地点与设备范围校验
+  scenario: 办公地点周边 100 米与 300 米两处定位打卡，以及不同打卡地点各自的边界
+  test_point: 打卡有效范围的 100 至 300 米边界按打卡地点各自生效，一个地点设定的范围不套用到另一个地点。
+  title: 给两个打卡地点各配 100 米与 300 米范围后到两地临界距离处打卡
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据一致性
+  severity: S2
+  severity_reason: 范围配置跨地点串用会让某地点的有效范围被放大或缩小，打卡受理结论与该地点自己的配置不一致。
+  preconditions: 规则为固定时间上下班；准备三名可模拟定位的测试员工 A、B、C。
+  steps:
+  - 在规则中添加打卡位置 A，把有效范围设为 100 米；添加打卡位置 B，把有效范围设为 300 米
+  - 把员工 A 的定位模拟到距 A 100 米处，提交上班打卡
+  - 把员工 B 的定位模拟到距 B 300 米处，提交上班打卡
+  - 把员工 C 的定位模拟到距 A 150 米处，提交上班打卡
+  - 在打卡记录中查看三人的受理结果
+  expected:
+  - A 在距 A 100 米处的打卡被受理
+  - B 在距 B 300 米处的打卡被受理
+  - C 在距 A 150 米处的打卡被拒绝，A 的 100 米范围未套用 B 的 300 米
+  status: active
+  source_context:
+    quote: 打卡范围的边界值（100至300米）需按地点维度验证生效。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0405
+  fp_id: FP-04
+  scenario_id: SC-FP-04-01
+  point_id: TP-FP-04-01-02
+  functional_point: 打卡地点与设备范围校验
+  scenario: 办公地点周边 100 米与 300 米两处定位打卡，以及不同打卡地点各自的边界
+  test_point: 打卡有效范围的 100 至 300 米边界按打卡地点各自生效，一个地点设定的范围不套用到另一个地点。
+  title: 员工从 B 地点范围外走到范围内再完成一次打卡
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 两地点范围互相影响时，某地点的打卡会在另一地点留下记录，考勤归属错乱。
+  preconditions: 打卡位置 A 的有效范围设为 100 米、打卡位置 B 设为 300 米；同一员工当日未在其他地点打卡。
+  steps:
+  - 员工站到距 B 地点 350 米处，提交上班打卡
+  - 员工走到距 B 地点 250 米处，再次提交上班打卡
+  - 在打卡记录中比对 B 地点两次受理结果与该员工在 A 地点附近的当日记录
+  expected:
+  - 距 B 350 米处的打卡被拒绝
+  - 距 B 250 米处的打卡被受理并生成记录
+  - 该员工当日记录中不出现 A 地点的打卡记录
+  status: active
+  source_context:
+    quote: 打卡范围的边界值（100至300米）需按地点维度验证生效。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0406
+  fp_id: FP-04
+  scenario_id: SC-FP-04-02
+  point_id: TP-FP-04-02-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 规则内人员在非指定考勤机上打卡、以及考勤机人数达到上限后被选中或已被规则引用
+  test_point: 人数已达上限的考勤机不出现在可选打卡设备列表中，无法被规则选中。
+  title: 把考勤机人数依次调到上限减一、恰好上限与上限加一后查可选设备列表
+  design_method: 边界值法
+  tags:
+  - 边界
+  severity: S2
+  severity_reason: 达上限的设备仍可被选中会让超额人员被排进该设备，打卡时可能整批失败。
+  preconditions: 企业已接入一台企业微信智能考勤机，已知其人数上限 N；具备把该设备人数调整为 N-1、N、N+1 的条件。
+  steps:
+  - 把考勤机人数调整为 N-1，在添加规则页查看智能考勤机的可选设备列表
+  - 把人数调整为 N，刷新设备列表后再次查看
+  - 把人数调整为 N+1，刷新设备列表后再次查看
+  expected:
+  - 人数为 N-1 时该考勤机出现在可选设备列表中
+  - 人数为 N 时该考勤机不出现在可选设备列表中
+  - 人数为 N+1 时该考勤机同样不出现在可选设备列表中
+  status: active
+  source_context:
+    quote: 人数已达上限的考勤机不得出现在可选设备列表中；若已被规则引用后达到上限，需确认打卡是否被拒。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0407
+  fp_id: FP-04
+  scenario_id: SC-FP-04-02
+  point_id: TP-FP-04-02-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 规则内人员在非指定考勤机上打卡、以及考勤机人数达到上限后被选中或已被规则引用
+  test_point: 人数已达上限的考勤机不出现在可选打卡设备列表中，无法被规则选中。
+  title: 在添加规则页按设备名称检索并尝试勾选已达上限的考勤机
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 若可绕过列表限制选中超限设备，规则内员工到岗打卡会直接落到已满员设备上。
+  preconditions: 已有一台人数达到上限的智能考勤机，并已知其设备名称；管理后台可打开添加规则页。
+  steps:
+  - 在添加规则页把打卡方式切换为智能考勤机
+  - 在设备列表的搜索框中输入已达上限考勤机的设备名称
+  - 尝试勾选搜索结果中的该考勤机，然后保存规则
+  expected:
+  - 该考勤机不出现在搜索结果中，无法被勾选
+  - 规则保存后打卡设备中不含该考勤机
+  status: active
+  source_context:
+    quote: 人数已达上限的考勤机不得出现在可选设备列表中；若已被规则引用后达到上限，需确认打卡是否被拒。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0408
+  fp_id: FP-04
+  scenario_id: SC-FP-04-02
+  point_id: TP-FP-04-02-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 规则内人员在非指定考勤机上打卡、以及考勤机人数达到上限后被选中或已被规则引用
+  test_point: 人数已达上限的考勤机不出现在可选打卡设备列表中，无法被规则选中。
+  title: 让已被规则引用的考勤机达到人数上限后在该设备打卡
+  design_method: 场景法
+  tags:
+  - 边界
+  - 待确认
+  severity: S2
+  severity_reason: 达上限后的打卡若无明确口径，员工到岗却无法打卡，或打卡记录被静默丢弃。
+  preconditions: 某条智能考勤机规则已把考勤机 M 设为打卡设备；M 当前人数为上限减一；M 上有一名该规则内的员工。
+  steps:
+  - 为考勤机 M 新增一名员工，使其人数达到上限
+  - 让规则内的员工在该考勤机 M 上打卡
+  - 在打卡记录中查看该员工当日该时段的受理结果
+  expected:
+  - 待确认：考勤机已被规则引用后人数达到上限，员工在该设备上打卡应被拒绝还是照常受理？
+  status: pending_confirmation
+  source_context:
+    quote: 人数已达上限的考勤机不得出现在可选设备列表中；若已被规则引用后达到上限，需确认打卡是否被拒。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0409
+  fp_id: FP-04
+  scenario_id: SC-FP-04-02
+  point_id: TP-FP-04-02-02
+  functional_point: 打卡地点与设备范围校验
+  scenario: 规则内人员在非指定考勤机上打卡、以及考勤机人数达到上限后被选中或已被规则引用
+  test_point: 考勤机人数超过上限后不能作为打卡设备被规则选中。
+  title: 同一台考勤机人数增至上限前后各查一次可选性并尝试保存规则
+  design_method: 边界值法
+  tags:
+  - 边界
+  severity: S2
+  severity_reason: 上限这一刻的可选性判断错一位，超限设备就会进入规则。
+  preconditions: 已接入一台智能考勤机，人数上限为 N，可通过增删员工调整其在册人数。
+  steps:
+  - 把该考勤机人数调整为 N-1，在添加规则页查看其可选性
+  - 把人数调整为恰好 N，刷新后再次查看其可选性
+  - 以该设备为打卡设备保存一条智能考勤机规则
+  expected:
+  - 人数为 N-1 时该设备可被选中
+  - 人数恰好为 N 时该设备不可被选中
+  - 保存请求被拒绝，规则未绑定该设备
+  status: active
+  source_context:
+    quote: 这里存在容量约束：每台考勤机有相应的人数上限，人数超限的考勤机不能作为打卡设备被选中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0410
+  fp_id: FP-04
+  scenario_id: SC-FP-04-02
+  point_id: TP-FP-04-02-02
+  functional_point: 打卡地点与设备范围校验
+  scenario: 规则内人员在非指定考勤机上打卡、以及考勤机人数达到上限后被选中或已被规则引用
+  test_point: 考勤机人数超过上限后不能作为打卡设备被规则选中。
+  title: 从未超限与已超限两类设备中各取一台分别设为打卡设备
+  design_method: 等价类划分
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 两类设备若得到同一结论，容量约束整体失效，超限打卡会集中落在一台设备上。
+  preconditions: 企业内至少有两台智能考勤机：一台人数远未达上限，一台人数已超限；已知各自设备名称。
+  steps:
+  - 在设备列表中挑出一台人数远未达上限的考勤机和一台人数已超限的考勤机
+  - 把未超限的考勤机设为某规则的打卡设备并保存
+  - 另建一条规则，尝试把已超限的考勤机设为打卡设备并保存
+  expected:
+  - 未超限的考勤机被成功设为规则打卡设备
+  - 已超限的考勤机无法被选中，保存后该规则未绑定该设备
+  status: active
+  source_context:
+    quote: 这里存在容量约束：每台考勤机有相应的人数上限，人数超限的考勤机不能作为打卡设备被选中。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0411
+  fp_id: FP-04
+  scenario_id: SC-FP-04-03
+  point_id: TP-FP-04-03-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 通过 IT 管理员询问或扫描二维码取得 Wi-Fi 的 MAC 地址/bssid 并录入规则后
+  test_point: 员工连上目标 Wi-Fi 后扫描添加 WIFI 页面上的二维码，能取得该 Wi-Fi 的 bssid 地址用于规则配置。
+  title: 连上办公 Wi-Fi 后扫码取得 bssid 并填进规则
+  design_method: 场景法
+  tags:
+  - 正向
+  - 集成
+  severity: S3
+  severity_reason: 扫码路径失效时仍可向 IT 管理员询问地址，影响限于配置效率，Wi-Fi 打卡本身还有替代做法。
+  preconditions: 办公地点已部署目标 Wi-Fi；手机已安装最新版企业微信并连上该 Wi-Fi；可打开添加 WIFI 页面。
+  steps:
+  - 用手机连上目标 Wi-Fi
+  - 在企业微信中打开添加 WIFI 页面，扫描页面上的二维码
+  - 记录页面回显的 bssid，把它填入规则并保存
+  expected:
+  - 扫码后页面回显该 Wi-Fi 的 bssid 地址
+  - 保存后规则内的 WIFI 凭证与该 bssid 一致
+  status: active
+  source_context:
+    quote: 获取途径有两条：向网络 IT 管理员询问，或用手机连上目标 Wi-Fi 后，用最新版企业微信手机客户端扫描添加 WIFI 页面上的二维码获取地址。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0412
+  fp_id: FP-04
+  scenario_id: SC-FP-04-03
+  point_id: TP-FP-04-03-01
+  functional_point: 打卡地点与设备范围校验
+  scenario: 通过 IT 管理员询问或扫描二维码取得 Wi-Fi 的 MAC 地址/bssid 并录入规则后
+  test_point: 员工连上目标 Wi-Fi 后扫描添加 WIFI 页面上的二维码，能取得该 Wi-Fi 的 bssid 地址用于规则配置。
+  title: 分别用 IT 提供的地址与扫码得到的地址配置同一 Wi-Fi 凭证
+  design_method: 等价类划分
+  tags:
+  - 数据一致性
+  severity: S3
+  severity_reason: 两条途径取值不一致时配置人员无从判断哪个可用，Wi-Fi 打卡会时好时坏。
+  preconditions: 办公地点已部署目标 Wi-Fi；网络 IT 管理员可提供该 Wi-Fi 的 bssid；手机可连上该 Wi-Fi。
+  steps:
+  - 向网络 IT 管理员询问目标 Wi-Fi 的 bssid 并记录
+  - 用手机连上同一 Wi-Fi 后扫码，取得页面回显的 bssid 并记录
+  - 把两个 bssid 分别填入两条规则的 WIFI 凭证并保存
+  expected:
+  - 两条途径取得的 bssid 字符串相同
+  - 两条规则保存后的 WIFI 凭证一致
+  status: active
+  source_context:
+    quote: 获取途径有两条：向网络 IT 管理员询问，或用手机连上目标 Wi-Fi 后，用最新版企业微信手机客户端扫描添加 WIFI 页面上的二维码获取地址。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0413
+  fp_id: FP-04
+  scenario_id: SC-FP-04-03
+  point_id: TP-FP-04-03-02
+  functional_point: 打卡地点与设备范围校验
+  scenario: 通过 IT 管理员询问或扫描二维码取得 Wi-Fi 的 MAC 地址/bssid 并录入规则后
+  test_point: 规则中提交的 Wi-Fi 凭证是 MAC 地址/bssid，员工连上该 Wi-Fi 后即满足手机打卡的地点校验条件。
+  title: 组合 Wi-Fi 凭证是否匹配与定位是否在范围内各提交一次打卡
+  design_method: 因果图法
+  tags:
+  - 安全
+  - 数据准确性
+  severity: S1
+  severity_reason: bssid 不匹配仍被放行时，员工连上任意 Wi-Fi 即可完成打卡，地点校验形同虚设。
+  preconditions: 规则已录入办公 Wi-Fi 的 bssid；准备三台手机：一台连该 Wi-Fi、一台连同名但 bssid 不同的 Wi-Fi、一台连该 Wi-Fi 且定位在范围内；另可模拟范围外定位。
+  steps:
+  - 让连上 bssid 与规则一致的员工在定位范围外提交打卡
+  - 让连上同名但 bssid 不同的 Wi-Fi 的员工在定位范围外提交打卡
+  - 让连上 bssid 一致且定位在范围内的员工提交打卡
+  - 在打卡记录中比对三次受理结果
+  expected:
+  - bssid 一致、定位在范围外的打卡被受理
+  - bssid 不同、定位在范围外的打卡被拒绝
+  - bssid 一致、定位在范围内的打卡被受理
+  status: active
+  source_context:
+    quote: WIFI 打卡需要提交 Wi-Fi 的 MAC 地址/bssid。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0414
+  fp_id: FP-04
+  scenario_id: SC-FP-04-03
+  point_id: TP-FP-04-03-02
+  functional_point: 打卡地点与设备范围校验
+  scenario: 通过 IT 管理员询问或扫描二维码取得 Wi-Fi 的 MAC 地址/bssid 并录入规则后
+  test_point: 规则中提交的 Wi-Fi 凭证是 MAC 地址/bssid，员工连上该 Wi-Fi 后即满足手机打卡的地点校验条件。
+  title: 录入 bssid 后由员工连办公 Wi-Fi 走完一次上下班打卡
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: Wi-Fi 凭证配置后员工仍无法打卡，等于办公地点的 Wi-Fi 打卡方式整体不可用。
+  preconditions: 规则已录入办公 Wi-Fi 的 bssid；员工手机可连上该 Wi-Fi；当日为工作日。
+  steps:
+  - 管理员在规则中录入办公 Wi-Fi 的 bssid 并保存
+  - 员工把手机连上该 Wi-Fi 后提交上班打卡
+  - 员工下班时连同一 Wi-Fi 提交下班打卡
+  - 在打卡记录中查看该员工当日两条记录
+  expected:
+  - 两次打卡均被受理并生成记录
+  - 两条记录的时间与实际提交时间一致
+  status: active
+  source_context:
+    quote: WIFI 打卡需要提交 Wi-Fi 的 MAC 地址/bssid。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡地点与打卡范围
+- id: TC-ATT-0901
+  fp_id: FP-09
+  scenario_id: SC-FP-09-01
+  point_id: TP-FP-09-01-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 打卡规则未勾选「员工打卡必须拍照」，员工提交的打卡不带照片
+  test_point: 规则未勾选「员工打卡必须拍照」时，员工提交的不含照片的打卡被受理并写入当日考勤记录。
+  title: 在未勾选必须拍照的规则下分别提交带照片与不带照片的打卡
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 未强制拍照的规则若拒绝无照片打卡，员工按默认设置无法打卡，上下班打卡主链路直接中断。
+  preconditions: 规则未勾选「员工打卡必须拍照」；同一测试员工可用两次提交构造带照片与不带照片两条打卡。
+  steps:
+  - 用该员工身份提交一条不带照片的上班打卡
+  - 用该员工身份提交一条带照片的上班打卡
+  - 在打卡记录中查看两条记录的受理结果与照片字段
+  expected:
+  - 不带照片的打卡被受理并生成记录，照片字段为空
+  - 带照片的打卡同样被受理并生成记录，照片字段有图片
+  status: active
+  source_context:
+    quote: 未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0902
+  fp_id: FP-09
+  scenario_id: SC-FP-09-01
+  point_id: TP-FP-09-01-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 打卡规则未勾选「员工打卡必须拍照」，员工提交的打卡不带照片
+  test_point: 规则未勾选「员工打卡必须拍照」时，员工提交的不含照片的打卡被受理并写入当日考勤记录。
+  title: 在未勾选必须拍照的规则下走完一天的上下班打卡
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 缺照片被误判为异常会让正常出勤的员工被判异常，人事需逐条处理申诉。
+  preconditions: 规则未勾选「员工打卡必须拍照」；员工手机可正常打卡；当日为工作日。
+  steps:
+  - 员工上午在打卡应用内不拍照直接提交上班打卡
+  - 员工下班时同样不拍照提交下班打卡
+  - 在【管理后台】打开该员工当日考勤明细
+  expected:
+  - 上班与下班两条打卡记录均存在
+  - 当日考勤明细中不出现因缺照片产生的异常标记
+  status: active
+  source_context:
+    quote: 未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0903
+  fp_id: FP-09
+  scenario_id: SC-FP-09-02
+  point_id: TP-FP-09-02-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 打卡规则勾选「员工打卡必须拍照」，打卡请求不携带照片
+  test_point: 规则勾选「员工打卡必须拍照」后，不携带照片的打卡请求被拒绝，当日该时段不生成打卡记录。
+  title: 在勾选必须拍照的规则下分别提交带照片与不带照片的打卡
+  design_method: 等价类划分
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S1
+  severity_reason: 缺照片的打卡被放行时强制拍照要求失效，员工可用无凭证打卡顶替，考勤记录失去防作弊依据。
+  preconditions: 规则已勾选「员工打卡必须拍照」；同一测试员工可用两次提交构造带照片与不带照片两条打卡。
+  steps:
+  - 用该员工身份提交一条不带照片的上班打卡
+  - 用该员工身份提交一条带照片的上班打卡
+  - 在打卡记录中比对两条请求的受理结论
+  expected:
+  - 不带照片的打卡请求被拒绝，并返回缺照片的拒绝结果
+  - 带照片的打卡请求被受理并生成记录
+  status: active
+  source_context:
+    quote: 未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0904
+  fp_id: FP-09
+  scenario_id: SC-FP-09-02
+  point_id: TP-FP-09-02-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 打卡规则勾选「员工打卡必须拍照」，打卡请求不携带照片
+  test_point: 规则勾选「员工打卡必须拍照」后，不携带照片的打卡请求被拒绝，当日该时段不生成打卡记录。
+  title: 绕过打卡页面直接提交一条不含照片的打卡请求
+  design_method: 异常法
+  tags:
+  - 异常
+  - 安全
+  severity: S1
+  severity_reason: 绕过页面的提交若被受理，说明拍照校验只在界面层生效，员工可批量伪造无照片打卡绕过规则。
+  preconditions: 规则已勾选「员工打卡必须拍照」；已取得该员工打卡提交接口的请求样例与身份凭证。
+  steps:
+  - 以该员工身份构造一条不含照片字段的打卡提交请求
+  - 不经打卡页面直接发送该请求
+  - 在打卡记录中查看该员工当日是否新增记录
+  expected:
+  - 该请求被拒绝，不生成打卡记录
+  - 该员工当日该时段仍为未打卡状态
+  status: active
+  source_context:
+    quote: 未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0905
+  fp_id: FP-09
+  scenario_id: SC-FP-09-02
+  point_id: TP-FP-09-02-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 打卡规则勾选「员工打卡必须拍照」，打卡请求不携带照片
+  test_point: 规则勾选「员工打卡必须拍照」后，不携带照片的打卡请求被拒绝，当日该时段不生成打卡记录。
+  title: 从本地相册挑一张既有照片当作打卡照片提交
+  design_method: 逆向场景法
+  tags:
+  - 边界
+  - 待确认
+  severity: S2
+  severity_reason: 相册照片若被受理，强制拍照无法排除用旧照顶替，防作弊效果取决于未知的取值口径。
+  preconditions: 规则已勾选「员工打卡必须拍照」；手机相册中存有该员工本人更早时间拍摄的照片。
+  steps:
+  - 员工打卡时不走相机，改为从本地相册选取一张既有照片
+  - 带着该照片提交上班打卡
+  - 在打卡记录中查看该次请求的受理结果与照片来源
+  expected:
+  - 待确认：勾选「员工打卡必须拍照」后，从本地相册选取的既有照片能否作为打卡照片提交并被受理？
+  status: pending_confirmation
+  source_context:
+    quote: 未勾选“员工打卡必须拍照”时，无照片打卡应能通过；勾选后，缺照片必须被拒绝。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0906
+  fp_id: FP-09
+  scenario_id: SC-FP-09-03
+  point_id: TP-FP-09-03-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 勾选「备注不允许上传本地图片，只能拍照」的规则下，分别以本地相册图片和现场拍摄作为异常打卡备注图片来源
+  test_point: 勾选「备注不允许上传本地图片，只能拍照」后，以本地相册图片作为异常打卡备注图片来源的提交被拦截。
+  title: 以本地相册图片作为异常打卡的备注图上传
+  design_method: 异常法
+  tags:
+  - 异常
+  - 安全
+  severity: S1
+  severity_reason: 相册图可被任意旧照片顶替，限制失效后异常说明的证据可伪造，考勤申诉结论不可信。
+  preconditions: 规则已勾选「备注不允许上传本地图片，只能拍照」；员工当日有一次迟到异常可提交备注。
+  steps:
+  - 员工针对该次迟到异常打开备注入口
+  - 从本地相册选取一张图片作为备注图
+  - 提交备注后刷新该条异常打卡记录
+  expected:
+  - 相册来源的备注图提交被拦截
+  - 该条异常打卡记录的备注图片为空
+  status: active
+  source_context:
+    quote: 开启“备注不允许上传本地图片，只能拍照”后，相册来源的备注图必须被拦截。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0907
+  fp_id: FP-09
+  scenario_id: SC-FP-09-03
+  point_id: TP-FP-09-03-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 勾选「备注不允许上传本地图片，只能拍照」的规则下，分别以本地相册图片和现场拍摄作为异常打卡备注图片来源
+  test_point: 勾选「备注不允许上传本地图片，只能拍照」后，以本地相册图片作为异常打卡备注图片来源的提交被拦截。
+  title: 先现场拍一张再把备注图替换为相册图片后提交
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 安全
+  severity: S2
+  severity_reason: 替换路径未被拦住时单条异常记录的备注图可被换掉，需回溯该条记录重新取证。
+  preconditions: 规则已勾选「备注不允许上传本地图片，只能拍照」；员工当日有一次早退异常可提交备注。
+  steps:
+  - 员工针对该次早退异常先现场拍摄一张照片作为备注图
+  - 在提交前把该备注图替换为本地相册中的图片
+  - 提交备注后查看该条记录的备注图来源
+  expected:
+  - 替换后的相册图提交被拦截
+  - 该条记录的备注图片仍为现场拍摄的那张
+  status: active
+  source_context:
+    quote: 开启“备注不允许上传本地图片，只能拍照”后，相册来源的备注图必须被拦截。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0908
+  fp_id: FP-09
+  scenario_id: SC-FP-09-03
+  point_id: TP-FP-09-03-01
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 勾选「备注不允许上传本地图片，只能拍照」的规则下，分别以本地相册图片和现场拍摄作为异常打卡备注图片来源
+  test_point: 勾选「备注不允许上传本地图片，只能拍照」后，以本地相册图片作为异常打卡备注图片来源的提交被拦截。
+  title: 断网时选好相册图再恢复网络提交备份注
+  design_method: 错误推测法
+  tags:
+  - 异常
+  - 安全
+  severity: S2
+  severity_reason: 来源校验若只在选图时生效，弱网或断网重试即可把相册图带进来，限制形同摆设。
+  preconditions: 规则已勾选「备注不允许上传本地图片，只能拍照」；员工当日有一次迟到异常可提交备注；手机可断开与恢复网络。
+  steps:
+  - 员工断网状态下打开异常备注入口，选中一张本地相册图片
+  - 恢复手机网络后提交该备注
+  - 查看该条记录的备注图来源与受理结果
+  expected:
+  - 联网提交时该相册图仍被拦截
+  - 该条记录未保存该相册图
+  status: active
+  source_context:
+    quote: 开启“备注不允许上传本地图片，只能拍照”后，相册来源的备注图必须被拦截。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0909
+  fp_id: FP-09
+  scenario_id: SC-FP-09-03
+  point_id: TP-FP-09-03-02
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 勾选「备注不允许上传本地图片，只能拍照」的规则下，分别以本地相册图片和现场拍摄作为异常打卡备注图片来源
+  test_point: 同一规则下，现场拍摄的备注图片仍可提交成功并随该条异常打卡记录保存。
+  title: 在只能拍照的规则下分别以现场拍摄与相册图提交备注
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 现场拍摄这条唯一合法路径被误拦时，员工无法为异常打卡补充证据，申诉只能走线下。
+  preconditions: 规则已勾选「备注不允许上传本地图片，只能拍照」；员工当日有一次迟到异常可提交备注。
+  steps:
+  - 员工针对该次异常打卡现场拍摄一张照片作为备注图并提交
+  - 员工针对同一次异常打卡改从本地相册选图并提交
+  - 在打卡记录中查看两次备注的受理结果与备注图
+  expected:
+  - 现场拍摄的备注图提交成功，并保存在该条异常记录上
+  - 相册来源的备注提交被拦截，记录上的备注图不改变
+  status: active
+  source_context:
+    quote: 配套的强约束针对异常打卡的备注图片：勾选“备注不允许上传本地图片，只能拍照”后，备注只能现场拍摄上传，本地相册图片被禁止。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 拍照打卡
+- id: TC-ATT-0910
+  fp_id: FP-09
+  scenario_id: SC-FP-09-03
+  point_id: TP-FP-09-03-02
+  functional_point: 打卡拍照与备注图片来源约束
+  scenario: 勾选「备注不允许上传本地图片，只能拍照」的规则下，分别以本地相册图片和现场拍摄作为异常打卡备注图片来源
+  test_point: 同一规则下，现场拍摄的备注图片仍可提交成功并随该条异常打卡记录保存。
+  title: 迟到后现场拍照补充异常打卡备注并回查记录
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 备注链路断裂时异常原因无从追溯，人事核对只能依赖员工线下说明。
+  preconditions: 规则已勾选「备注不允许上传本地图片，只能拍照」；员工当日迟到并在打卡记录中产生迟到异常。
+  steps:
+  - 员工在手机端打开该条迟到异常的备注入口
+  - 现场拍照后提交该备注
+  - 在【管理后台】打卡记录中打开该条异常记录
+  expected:
+  - 该条异常记录的备注图片为刚拍摄的照片
+  - 该条记录仍保留迟到异常标记
+  status: active
+  source_context:
+    quote: 配套的强约束针对异常打卡的备注图片：勾选“备注不允许上传本地图片，只能拍照”后，备注只能现场拍摄上传，本地相册图片被禁止。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 拍照打卡
+- id: TC-ATT-1501
+  fp_id: FP-15
+  scenario_id: SC-FP-15-01
+  point_id: TP-FP-15-01-01
+  functional_point: 审批数据关联与异常校准
+  scenario: 员工上班早退 2 小时、且存在同一时间段 2 小时已通过事假
+  test_point: 员工上班早退 2 小时且存在同一时间段 2 小时已通过事假时，其当日打卡状态被校准为「正常」。
+  title: 早退 2 小时后用同时段 2 小时事假走完审批并查校准状态
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S1
+  severity_reason: 校准未发生或结果错误时员工被记为早退，考勤结论与审批事实相反，直接影响薪资核算。
+  preconditions: 请假审批模板已在【审批】中启用；员工所属规则为固定时间上下班；员工当日上班并按规则早退 2 小时。
+  steps:
+  - 员工当日提前 2 小时下班打卡，确认打卡记录中出现早退异常
+  - 员工提交同一时间段 2 小时的事假申请，由上级审批通过
+  - 在【打卡记录】>【校准状态】中查看该员工当日状态
+  expected:
+  - 该员工当日打卡状态为「正常」
+  - 【校准状态】中出现该日期的校准记录
+  status: active
+  source_context:
+    quote: 两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: TC-ATT-1502
+  fp_id: FP-15
+  scenario_id: SC-FP-15-01
+  point_id: TP-FP-15-01-01
+  functional_point: 审批数据关联与异常校准
+  scenario: 员工上班早退 2 小时、且存在同一时间段 2 小时已通过事假
+  test_point: 员工上班早退 2 小时且存在同一时间段 2 小时已通过事假时，其当日打卡状态被校准为「正常」。
+  title: 分别用事假、外出与出差三类已通过单据匹配同一时段异常
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 某一类审批模板不参与校准会让对应异常无法被解释，人事只能逐条人工核对。
+  preconditions: 请假、外出、出差三个审批模板均已在【审批】中启用；三名员工各有一条同时段 2 小时的早退异常。
+  steps:
+  - 让三名员工各产生一条同时段 2 小时的早退异常
+  - 分别为三人提交同时段 2 小时的事假、外出、出差申请并全部审批通过
+  - 在【打卡记录】>【校准状态】中查看三人当日状态
+  expected:
+  - 匹配事假单据的员工当日状态为「正常」
+  - 匹配外出单据的员工当日状态为「正常」
+  - 匹配出差单据的员工当日状态为「正常」
+  status: active
+  source_context:
+    quote: 两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: TC-ATT-1503
+  fp_id: FP-15
+  scenario_id: SC-FP-15-02
+  point_id: TP-FP-15-02-01
+  functional_point: 审批数据关联与异常校准
+  scenario: 员工非工作日打了 10 小时加班卡、且当日存在已通过加班申请
+  test_point: 员工非工作日打了 10 小时加班卡且当日存在已通过加班申请时，校准后该日状态为「加班正常」。
+  title: 非工作日打满 10 小时加班卡后用当日加班申请校准
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 加班卡未按加班申请校准会让加班时长漏记，调休与加班结算的人工核对全部落到线下。
+  preconditions: 加班审批模板已在【审批】中启用；员工所属规则允许非工作日打卡；当日为非工作日。
+  steps:
+  - 员工在非工作日签到并累计 10 小时加班卡
+  - 员工提交当日加班申请，由上级审批通过
+  - 在【打卡记录】>【校准状态】中查看该员工该日状态
+  expected:
+  - 该员工该日状态为「加班正常」
+  - 【校准状态】中出现该日期的校准记录
+  status: active
+  source_context:
+    quote: 开启模板后，针对当天打卡状态异常的员工，系统自动核对该员工已通过的请假、出差、外出、加班、打卡补卡审批单据；若正好匹配，则校准其打卡状态，并展示在【打卡记录】>【校准状态】。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: TC-ATT-1504
+  fp_id: FP-15
+  scenario_id: SC-FP-15-02
+  point_id: TP-FP-15-02-01
+  functional_point: 审批数据关联与异常校准
+  scenario: 员工非工作日打了 10 小时加班卡、且当日存在已通过加班申请
+  test_point: 员工非工作日打了 10 小时加班卡且当日存在已通过加班申请时，校准后该日状态为「加班正常」。
+  title: 用审批中与已通过两档加班申请分别匹配同一张加班卡
+  design_method: 等价类划分
+  tags:
+  - 数据准确性
+  - 数据一致性
+  severity: S2
+  severity_reason: 审批中的单据被当作已通过参与校准，会让未获批的加班直接计入考勤，事后需人工回溯。
+  preconditions: 加班审批模板已启用；员工在非工作日已打满 10 小时加班卡；加班申请可由上级停留或审批通过。
+  steps:
+  - 员工提交 10 小时加班申请，保持审批中状态
+  - 在【打卡记录】>【校准状态】中查看该员工该日状态
+  - 由上级审批通过该申请，再次查看该日状态
+  expected:
+  - 审批中时该日状态保持为加班异常，不出现校准记录
+  - 审批通过后该日状态变为「加班正常」
+  status: active
+  source_context:
+    quote: 开启模板后，针对当天打卡状态异常的员工，系统自动核对该员工已通过的请假、出差、外出、加班、打卡补卡审批单据；若正好匹配，则校准其打卡状态，并展示在【打卡记录】>【校准状态】。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: TC-ATT-1505
+  fp_id: FP-15
+  scenario_id: SC-FP-15-03
+  point_id: TP-FP-15-03-01
+  functional_point: 审批数据关联与异常校准
+  scenario: 异常时段与任何已通过审批的时间段都不重叠、或该员工根本不存在对应审批
+  test_point: 异常时段不存在匹配的已通过审批时，该异常状态保持原样，不出现任何校准记录。
+  title: 早退异常当天不提交任何审批后查看状态与校准记录
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S1
+  severity_reason: 无审批的异常被清掉等于把未解释的考勤问题抹平，考勤结论失真且无法回溯。
+  preconditions: 员工所属规则为固定时间上下班；请假、出差、外出、加班、打卡补卡模板均已启用；员工当日早退 2 小时且不提交任何审批。
+  steps:
+  - 员工当日早退 2 小时，确认打卡记录中出现早退异常
+  - 当日不提交请假、出差、外出、加班或补卡申请
+  - 在【打卡记录】>【校准状态】中查看该员工该日状态
+  expected:
+  - 该员工当日状态仍为早退异常
+  - 【校准状态】中不存在该日期的校准记录
+  status: active
+  source_context:
+    quote: 两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: TC-ATT-1506
+  fp_id: FP-15
+  scenario_id: SC-FP-15-03
+  point_id: TP-FP-15-03-01
+  functional_point: 审批数据关联与异常校准
+  scenario: 异常时段与任何已通过审批的时间段都不重叠、或该员工根本不存在对应审批
+  test_point: 异常时段不存在匹配的已通过审批时，该异常状态保持原样，不出现任何校准记录。
+  title: 已通过事假被撤销后重新查看打卡状态与校准状态
+  design_method: 异常法
+  tags:
+  - 异常
+  - 数据一致性
+  severity: S2
+  severity_reason: 撤销的单据仍在参与校准会让考勤状态停留在过期结论上，撤销动作无人可见。
+  preconditions: 请假审批模板已启用；员工当日早退 2 小时并已提交同时段 2 小时事假且审批通过；审批人可在【审批】应用撤销该单据。
+  steps:
+  - 确认该员工当日状态已被校准为「正常」
+  - 由审批人在【审批】应用中撤销该事假单据
+  - 重新打开该员工当日记录，查看打卡状态与校准状态
+  expected:
+  - 撤销后该员工当日状态回到早退异常
+  - 【校准状态】中不再显示该日期的校准记录
+  status: active
+  source_context:
+    quote: 两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: TC-ATT-1507
+  fp_id: FP-15
+  scenario_id: SC-FP-15-03
+  point_id: TP-FP-15-03-01
+  functional_point: 审批数据关联与异常校准
+  scenario: 异常时段与任何已通过审批的时间段都不重叠、或该员工根本不存在对应审批
+  test_point: 异常时段不存在匹配的已通过审批时，该异常状态保持原样，不出现任何校准记录。
+  title: 按审批状态与时段是否重合的四组条件各触发一次校准
+  design_method: 因果图法
+  tags:
+  - 边界
+  - 数据一致性
+  severity: S2
+  severity_reason: 组合矩阵判错会让不该校准的异常被清掉、该清的异常留在名单里，两种情况都要人工返工。
+  preconditions: 请假审批模板已启用；四名员工各有一条同时段 2 小时的早退异常；可构造已通过、审批中、已撤销三种单据状态。
+  steps:
+  - 为四名员工各造一条同时段 2 小时的早退异常
+  - 分别挂上已通过且时段重合的事假、已通过但时段错开 1 小时的事假、审批中的同时段事假、已撤销的同时段事假
+  - 在【打卡记录】>【校准状态】中查看四人当日状态
+  expected:
+  - 仅挂「已通过且时段重合」事假的员工当日状态为「正常」
+  - 挂「已通过但时段错开」事假的员工保持早退异常
+  - 挂「审批中」与「已撤销」事假的员工均保持早退异常
+  status: active
+  source_context:
+    quote: 两个例子共同的前提是「审批是否匹配」：匹配即校准，未匹配的异常状态保持原样。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡与审批的关联
+- id: TC-ATT-1508
+  fp_id: FP-15
+  scenario_id: SC-FP-15-03
+  point_id: TP-FP-15-03-02
+  functional_point: 审批数据关联与异常校准
+  scenario: 异常时段与任何已通过审批的时间段都不重叠、或该员工根本不存在对应审批
+  test_point: 审批覆盖时段之外的异常不被一并校准，只有与审批时段重叠的那部分异常转为正常。
+  title: 审批时段与异常时段完全重合及前后各多 1 分钟时查校准
+  design_method: 边界值法
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S2
+  severity_reason: 边界重合的判定错一位，恰好覆盖异常的合法审批就校准不了，员工仍需走线下申诉。
+  preconditions: 请假审批模板已启用；两名员工当日各有 09:00 至 11:00 的 2 小时早退异常；可提交精确到分钟的请假时段。
+  steps:
+  - 为员工 A 提交 09:00 至 11:00 的事假申请并审批通过
+  - 为员工 B 提交 08:59 至 11:01 的事假申请并审批通过
+  - 在【打卡记录】>【校准状态】中查看两人当日状态
+  expected:
+  - 审批时段与异常时段完全重合的员工 A 当日状态为「正常」
+  - 审批时段前后各多 1 分钟的员工 B 当日状态为「正常」
+  status: active
+  source_context:
+    quote: 校准需按时间段匹配：审批覆盖时段之外的异常不得被一并校准。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1509
+  fp_id: FP-15
+  scenario_id: SC-FP-15-03
+  point_id: TP-FP-15-03-02
+  functional_point: 审批数据关联与异常校准
+  scenario: 异常时段与任何已通过审批的时间段都不重叠、或该员工根本不存在对应审批
+  test_point: 审批覆盖时段之外的异常不被一并校准，只有与审批时段重叠的那部分异常转为正常。
+  title: 早退 4 小时而事假只覆盖其中 2 小时后查看当日状态
+  design_method: 场景法
+  tags:
+  - 边界
+  - 待确认
+  severity: S2
+  severity_reason: 部分覆盖的口径不定，同类情况可能得到相反的考勤结论，员工申诉时无据可依。
+  preconditions: 请假审批模板已启用；员工当日存在 4 小时早退异常；可提交覆盖其中 2 小时的请假申请。
+  steps:
+  - 员工当日早退 4 小时，确认打卡记录中出现早退异常
+  - 员工提交覆盖其中 2 小时的事假申请，由上级审批通过
+  - 在【打卡记录】>【校准状态】中查看该员工该日状态
+  expected:
+  - 待确认：异常时段与已通过审批时段部分重叠时，当日打卡状态是整体转「正常」、保持早退异常，还是按时段拆分展示？
+  status: pending_confirmation
+  source_context:
+    quote: 校准需按时间段匹配：审批覆盖时段之外的异常不得被一并校准。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1510
+  fp_id: FP-15
+  scenario_id: SC-FP-15-03
+  point_id: TP-FP-15-03-02
+  functional_point: 审批数据关联与异常校准
+  scenario: 异常时段与任何已通过审批的时间段都不重叠、或该员工根本不存在对应审批
+  test_point: 审批覆盖时段之外的异常不被一并校准，只有与审批时段重叠的那部分异常转为正常。
+  title: 让事假时段与异常时段完全错开后查当日状态是否被校准
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S1
+  severity_reason: 时段外的异常被顺手校准，等于把未获批的早退一起抹掉，考勤结论错误且不留痕迹。
+  preconditions: 请假审批模板已启用；员工当日 09:00 至 11:00 早退 2 小时；员工可在同日其他时段提交事假。
+  steps:
+  - 员工当日 09:00 至 11:00 早退，确认打卡记录中出现早退异常
+  - 员工提交 14:00 至 16:00 的事假申请，由上级审批通过
+  - 在【打卡记录】>【校准状态】中查看该员工该日状态
+  expected:
+  - 该员工当日状态仍为早退异常
+  - 【校准状态】中不出现该日期的校准记录
+  status: active
+  source_context:
+    quote: 校准需按时间段匹配：审批覆盖时段之外的异常不得被一并校准。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+open_items:
+- id: OI-28
+  question: 定位距办公地点不足 100 米（例如 50 米）时，是否也属于打卡有效范围并被放行？
+  related_case_ids:
+  - TC-ATT-0402
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-29
+  question: 考勤机已被规则引用后人数达到上限，员工在该设备上打卡应被拒绝还是照常受理？
+  related_case_ids:
+  - TC-ATT-0408
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-30
+  question: 勾选「员工打卡必须拍照」后，从本地相册选取的既有照片能否作为打卡照片提交并被受理？
+  related_case_ids:
+  - TC-ATT-0905
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-31
+  question: 异常时段与已通过审批时段部分重叠时，当日打卡状态是整体转「正常」、保持异常，还是按时段拆分展示？
+  related_case_ids:
+  - TC-ATT-1509
+  source_ref: wiki/attendance-management/special-rules-and-approval.md

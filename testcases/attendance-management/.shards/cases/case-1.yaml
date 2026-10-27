@@ -1,0 +1,1021 @@
+meta:
+  topic: attendance-management
+  title: 打卡管理
+  stage: cases
+  shard: case-1
+  generated_at: '2026-10-27'
+  generator: testcase-generator
+  fp_range:
+  - FP-01
+  - FP-11
+  - FP-13
+  - FP-14
+  knowledge_sources:
+  - path: wiki/attendance-management/attendance-rule-configuration.md
+    title: 打卡规则配置
+  - path: wiki/attendance-management/special-rules-and-approval.md
+    title: 特殊打卡规则与审批校准
+  stats:
+    cases: 35
+    open_items: 8
+open_items:
+- id: OI-01
+  question: 规则类型由固定时间改为自由上下班后，改类型前已生成的历史月份结论与当日已产生的迟到记录，是保持不变还是按新类型重新判定？
+  related_case_ids:
+  - TC-ATT-0116
+  - TC-ATT-0117
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-02
+  question: 自由上下班规则下只完成一次打卡（缺下班卡）时，该日按全天旷工、半天还是不计旷工，工作时长是否仍按实际区间记录？
+  related_case_ids:
+  - TC-ATT-0105
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+- id: OI-03
+  question: 同一日期配置两个必须打卡时段时，只完成其中一个时段的员工是单独判该时段缺卡，还是整日合并判为一条缺卡？
+  related_case_ids:
+  - TC-ATT-1107
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-04
+  question: 员工在提醒时点前已完成打卡，是否仍会收到该次打卡提醒？
+  related_case_ids:
+  - TC-ATT-1302
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-05
+  question: 提前提醒在下拉列表中可选的取值与最小提前量分别是多少分钟？
+  related_case_ids:
+  - TC-ATT-1304
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-06
+  question: 可见范围外的成员通过历史会话或直达链接访问打卡应用时，是必须被拒绝进入，还是仅隐藏工作台入口、仍可访问并提交打卡？
+  related_case_ids:
+  - TC-ATT-1404
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-07
+  question: 可见范围配置为「不选任何部门和成员」时，打卡应用对通讯录全体成员可见，还是对任何成员都不可见？
+  related_case_ids:
+  - TC-ATT-1406
+  source_ref: wiki/attendance-management/special-rules-and-approval.md
+- id: OI-08
+  question: 打卡记录被标记为无效时，系统按「无有效打卡」计旷工，还是仍按该记录时间戳计入工作时长？
+  related_case_ids:
+  - TC-ATT-0112
+  source_ref: wiki/attendance-management/attendance-rule-configuration.md
+cases:
+- id: TC-ATT-0101
+  fp_id: FP-01
+  scenario_id: SC-FP-01-01
+  point_id: TP-FP-01-01-01
+  functional_point: 规则类型与统计口径
+  scenario: 同一企业下同时存在固定时间、按班次、自由上下班三条规则且各绑定了对应人员时，验三条规则各自产出的考勤判定口径。
+  test_point: 固定时间上下班规则绑定的员工按企业统一时间打卡时，考勤判定取该固定时间，不取排班时间。
+  title: 固定时间规则下按三个不同打卡时刻核对迟到与早退判定
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S1
+  severity_reason: 判定基准取错会让固定时间规则下整批员工的迟到/早退结论失真，并直接进入薪资核算
+  preconditions: 已建固定时间上下班规则（上下班时间 09:00–18:00）并绑定测试部门成员；高级设置中允许迟到、早退的分钟数为 5 分钟；员工当日无已通过的请假单据
+  steps:
+  - 员工于 09:00 打卡上班、18:00 打卡下班
+  - 次日该员工于 09:15 打卡上班
+  - 第三日该员工于 17:30 打卡下班
+  - 管理员进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】，逐日打开该员工考勤明细
+  expected:
+  - 首日 09:00 上班、18:00 下班：迟到判定与早退判定均为空
+  - 次日 09:15 上班：判定为迟到
+  - 第三日 17:30 下班：判定为早退
+  status: active
+  source_context:
+    quote: 规则类型决定考勤的统计口径（固定时间、按班次、自由上下班），打卡方式决定打卡凭证的来源（手机定位/Wi-Fi、智能考勤机、传统U盘考勤机导入）。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0102
+  fp_id: FP-01
+  scenario_id: SC-FP-01-01
+  point_id: TP-FP-01-01-01
+  functional_point: 规则类型与统计口径
+  scenario: 同一企业下同时存在固定时间、按班次、自由上下班三条规则且各绑定了对应人员时，验三条规则各自产出的考勤判定口径。
+  test_point: 固定时间上下班规则绑定的员工按企业统一时间打卡时，考勤判定取该固定时间，不取排班时间。
+  title: 配置固定时间规则后完成打卡并在后台查看当日考勤结论
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 从规则创建到考勤查看的主链路断开时，管理员无法为固定时间员工建立任何考勤判定
+  preconditions: 企业尚无任何打卡规则；测试部门有 1 名成员 A
+  steps:
+  - 管理员进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【设置】>【添加规则】
+  - 规则类型选固定时间上下班，上下班时间设为 09:00–18:00，打卡人员选测试部门，保存规则
+  - 成员 A 用手机端完成一次上班打卡与一次下班打卡
+  - 管理员进入【查看】打开成员 A 当日考勤明细
+  expected:
+  - 规则保存后该部门成员当日生成 09:00 与 18:00 两次待打卡要求
+  - 成员 A 当日考勤明细中的应打卡时间为 09:00 与 18:00
+  - 成员 A 当日考勤明细的判定结论基于 09:00–18:00 产出
+  status: active
+  source_context:
+    quote: 规则类型决定考勤的统计口径（固定时间、按班次、自由上下班），打卡方式决定打卡凭证的来源（手机定位/Wi-Fi、智能考勤机、传统U盘考勤机导入）。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0103
+  fp_id: FP-01
+  scenario_id: SC-FP-01-01
+  point_id: TP-FP-01-01-01
+  functional_point: 规则类型与统计口径
+  scenario: 同一企业下同时存在固定时间、按班次、自由上下班三条规则且各绑定了对应人员时，验三条规则各自产出的考勤判定口径。
+  test_point: 固定时间上下班规则绑定的员工按企业统一时间打卡时，考勤判定取该固定时间，不取排班时间。
+  title: 员工同时存在排班与企业统一时间时核对判定取值
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 有排班记录时若取排班而不取统一时间，该员工的迟到判定会整月偏移
+  preconditions: 已建固定时间上下班规则（09:00–18:00）绑定成员 B；通讯录中成员 B 另有一条 10:00–19:00 的排班记录；容差 5 分钟
+  steps:
+  - 成员 B 于 09:30 打卡上班、18:00 打卡下班
+  - 管理员在【查看】打开成员 B 当日考勤明细
+  - 把成员 B 的排班改为 08:00–17:00，重新打开当日考勤明细
+  expected:
+  - 09:30 上班被判为迟到，判定起点为 09:00 而非 10:00
+  - 18:00 下班不被判早退，判定终点为 18:00
+  - 排班改为 08:00–17:00 后同一打卡记录仍判迟到，结论不随排班变化
+  status: active
+  source_context:
+    quote: 规则类型决定考勤的统计口径（固定时间、按班次、自由上下班），打卡方式决定打卡凭证的来源（手机定位/Wi-Fi、智能考勤机、传统U盘考勤机导入）。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0104
+  fp_id: FP-01
+  scenario_id: SC-FP-01-01
+  point_id: TP-FP-01-01-02
+  functional_point: 规则类型与统计口径
+  scenario: 同一企业下同时存在固定时间、按班次、自由上下班三条规则且各绑定了对应人员时，验三条规则各自产出的考勤判定口径。
+  test_point: 自由上下班规则下员工可随时打卡，考勤统计只计旷工，工作时长按实际打卡区间记录而不判迟到早退。
+  title: 在三个不同时段打卡核对自由上下班规则的受理结果
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 打卡被时间限制后自由上下班员工无法在非标准时段打卡，出勤数据缺失
+  preconditions: 已建自由上下班规则并绑定成员 C；三日均为工作日
+  steps:
+  - 成员 C 于 07:30 打卡上班与下班
+  - 次日成员 C 于 13:00 打卡上班与下班
+  - 第三日成员 C 于 22:15 打卡上班与下班
+  - 管理员在【查看】逐日打开成员 C 的考勤明细
+  expected:
+  - 三个时段的打卡均被受理并生成打卡记录
+  - 三日的旷工统计均为 0
+  - 三日均不出现迟到、早退判定
+  status: active
+  source_context:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0105
+  fp_id: FP-01
+  scenario_id: SC-FP-01-01
+  point_id: TP-FP-01-01-02
+  functional_point: 规则类型与统计口径
+  scenario: 同一企业下同时存在固定时间、按班次、自由上下班三条规则且各绑定了对应人员时，验三条规则各自产出的考勤判定口径。
+  test_point: 自由上下班规则下员工可随时打卡，考勤统计只计旷工，工作时长按实际打卡区间记录而不判迟到早退。
+  title: 只打上班卡不打下班卡时核对当日旷工与时长记账
+  design_method: 逆向场景法
+  tags:
+  - 待确认
+  - 数据准确性
+  severity: S2
+  severity_reason: 单边打卡的记账口径不明，会把缺下班卡的日子算成错误工时或漏记旷工
+  preconditions: 已建自由上下班规则并绑定成员 D；当日为工作日；成员 D 当日只有一条 09:00 的上班打卡记录
+  steps:
+  - 管理员进入【查看】，时间范围选当日并筛选成员 D
+  - 打开成员 D 当日考勤明细
+  - 读取该日的工作时长列与旷工统计
+  expected:
+  - 待确认：自由上下班规则下只完成一次打卡（缺下班卡）时，该日应按全天旷工计、按半天计还是不产生旷工，工作时长是否仍按 09:00 起的实际区间记录？
+  status: pending_confirmation
+  source_context:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0106
+  fp_id: FP-01
+  scenario_id: SC-FP-01-01
+  point_id: TP-FP-01-01-02
+  functional_point: 规则类型与统计口径
+  scenario: 同一企业下同时存在固定时间、按班次、自由上下班三条规则且各绑定了对应人员时，验三条规则各自产出的考勤判定口径。
+  test_point: 自由上下班规则下员工可随时打卡，考勤统计只计旷工，工作时长按实际打卡区间记录而不判迟到早退。
+  title: 完成一整天的自由上下班打卡后核对工作时长记录值
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 工作时长不等于实际打卡区间时，加班与工时汇总全部失真
+  preconditions: 已建自由上下班规则并绑定成员 E；当日为工作日；企业上下班时间参考值为 09:00–18:00
+  steps:
+  - 成员 E 于 09:10 打卡上班
+  - 成员 E 于 19:30 打卡下班
+  - 管理员在【查看】打开成员 E 当日考勤明细并读取工作时长列
+  expected:
+  - 该日工作时长记录为 10 小时 20 分钟
+  - 该日旷工统计为 0
+  - 该日不出现迟到、早退判定
+  status: active
+  source_context:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0107
+  fp_id: FP-01
+  scenario_id: SC-FP-01-02
+  point_id: TP-FP-01-02-01
+  functional_point: 规则类型与统计口径
+  scenario: 员工所在规则为自由上下班、当日有或没有打卡记录时，验系统是否仍产出迟到或早退结论。
+  test_point: 员工所在规则为自由上下班且当日完成打卡时，考勤明细中不出现迟到或早退结论。
+  title: 用大幅偏离常规工时的打卡时刻反查是否产出迟到早退
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S1
+  severity_reason: 自由上下班员工被误判迟到或早退会直接进入异常名单并触发扣款
+  preconditions: 已建自由上下班规则并绑定成员 F；企业参考上下班时间为 09:00–18:00；当日为工作日
+  steps:
+  - 成员 F 于 12:30 打卡上班、15:00 打卡下班（比参考上班时间晚 3.5 小时、比参考下班时间早 3 小时）
+  - 管理员进入【查看】打开成员 F 当日考勤明细
+  - 检查明细中的迟到列、早退列与异常项
+  expected:
+  - 迟到列与早退列均为空
+  - 异常项中不出现迟到或早退记录
+  - 该日旷工统计为 0
+  status: active
+  source_context:
+    quote: 三种规则类型的统计口径不同：自由上下班不得产出迟到/早退判定，只统计旷工。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0108
+  fp_id: FP-01
+  scenario_id: SC-FP-01-02
+  point_id: TP-FP-01-02-01
+  functional_point: 规则类型与统计口径
+  scenario: 员工所在规则为自由上下班、当日有或没有打卡记录时，验系统是否仍产出迟到或早退结论。
+  test_point: 员工所在规则为自由上下班且当日完成打卡时，考勤明细中不出现迟到或早退结论。
+  title: 连续五个工作日打卡后核对整周迟到早退次数统计
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 一周内任一工作日产出迟到或早退即说明口径错误，整月统计随之偏移
+  preconditions: 已建自由上下班规则并绑定成员 G；本周周一至周五均为工作日
+  steps:
+  - 成员 G 周一至周五每天打卡上班与下班，各日打卡时刻互不相同
+  - 管理员进入【查看】，时间范围设为本周边界并筛选成员 G
+  - 查看该员工本周考勤明细与迟到、早退次数统计
+  expected:
+  - 五天的迟到列与早退列均为空
+  - 本周迟到次数与早退次数统计均为 0
+  status: active
+  source_context:
+    quote: 三种规则类型的统计口径不同：自由上下班不得产出迟到/早退判定，只统计旷工。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0109
+  fp_id: FP-01
+  scenario_id: SC-FP-01-02
+  point_id: TP-FP-01-02-01
+  functional_point: 规则类型与统计口径
+  scenario: 员工所在规则为自由上下班、当日有或没有打卡记录时，验系统是否仍产出迟到或早退结论。
+  test_point: 员工所在规则为自由上下班且当日完成打卡时，考勤明细中不出现迟到或早退结论。
+  title: 一日内多次打卡时核对时长归并与迟到早退判定
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 一日内多次打卡未被正确归并时工作时长被拆散，工时汇总偏小
+  preconditions: 已建自由上下班规则并绑定成员 H；参考工时 09:00–18:00；当日为工作日
+  steps:
+  - 成员 H 当日依次于 08:50、12:00、13:00、19:10 完成四次打卡（中间两次为午间外出与返回）
+  - 管理员进入【查看】打开成员 H 当日考勤明细
+  - 读取工作时长列与迟到、早退列
+  expected:
+  - 四次打卡均被受理并归入当日记录
+  - 工作时长按 08:50 至 19:10 的实际区间记录
+  - 迟到列与早退列均为空
+  status: active
+  source_context:
+    quote: 三种规则类型的统计口径不同：自由上下班不得产出迟到/早退判定，只统计旷工。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0110
+  fp_id: FP-01
+  scenario_id: SC-FP-01-02
+  point_id: TP-FP-01-02-02
+  functional_point: 规则类型与统计口径
+  scenario: 员工所在规则为自由上下班、当日有或没有打卡记录时，验系统是否仍产出迟到或早退结论。
+  test_point: 自由上下班规则下员工当日无任何打卡记录时，系统只把该日计为旷工，不额外生成迟到或早退记录。
+  title: 全天未打卡后在考勤明细核对旷工与异常记录
+  design_method: 场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 未打卡日不计旷工会让漏打卡员工逃过考勤结论，考勤统计少计
+  preconditions: 已建自由上下班规则并绑定成员 I；当日为工作日；成员 I 当日无任何打卡记录
+  steps:
+  - 管理员进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【查看】
+  - 时间范围选当日并筛选成员 I
+  - 打开成员 I 当日考勤明细，查看旷工统计与异常项
+  expected:
+  - 该日旷工统计为 1 天
+  - 该日不出现迟到、早退记录
+  - 该日异常项中不出现缺卡类条目
+  status: active
+  source_context:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0111
+  fp_id: FP-01
+  scenario_id: SC-FP-01-02
+  point_id: TP-FP-01-02-02
+  functional_point: 规则类型与统计口径
+  scenario: 员工所在规则为自由上下班、当日有或没有打卡记录时，验系统是否仍产出迟到或早退结论。
+  test_point: 自由上下班规则下员工当日无任何打卡记录时，系统只把该日计为旷工，不额外生成迟到或早退记录。
+  title: 以固定时间规则员工为对照反查无打卡日的异常标记
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S2
+  severity_reason: 无打卡日额外产出缺卡标记会让自由上下班员工的异常清单被污染
+  preconditions: 已建自由上下班规则绑定成员 J，另有固定时间规则绑定成员 K 作为对照；两人当日均无任何打卡记录
+  steps:
+  - 管理员在【查看】中同时选中成员 J 与成员 K，时间范围选当日
+  - 打开两人当日考勤明细，比对异常项条目
+  - 单独检查成员 J 的异常项是否含缺卡、迟到、早退类条目
+  expected:
+  - 成员 J 当日异常项中不存在缺卡、迟到、早退类条目
+  - 成员 K 当日按固定时间口径产出缺卡类条目
+  - 成员 J 当日仅在旷工统计中体现
+  status: active
+  source_context:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0112
+  fp_id: FP-01
+  scenario_id: SC-FP-01-02
+  point_id: TP-FP-01-02-02
+  functional_point: 规则类型与统计口径
+  scenario: 员工所在规则为自由上下班、当日有或没有打卡记录时，验系统是否仍产出迟到或早退结论。
+  test_point: 自由上下班规则下员工当日无任何打卡记录时，系统只把该日计为旷工，不额外生成迟到或早退记录。
+  title: 打卡记录被标记无效时核对无有效打卡日的判定
+  design_method: 异常法
+  tags:
+  - 待确认
+  - 异常
+  severity: S3
+  severity_reason: 脏数据被当作有效打卡会让该日工时与旷工统计同时出错，影响范围限于个别记录
+  preconditions: 已建自由上下班规则并绑定成员 L；成员 L 当日存在一条打卡记录，该记录已被系统标记为无效（设备时间异常导致）
+  steps:
+  - 管理员在【查看】打开成员 L 当日考勤明细
+  - 查看系统对该无效记录的处理结果
+  - 读取该日工作时长列与旷工统计
+  expected:
+  - 待确认：打卡记录被标记为无效后，系统是按「无有效打卡」给该日计旷工，还是仍按该记录的时间戳计入工作时长？
+  status: pending_confirmation
+  source_context:
+    quote: 自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 三种规则类型
+- id: TC-ATT-0113
+  fp_id: FP-01
+  scenario_id: SC-FP-01-03
+  point_id: TP-FP-01-03-01
+  functional_point: 规则类型与统计口径
+  scenario: 设备运维部门套按班次上下班、销售部套自由上下班之后，验两个部门的考勤判定口径是否互不串用。
+  test_point: 设备运维部门套按班次上下班、销售部套自由上下班后，销售部成员不产出迟到/早退判定，其判定不被另一条规则的口径覆盖。
+  title: 为两个部门分别建规则后核对各自考勤结论
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S1
+  severity_reason: 部门口径串用会让整个部门的考勤结论与规则配置不符，异常名单与薪资依据同时失效
+  preconditions: 设备运维部成员 AO、销售部成员 AP；已建按班次规则绑定设备运维部（晚班 14:00–22:00），已建自由上下班规则绑定销售部
+  steps:
+  - 管理员在【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【设置】确认两条规则分别绑定对应部门
+  - 成员 AO 于 14:00 打卡上班、22:00 打卡下班
+  - 成员 AP 于 11:00 打卡上班、15:00 打卡下班
+  - 管理员在【查看】分别打开两人当日考勤明细
+  expected:
+  - 成员 AP 的迟到列与早退列均为空
+  - 成员 AO 的结论按班次 14:00–22:00 产出
+  - 两条规则下的判定互不覆盖
+  status: active
+  source_context:
+    quote: 文档给出的典型组合是按工作性质分派：需要“三班倒”的设备运维部门套用按班次上下班，办公时间更灵活的销售部套用自由上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0114
+  fp_id: FP-01
+  scenario_id: SC-FP-01-03
+  point_id: TP-FP-01-03-01
+  functional_point: 规则类型与统计口径
+  scenario: 设备运维部门套按班次上下班、销售部套自由上下班之后，验两个部门的考勤判定口径是否互不串用。
+  test_point: 设备运维部门套按班次上下班、销售部套自由上下班后，销售部成员不产出迟到/早退判定，其判定不被另一条规则的口径覆盖。
+  title: 同一打卡时刻在两个部门分别产生的结论差异
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 同打卡形态下结论未能按所属规则区分，等价于口径配置失效
+  preconditions: 设备运维部成员 AQ 套按班次（班次 08:00–17:00），销售部成员 AR 套自由上下班；两人当日均有 10:00 上班、15:00 下班两条打卡记录
+  steps:
+  - 管理员在【查看】中同时选中成员 AQ 与成员 AR，时间范围选当日
+  - 分别打开两人当日考勤明细
+  - 比对两人的迟到列、早退列与工作时长列
+  expected:
+  - 成员 AQ 按班次 08:00–17:00 被判为迟到与早退
+  - 成员 AR 的迟到列与早退列均为空
+  - 成员 AR 的工作时长按 10:00–15:00 记录
+  status: active
+  source_context:
+    quote: 文档给出的典型组合是按工作性质分派：需要“三班倒”的设备运维部门套用按班次上下班，办公时间更灵活的销售部套用自由上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0115
+  fp_id: FP-01
+  scenario_id: SC-FP-01-03
+  point_id: TP-FP-01-03-01
+  functional_point: 规则类型与统计口径
+  scenario: 设备运维部门套按班次上下班、销售部套自由上下班之后，验两个部门的考勤判定口径是否互不串用。
+  test_point: 设备运维部门套按班次上下班、销售部套自由上下班后，销售部成员不产出迟到/早退判定，其判定不被另一条规则的口径覆盖。
+  title: 同种打卡形态在两个部门组合出的结论归属
+  design_method: 因果图法
+  tags:
+  - 正向
+  - 数据一致性
+  severity: S2
+  severity_reason: 跨规则结论串扰时两部门的判定互相污染，异常名单不可用
+  preconditions: 设备运维部成员 AS 套按班次（晚班 14:00–22:00），销售部成员 AT 套自由上下班；两人当日均呈现晚到 2 小时、早走 1 小时的打卡形态
+  steps:
+  - 成员 AS 于 16:00 打卡上班、21:00 打卡下班
+  - 成员 AT 于 16:00 打卡上班、21:00 打卡下班
+  - 管理员在【查看】比对两人当日考勤明细
+  expected:
+  - 成员 AS 相对班次 14:00–22:00 被判迟到与早退
+  - 成员 AT 不出现迟到与早退判定
+  - 相同打卡形态下的结论由所属规则类型决定，与另一条规则无关
+  status: active
+  source_context:
+    quote: 文档给出的典型组合是按工作性质分派：需要“三班倒”的设备运维部门套用按班次上下班，办公时间更灵活的销售部套用自由上下班。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 打卡人员
+- id: TC-ATT-0116
+  fp_id: FP-01
+  scenario_id: SC-FP-01-03
+  point_id: TP-FP-01-03-02
+  functional_point: 规则类型与统计口径
+  scenario: 设备运维部门套按班次上下班、销售部套自由上下班之后，验两个部门的考勤判定口径是否互不串用。
+  test_point: 同一批打卡记录在规则类型改为自由上下班后，考勤结果不再产出迟到或早退判定。
+  title: 修改规则类型后反查上月历史考勤结论是否重算
+  design_method: 逆向场景法
+  tags:
+  - 待确认
+  - 数据一致性
+  severity: S2
+  severity_reason: 历史结论被追溯重算会改动已归档月份的考勤记录与薪资依据
+  preconditions: 销售部规则原为固定时间（09:00–18:00），上月已按该口径产出销售部成员的迟到记录；本月管理员把规则类型改为自由上下班
+  steps:
+  - 管理员在规则设置中把该规则类型由固定时间改为自由上下班并保存
+  - 管理员进入【查看】把时间范围设为上月并筛选销售部成员
+  - 查看上月已生成的迟到记录是否发生变化
+  expected:
+  - 待确认：规则类型由固定时间改为自由上下班后，上月已生成的迟到、早退结论是保持不变，还是按新类型追溯重算？
+  status: pending_confirmation
+  source_context:
+    quote: 三种规则类型的统计口径不同：自由上下班不得产出迟到/早退判定，只统计旷工。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-0117
+  fp_id: FP-01
+  scenario_id: SC-FP-01-03
+  point_id: TP-FP-01-03-02
+  functional_point: 规则类型与统计口径
+  scenario: 设备运维部门套按班次上下班、销售部套自由上下班之后，验两个部门的考勤判定口径是否互不串用。
+  test_point: 同一批打卡记录在规则类型改为自由上下班后，考勤结果不再产出迟到或早退判定。
+  title: 当日改类型后核对已产生打卡记录的判定
+  design_method: 场景法
+  tags:
+  - 待确认
+  - 数据一致性
+  severity: S2
+  severity_reason: 当日结论未按新类型处理时同一天出现两套口径，核对无法收敛
+  preconditions: 部门成员 AU 所在规则原为固定时间（09:00–18:00）；当日 09:30 该成员已打卡并已生成迟到记录；当日 10:00 管理员准备把规则类型改为自由上下班
+  steps:
+  - 管理员在规则设置中把规则类型改为自由上下班并保存
+  - 管理员进入【查看】打开成员 AU 当日考勤明细
+  - 查看当日那条迟到记录是否仍然存在
+  expected:
+  - 待确认：规则类型修改后，当日已产生的迟到记录是立即按新类型重算为无异常，还是保留修改前的结论？
+  status: pending_confirmation
+  source_context:
+    quote: 三种规则类型的统计口径不同：自由上下班不得产出迟到/早退判定，只统计旷工。
+    path: wiki/attendance-management/attendance-rule-configuration.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1101
+  fp_id: FP-11
+  scenario_id: SC-FP-11-01
+  point_id: TP-FP-11-01-01
+  functional_point: 特殊日期打卡设置
+  scenario: 在某日期被设置为「不用打卡」且员工当日没有任何打卡记录的条件下，验该日是否产生考勤异常。
+  test_point: 某日期被设置为「不用打卡」后，员工当日没有任何打卡记录，该日也不产生缺卡类异常。
+  title: 对比不用打卡日期与前后常规工作日的异常判定
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S1
+  severity_reason: 「不用打卡」日期仍判缺卡会让员工被误记异常并可能被扣款
+  preconditions: 已建固定时间规则（09:00–18:00）绑定成员 M；某周一已设为「不用打卡」并填好时段与打卡事由；该日期前后各有一个常规工作日
+  steps:
+  - 成员 M 在「不用打卡」日期当日不打卡
+  - 管理员进入【查看】，时间范围覆盖该日期与前后两个工作日
+  - 打开成员 M 这三天的考勤明细并比对异常项
+  expected:
+  - 「不用打卡」日期当日异常项为空，不出现缺卡类异常
+  - 前后两个常规工作日仍按常规规则产出待打卡要求
+  - 「不用打卡」日期当日旷工统计为 0
+  status: active
+  source_context:
+    quote: 特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1102
+  fp_id: FP-11
+  scenario_id: SC-FP-11-01
+  point_id: TP-FP-11-01-01
+  functional_point: 特殊日期打卡设置
+  scenario: 在某日期被设置为「不用打卡」且员工当日没有任何打卡记录的条件下，验该日是否产生考勤异常。
+  test_point: 某日期被设置为「不用打卡」后，员工当日没有任何打卡记录，该日也不产生缺卡类异常。
+  title: 配置不用打卡日期后核对当日打卡要求与结论
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 特殊日期配置未生效时该日照常规规则判定，年会等特殊安排全部落空
+  preconditions: 已建固定时间规则（09:00–18:00）绑定成员 N；下周一是公司年会日期，尚未配置到特殊日期中
+  steps:
+  - 管理员在【添加打卡规则页面】点击特殊日期的添加按钮
+  - 选择下周一、全天时段，打卡事由填「公司年会」并保存
+  - 下周一成员 N 全天不打卡，管理员在【查看】打开该日考勤明细
+  expected:
+  - 下周一该员工考勤明细中不出现缺卡异常
+  - 该日不再要求 09:00 与 18:00 两次打卡
+  - 该日缺卡次数统计为 0
+  status: active
+  source_context:
+    quote: 特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1103
+  fp_id: FP-11
+  scenario_id: SC-FP-11-02
+  point_id: TP-FP-11-02-01
+  functional_point: 特殊日期打卡设置
+  scenario: 在某日期被设置为必须打卡、且员工在该日配置时段内没有打卡记录的条件下，验该日是否被判定为缺卡异常。
+  test_point: 某日期被设置为必须打卡后，员工在该日配置时段内没有有效打卡，该日被判定为缺卡异常。
+  title: 从漏打卡反查必须打卡日期的缺卡判定
+  design_method: 逆向场景法
+  tags:
+  - 异常
+  - 数据准确性
+  severity: S1
+  severity_reason: 必须打卡日的缺卡未判异常会让缺勤漏过考勤结论，考勤统计少计
+  preconditions: 已建固定时间规则并绑定成员 O；某日期已设为「必须打卡」，时段 09:00–18:00；该日成员 O 无任何打卡记录
+  steps:
+  - 管理员进入【查看】，时间范围选该日期并筛选成员 O
+  - 打开成员 O 该日考勤明细
+  - 检查异常项中是否出现缺卡条目
+  expected:
+  - 该日异常项中出现缺卡条目
+  - 该日缺卡次数统计为 1
+  status: active
+  source_context:
+    quote: 特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1104
+  fp_id: FP-11
+  scenario_id: SC-FP-11-02
+  point_id: TP-FP-11-02-01
+  functional_point: 特殊日期打卡设置
+  scenario: 在某日期被设置为必须打卡、且员工在该日配置时段内没有打卡记录的条件下，验该日是否被判定为缺卡异常。
+  test_point: 某日期被设置为必须打卡后，员工在该日配置时段内没有有效打卡，该日被判定为缺卡异常。
+  title: 按必须打卡日期内的打卡情况分两类核对异常
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 两类打卡情况被同样对待时，按时打卡员工与缺卡员工无法区分
+  preconditions: 某日期已设为「必须打卡」（时段 09:00–18:00），规则绑定成员 P 与成员 Q；两人该日打卡情况不同
+  steps:
+  - 成员 P 在该时段内完成一次有效打卡
+  - 成员 Q 当日未打卡
+  - 管理员在【查看】中同时选中两人并打开该日考勤明细
+  expected:
+  - 成员 P 该日不出现缺卡异常
+  - 成员 Q 该日出现缺卡异常
+  status: active
+  source_context:
+    quote: 特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1105
+  fp_id: FP-11
+  scenario_id: SC-FP-11-02
+  point_id: TP-FP-11-02-01
+  functional_point: 特殊日期打卡设置
+  scenario: 在某日期被设置为必须打卡、且员工在该日配置时段内没有打卡记录的条件下，验该日是否被判定为缺卡异常。
+  test_point: 某日期被设置为必须打卡后，员工在该日配置时段内没有有效打卡，该日被判定为缺卡异常。
+  title: 添加必须打卡日期后核对当日打卡要求与异常
+  design_method: 场景法
+  tags:
+  - 正向
+  - 数据准确性
+  severity: S2
+  severity_reason: 必须打卡的时段配置未转化为打卡要求，该日考勤判定退回常规口径
+  preconditions: 已建固定时间规则（09:00–18:00）绑定成员 R；某日原为常规工作日，尚无特殊日期配置
+  steps:
+  - 管理员在【添加打卡规则页面】点击特殊日期的添加按钮
+  - 把该日设为「必须打卡」，时段设为 09:00–12:00，打卡事由填「项目上线」并保存
+  - 成员 R 在该时段内未打卡，管理员在【查看】打开该日考勤明细
+  expected:
+  - 该日按 09:00–12:00 生成待打卡要求
+  - 该日考勤明细出现缺卡异常
+  status: active
+  source_context:
+    quote: 特殊日期设置为「不用打卡」后，该日不产生异常；设置为「必须打卡」后，缺卡应判定为异常。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1106
+  fp_id: FP-11
+  scenario_id: SC-FP-11-03
+  point_id: TP-FP-11-03-01
+  functional_point: 特殊日期打卡设置
+  scenario: 在同一日期配置两个打卡时段并分别填写打卡事由的条件下，验各时段的生效范围与缺卡判定是否逐时段独立成立。
+  test_point: 同一日期新增两个时段后，两个时段各自产生独立的打卡要求，仅其中一个时段缺卡也会被判为异常。
+  title: 两个时段各配一个事由后核对打卡要求独立性
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 边界
+  severity: S2
+  severity_reason: 多时段只按一条要求处理时，第二个时段的出勤不被采集
+  preconditions: 同一日期已配置两个「必须打卡」时段：上午 09:00–12:00（事由「上午培训」）、下午 14:00–18:00（事由「下午培训」）；规则绑定成员 S
+  steps:
+  - 管理员打开该日期的特殊日期配置，确认两个时段与各自事由均已保存
+  - 成员 S 在上午与下午两个时段内各完成一次有效打卡
+  - 管理员在【查看】打开成员 S 该日考勤明细
+  expected:
+  - 特殊日期配置中该日期下并存两条时段记录
+  - 该日按两个时段分别生成待打卡要求
+  - 成员 S 两个时段均打卡后该日不出现缺卡异常
+  status: active
+  source_context:
+    quote: 设置方法：在添加打卡规则页面点击特殊日期的添加按钮，选择需要打卡的日期、时段和打卡事由；同一日期如需多个时间，可新增时段。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+- id: TC-ATT-1107
+  fp_id: FP-11
+  scenario_id: SC-FP-11-03
+  point_id: TP-FP-11-03-01
+  functional_point: 特殊日期打卡设置
+  scenario: 在同一日期配置两个打卡时段并分别填写打卡事由的条件下，验各时段的生效范围与缺卡判定是否逐时段独立成立。
+  test_point: 同一日期新增两个时段后，两个时段各自产生独立的打卡要求，仅其中一个时段缺卡也会被判为异常。
+  title: 穷举两个时段的完成组合核对缺卡判定
+  design_method: 穷举法
+  tags:
+  - 待确认
+  - 数据准确性
+  severity: S2
+  severity_reason: 单时段缺卡的判定口径不明，多时段的异常条数可能多算或漏算
+  preconditions: 同一日期已配置两个「必须打卡」时段（上午 09:00–12:00、下午 14:00–18:00）；规则绑定成员 T 与成员 U，两人该日打卡情况不同
+  steps:
+  - 成员 T 在上午与下午两个时段各打卡一次
+  - 成员 U 只在上午时段打卡，未打下午时段
+  - 管理员在【查看】比对两人该日异常项
+  - 另取一名只在下午时段打卡的员工，重复比对
+  expected:
+  - 待确认：同一日期配置两个必须打卡时段时，只完成其中一个时段的员工是单独判未完成时段缺卡，还是整日合并判为一条缺卡？
+  status: pending_confirmation
+  source_context:
+    quote: 设置方法：在添加打卡规则页面点击特殊日期的添加按钮，选择需要打卡的日期、时段和打卡事由；同一日期如需多个时间，可新增时段。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 特殊日期打卡
+- id: TC-ATT-1301
+  fp_id: FP-13
+  scenario_id: SC-FP-13-01
+  point_id: TP-FP-13-01-01
+  functional_point: 打卡提醒触达
+  scenario: 在打卡规则的提醒下拉列表已选定提醒时间、员工在指定时间前尚未打卡的条件下，验提醒消息的送达时点与接收对象。
+  test_point: 打卡规则在下拉列表选定提醒时间后，该规则适用员工在指定时间通过企业微信收到一条打卡提醒。
+  title: 配置提醒时间后走完触发与送达链路
+  design_method: 场景法
+  tags:
+  - 正向
+  severity: S2
+  severity_reason: 提醒未按时送达或发错人时忘记打卡的员工得不到提醒，异常率上升
+  preconditions: 已建固定时间规则（09:00–18:00）并绑定成员 V；提醒下拉列表已选「准点提醒」；成员 V 已登录企业微信手机端且 09:00 前未打卡
+  steps:
+  - 管理员在【添加打卡规则页面】>【提醒】下拉列表中选择提醒时间并保存规则
+  - 保持成员 V 在 09:00 前不打卡
+  - 在 09:00 观察成员 V 企业微信中的消息
+  expected:
+  - 成员 V 的企业微信在 09:00 收到一条打卡提醒
+  - 该提醒的接收对象为规则适用员工成员 V
+  - 提醒到达时成员 V 当日尚无打卡记录
+  status: active
+  source_context:
+    quote: 届时员工的企业微信将在指定时间收到打卡提醒。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+- id: TC-ATT-1302
+  fp_id: FP-13
+  scenario_id: SC-FP-13-01
+  point_id: TP-FP-13-01-01
+  functional_point: 打卡提醒触达
+  scenario: 在打卡规则的提醒下拉列表已选定提醒时间、员工在指定时间前尚未打卡的条件下，验提醒消息的送达时点与接收对象。
+  test_point: 打卡规则在下拉列表选定提醒时间后，该规则适用员工在指定时间通过企业微信收到一条打卡提醒。
+  title: 按提醒时点前是否已打卡划两类核对送达结果
+  design_method: 等价类划分
+  tags:
+  - 待确认
+  severity: S2
+  severity_reason: 已打卡员工是否被重复提醒未定义，提醒噪音与漏提醒都无法判定
+  preconditions: 已建固定时间规则（09:00–18:00）绑定成员 W 与成员 X；提醒下拉列表选「准点提醒」；09:00 前成员 W 已完成上班打卡，成员 X 未打卡
+  steps:
+  - 保持成员 W 在 09:00 前完成打卡
+  - 保持成员 X 在 09:00 前不打卡
+  - 在 09:00 后分别查看成员 W 与成员 X 的企业微信消息
+  expected:
+  - 待确认：成员 W 在 09:00 前已完成打卡，是否仍会收到该次准点打卡提醒？
+  status: pending_confirmation
+  source_context:
+    quote: 届时员工的企业微信将在指定时间收到打卡提醒。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+- id: TC-ATT-1303
+  fp_id: FP-13
+  scenario_id: SC-FP-13-02
+  point_id: TP-FP-13-02-01
+  functional_point: 打卡提醒触达
+  scenario: 在提醒取值分别为准点提醒与提前提醒的条件下，验两类提醒的触达时点与打卡时间的先后关系。
+  test_point: 提醒取「准点」时触达时点与打卡时间相同，取「提前」时触达时点早于打卡时间，两类取值不出现相反的时点关系。
+  title: 对准点与提前两类取值核对提醒与打卡时间的先后
+  design_method: 等价类划分
+  tags:
+  - 边界
+  - 数据准确性
+  severity: S2
+  severity_reason: 准点与提前两类提醒时点颠倒时员工在打卡时间之后才收到提醒，提醒失去作用
+  preconditions: 已建两条固定时间规则（上下班时间均为 09:00–18:00）：规则 A 选「准点提醒」绑定成员 Y，规则 B 选「提前提醒」绑定成员 Z；两人在提醒时点前均未打卡
+  steps:
+  - 持续记录成员 Y 企业微信收到提醒的时刻
+  - 持续记录成员 Z 企业微信收到提醒的时刻
+  - 比对两条提醒时刻与 09:00 的先后关系
+  expected:
+  - 成员 Y 的提醒时刻为 09:00，与打卡时间相同
+  - 成员 Z 的提醒时刻早于 09:00
+  - 两条提醒的时刻不相同，提前提醒不与准点提醒重合
+  status: active
+  source_context:
+    quote: 针对忘记打卡的情况，可在【添加打卡规则页面】>【提醒】的下拉列表中选择提醒时间，打卡时间准点或提前提醒。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+- id: TC-ATT-1304
+  fp_id: FP-13
+  scenario_id: SC-FP-13-02
+  point_id: TP-FP-13-02-01
+  functional_point: 打卡提醒触达
+  scenario: 在提醒取值分别为准点提醒与提前提醒的条件下，验两类提醒的触达时点与打卡时间的先后关系。
+  test_point: 提醒取「准点」时触达时点与打卡时间相同，取「提前」时触达时点早于打卡时间，两类取值不出现相反的时点关系。
+  title: 取提前量最小值核对提醒与准点时刻的邻接边界
+  design_method: 边界值法
+  tags:
+  - 待确认
+  - 边界
+  severity: S3
+  severity_reason: 提前量取值不明时最小提前量下的提醒可能与准点提醒重合或早于合理范围
+  preconditions: 已建固定时间规则（09:00–18:00），提醒下拉列表已选「提前提醒」；成员 AA 在提醒时点前未打卡
+  steps:
+  - 在提醒下拉列表中选择提前量最小的取值
+  - 记录成员 AA 收到提醒的时刻
+  - 计算该时刻与 09:00 的时间间隔
+  expected:
+  - 待确认：提前提醒在下拉列表中可选的取值与最小提前量分别是多少分钟，该取值下提醒时刻与 09:00 的间隔是否正好等于这个提前量？
+  status: pending_confirmation
+  source_context:
+    quote: 针对忘记打卡的情况，可在【添加打卡规则页面】>【提醒】的下拉列表中选择提醒时间，打卡时间准点或提前提醒。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+- id: TC-ATT-1305
+  fp_id: FP-13
+  scenario_id: SC-FP-13-02
+  point_id: TP-FP-13-02-01
+  functional_point: 打卡提醒触达
+  scenario: 在提醒取值分别为准点提醒与提前提醒的条件下，验两类提醒的触达时点与打卡时间的先后关系。
+  test_point: 提醒取「准点」时触达时点与打卡时间相同，取「提前」时触达时点早于打卡时间，两类取值不出现相反的时点关系。
+  title: 提前提醒触达后核对员工打卡与记录生成
+  design_method: 场景法
+  tags:
+  - 正向
+  severity: S3
+  severity_reason: 提醒触达后若额外生成打卡记录，员工会被记成非本人操作的出勤
+  preconditions: 已建固定时间规则（09:00–18:00）绑定成员 AB；提醒已选「提前提醒」；成员 AB 当日尚未打卡
+  steps:
+  - 成员 AB 在收到提前提醒时尚未打卡
+  - 成员 AB 收到提醒后完成一次上班打卡
+  - 管理员在【查看】打开成员 AB 当日考勤明细
+  expected:
+  - 成员 AB 收到提醒的时刻早于 09:00
+  - 该日打卡记录只有 1 条，其时刻为成员 AB 实际打卡的时刻
+  - 提醒消息本身不产生打卡记录
+  status: active
+  source_context:
+    quote: 针对忘记打卡的情况，可在【添加打卡规则页面】>【提醒】的下拉列表中选择提醒时间，打卡时间准点或提前提醒。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡提醒
+- id: TC-ATT-1401
+  fp_id: FP-14
+  scenario_id: SC-FP-14-01
+  point_id: TP-FP-14-01-01
+  functional_point: 打卡应用可见范围
+  scenario: 在打卡应用未做过可见范围配置的条件下，验通讯录内成员在手机端能否看到并使用打卡应用入口。
+  test_point: 打卡应用未做任何可见范围配置时，通讯录内全部成员在手机端都能看到并使用打卡应用入口。
+  title: 按有部门归属与无部门归属两类身份核对默认可见入口
+  design_method: 等价类划分
+  tags:
+  - 正向
+  severity: S2
+  severity_reason: 默认可见被误收窄时部分成员看不到打卡应用入口，无法打卡
+  preconditions: 打卡应用从未修改过可见范围；通讯录中存在部门「销售部」及其成员 AC，以及未归属任何部门的成员 AD
+  steps:
+  - 成员 AC 登录企业微信手机端打开工作台
+  - 成员 AD 登录企业微信手机端打开工作台
+  - 分别在两人工作台中查找打卡应用入口
+  expected:
+  - 成员 AC 的工作台出现打卡应用入口
+  - 成员 AD 的工作台出现打卡应用入口
+  - 两人均可从该入口进入打卡应用首页
+  status: active
+  source_context:
+    quote: 系统默认打卡应用为所有人可见。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡应用的可见范围
+- id: TC-ATT-1402
+  fp_id: FP-14
+  scenario_id: SC-FP-14-01
+  point_id: TP-FP-14-01-01
+  functional_point: 打卡应用可见范围
+  scenario: 在打卡应用未做过可见范围配置的条件下，验通讯录内成员在手机端能否看到并使用打卡应用入口。
+  test_point: 打卡应用未做任何可见范围配置时，通讯录内全部成员在手机端都能看到并使用打卡应用入口。
+  title: 未配置范围时走完打开工作台到完成一次打卡
+  design_method: 场景法
+  tags:
+  - 正向
+  - 冒烟
+  severity: S2
+  severity_reason: 默认可见状态下无法进入或提交打卡时，全员考勤入口失效
+  preconditions: 打卡应用未修改过可见范围；成员 AE 已归属测试部门；已建固定时间规则覆盖该部门
+  steps:
+  - 成员 AE 登录企业微信手机端进入工作台
+  - 点击打卡应用入口进入打卡首页
+  - 在打卡首页完成一次上班打卡
+  expected:
+  - 成员 AE 能看到并进入打卡应用首页
+  - 该次打卡提交成功并生成当日打卡记录
+  status: active
+  source_context:
+    quote: 系统默认打卡应用为所有人可见。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡应用的可见范围
+- id: TC-ATT-1403
+  fp_id: FP-14
+  scenario_id: SC-FP-14-02
+  point_id: TP-FP-14-02-01
+  functional_point: 打卡应用可见范围
+  scenario: 在可见范围被配置为指定部门与成员、某员工不在该范围内的条件下，验该员工手机端打卡应用入口的可见性。
+  test_point: 可见范围被配置为指定部门与成员后，不在该范围内的员工在手机端看不到打卡应用入口。
+  title: 缩小可见范围后反查范围外员工的入口可见性
+  design_method: 逆向场景法
+  tags:
+  - 权限
+  - 安全
+  severity: S1
+  severity_reason: 范围外成员仍能看到并进入打卡应用时权限边界失守，非授权人员可产生打卡数据
+  preconditions: 打卡应用可见范围已配置为指定部门「销售部」；成员 AF 属于销售部，成员 AG 不属于销售部且不在可见范围内
+  steps:
+  - 成员 AG 登录企业微信手机端打开工作台并查找打卡应用入口
+  - 成员 AF 登录企业微信手机端打开工作台并查找打卡应用入口
+  - 比对两人的入口可见性
+  expected:
+  - 成员 AG 的工作台中不出现打卡应用入口
+  - 成员 AF 的工作台中出现打卡应用入口
+  status: active
+  source_context:
+    quote: 可见范围调整后，范围外成员不应再看到打卡应用入口。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1404
+  fp_id: FP-14
+  scenario_id: SC-FP-14-02
+  point_id: TP-FP-14-02-01
+  functional_point: 打卡应用可见范围
+  scenario: 在可见范围被配置为指定部门与成员、某员工不在该范围内的条件下，验该员工手机端打卡应用入口的可见性。
+  test_point: 可见范围被配置为指定部门与成员后，不在该范围内的员工在手机端看不到打卡应用入口。
+  title: 范围外员工用直达路径尝试进入打卡应用
+  design_method: 安全性法
+  tags:
+  - 待确认
+  - 权限
+  severity: S2
+  severity_reason: 若直达路径未被拦截，范围外员工可绕过可见范围使用打卡应用，权限边界失效；当前知识未定义拦截行为，暂按 S2 计
+  preconditions: 打卡应用可见范围已配置为指定部门；成员 AH 不在可见范围内；成员 AH 此前使用过打卡应用并保留历史会话
+  steps:
+  - 成员 AH 在企业微信手机端通过历史会话打开打卡应用页面
+  - 观察该页面是拒绝进入还是仍显示打卡首页
+  - 尝试提交一次打卡并观察结果
+  expected:
+  - 待确认：可见范围外的成员通过历史会话或直达链接访问打卡应用时，是必须被拒绝进入，还是仅从工作台隐藏入口、仍可访问页面并提交打卡？
+  status: pending_confirmation
+  source_context:
+    quote: 可见范围调整后，范围外成员不应再看到打卡应用入口。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 可测试的关键判定点
+- id: TC-ATT-1405
+  fp_id: FP-14
+  scenario_id: SC-FP-14-03
+  point_id: TP-FP-14-03-01
+  functional_point: 打卡应用可见范围
+  scenario: 在分别按整个部门和按单个成员配置可见范围的条件下，验两类配置对象覆盖的成员能否都看到打卡应用入口。
+  test_point: 分别按整个部门和按单个成员配置可见范围后，两类配置覆盖到的成员都能看到打卡应用入口。
+  title: 分别按部门和按成员配置后核对两类覆盖对象的入口
+  design_method: 等价类划分
+  tags:
+  - 正向
+  - 权限
+  severity: S2
+  severity_reason: 部门与成员两类配置对象被漏处理时对应成员看不到入口而无法打卡
+  preconditions: 通讯录中存在部门「研发部」（成员 AI、AJ）与独立成员 AK；打卡应用可见范围可反复修改
+  steps:
+  - 管理员在打卡应用首页点击【修改】，把可见范围配置为部门「研发部」
+  - 分别在成员 AI 与成员 AJ 的手机端工作台查找打卡应用入口
+  - 把可见范围改为仅选成员 AK，再在成员 AK 的手机端工作台查找入口
+  expected:
+  - 按部门配置时成员 AI 与成员 AJ 的工作台均出现打卡应用入口
+  - 按成员配置时成员 AK 的工作台出现打卡应用入口
+  - 两种配置方式下覆盖成员的入口均可进入打卡应用
+  status: active
+  source_context:
+    quote: 可见范围指能在手机中看到并使用打卡应用的人群范围，在打卡应用首页点击【修改】，从通讯录列表中选择部门和成员即可配置。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡应用的可见范围
+- id: TC-ATT-1406
+  fp_id: FP-14
+  scenario_id: SC-FP-14-03
+  point_id: TP-FP-14-03-01
+  functional_point: 打卡应用可见范围
+  scenario: 在分别按整个部门和按单个成员配置可见范围的条件下，验两类配置对象覆盖的成员能否都看到打卡应用入口。
+  test_point: 分别按整个部门和按单个成员配置可见范围后，两类配置覆盖到的成员都能看到打卡应用入口。
+  title: 穷举可见范围的四种选择组合核对覆盖结果
+  design_method: 穷举法
+  tags:
+  - 待确认
+  - 权限
+  severity: S2
+  severity_reason: 空范围语义未定时可见性无法预期，可能把所有成员挡在打卡应用之外
+  preconditions: 通讯录中存在部门「研发部」（成员 AL、AM）与独立成员 AN；打卡应用可见范围可反复修改
+  steps:
+  - 仅选部门「研发部」，分别查看成员 AL、AM、AN 的入口
+  - 仅选成员 AN，分别查看三人入口
+  - 同时选部门「研发部」与成员 AN，分别查看三人入口
+  - 部门与成员均不选，分别查看三人入口
+  expected:
+  - 待确认：可见范围配置为「不选任何部门和成员」时，打卡应用是对通讯录内所有成员可见，还是对任何成员都不再可见？
+  status: pending_confirmation
+  source_context:
+    quote: 可见范围指能在手机中看到并使用打卡应用的人群范围，在打卡应用首页点击【修改】，从通讯录列表中选择部门和成员即可配置。
+    path: wiki/attendance-management/special-rules-and-approval.md
+    section: 打卡应用的可见范围

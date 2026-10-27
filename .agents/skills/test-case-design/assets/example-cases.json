@@ -1,0 +1,151 @@
+{
+  "title": "打卡管理",
+  "slug": "attendance-management",
+  "version": "v1.0",
+  "date": "2026-10-19",
+  "sources": [
+    {
+      "path": "wiki/attendance-management/attendance-rule-configuration.md",
+      "label": "打卡规则配置"
+    },
+    {
+      "path": "wiki/attendance-management/special-rules-and-approval.md",
+      "label": "特殊打卡规则与审批校准"
+    },
+    {
+      "path": "raw/attendance-management/wecom-attendance-management.md",
+      "label": "需求原文"
+    }
+  ],
+  "source_note": "唯一需求来源：wiki/attendance-management/ 下编译稿；用例中的入口、开关名、数值均取自原文",
+  "functional_points": {
+    "FP-01": {
+      "name": "规则类型与统计口径",
+      "doc": "attendance-rule-configuration.md",
+      "section": "三种规则类型"
+    },
+    "FP-02": {
+      "name": "打卡人员与白名单",
+      "doc": "attendance-rule-configuration.md",
+      "section": "打卡人员"
+    }
+  },
+  "points": {
+    "P1-1": {
+      "text": "自由上下班不得产出迟到/早退判定，只统计旷工",
+      "status": "覆盖"
+    },
+    "P1-2": {
+      "text": "白名单员工不参与打卡，且不出现在待打卡/异常名单",
+      "status": "部分覆盖"
+    }
+  },
+  "cases": [
+    {
+      "id": "TC-ATT-001",
+      "fp": "FP-01",
+      "scene": "规则创建",
+      "point": "固定时间上下班规则的创建与统一时间判定",
+      "title": "创建「固定时间上下班」规则，员工按相同时间打卡并被统一判定",
+      "methods": [
+        "场景法"
+      ],
+      "tags": [
+        "正向",
+        "冒烟"
+      ],
+      "severity": "S2",
+      "preconditions": "管理员已登录管理后台并具备打卡规则配置权限；企业通讯录中已有部门与成员",
+      "steps": [
+        "进入【管理后台】>【企业应用】>【打卡】>【上下班打卡】>【设置】>【添加规则】",
+        "规则类型选择「固定时间上下班」，打卡人员选择测试部门",
+        "打卡方式选择「手机打卡」，添加上班/下班时间并保存规则",
+        "让该部门员工在设定时间区间内完成上下班打卡"
+      ],
+      "expected": [
+        "规则保存成功，规则类型显示为「固定时间上下班」",
+        "同部门员工使用同一套上下班时间判定，状态按正常/迟到/早退输出"
+      ],
+      "context": {
+        "quote": "固定时间上下班：员工按照相同时间打卡，适合办公时间固定的上班族。",
+        "source": "wecom-attendance-management.md",
+        "path": "raw/attendance-management/wecom-attendance-management.md"
+      },
+      "covers": []
+    },
+    {
+      "id": "TC-ATT-002",
+      "fp": "FP-01",
+      "scene": "统计口径校验",
+      "point": "自由上下班只统计旷工、记录工作时长，不产生迟到/早退判定",
+      "title": "「自由上下班」规则下任意时间打卡，仅记录时长并只统计旷工",
+      "methods": [
+        "判定表"
+      ],
+      "tags": [
+        "正向",
+        "数据准确性"
+      ],
+      "severity": "S1",
+      "preconditions": "已配置「自由上下班」规则并绑定测试员工，当日该员工无审批单据",
+      "steps": [
+        "员工在上午 09:20 与下午 18:40 各打卡一次（非标准上下班时间）",
+        "次日查看该员工的打卡记录、工作时长与打卡状态",
+        "构造该员工全天无打卡记录的场景，再次查看统计结果"
+      ],
+      "expected": [
+        "两次打卡均被接受，工作时长被记录",
+        "不产生「迟到」「早退」状态，不按固定时间判定上下班",
+        "全天无打卡记录时计为旷工"
+      ],
+      "context": {
+        "quote": "关键差异在第三条：自由上下班只统计旷工，工作时长仅作记录，不按固定时间判定上下班。",
+        "source": "attendance-rule-configuration.md",
+        "path": "wiki/attendance-management/attendance-rule-configuration.md"
+      },
+      "covers": [
+        "P1-1"
+      ]
+    },
+    {
+      "id": "TC-ATT-003",
+      "fp": "FP-02",
+      "scene": "白名单豁免",
+      "point": "白名单内员工不参与打卡",
+      "title": "将员工加入规则白名单后，该员工不参与打卡也不产生待打卡任务",
+      "methods": [
+        "判定表"
+      ],
+      "tags": [
+        "异常",
+        "权限"
+      ],
+      "severity": "S2",
+      "preconditions": "已存在一条覆盖测试部门的固定时间规则；员工 B 属于该部门",
+      "steps": [
+        "在规则中将员工 B 配置进白名单并保存",
+        "员工 B 当日不打卡",
+        "次日查看员工 B 的打卡记录与待打卡名单"
+      ],
+      "expected": [
+        "员工 B 未被要求打卡，不产生缺卡/异常记录",
+        "移除白名单后，员工 B 恢复为需要打卡"
+      ],
+      "context": {
+        "quote": "领导或特殊员工可通过配置白名单，不参与打卡。",
+        "source": "attendance-rule-configuration.md",
+        "path": "wiki/attendance-management/attendance-rule-configuration.md"
+      },
+      "covers": [
+        "P1-2"
+      ]
+    }
+  ],
+  "open_items": [
+    {
+      "name": "白名单员工在跨规则场景下的豁免边界",
+      "case_id": "TC-ATT-003",
+      "note": "文档说明白名单是规则级豁免，未定义同一员工命中多条规则时的合并结果"
+    }
+  ]
+}
